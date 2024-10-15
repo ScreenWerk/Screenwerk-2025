@@ -85,7 +85,7 @@
             const screenItem = document.createElement('li')
             screenItem.textContent = screen.name
             screenItem.addEventListener('click', () => {
-              localStorage.setItem('selectedScreen', screen)
+              localStorage.setItem('selectedScreen', JSON.stringify(screen))
               window.location.href = 'index.html'
             })
             screenList.appendChild(screenItem)

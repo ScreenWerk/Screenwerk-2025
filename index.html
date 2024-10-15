@@ -10,13 +10,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Entu Screen</title>
     <script>
-        const screen = localStorage.getItem('selectedScreen')
+        const screen_json = localStorage.getItem('selectedScreen')
         // if there is no screen selected, redirect to screen selection page
         if (!screen) {
             window.location.href = 'screen_select.html'
         }
-        document.getElementById('screenId').textContent = screen
-        document.getElementById('screenName').textContent = localStorage.getItem('selectedScreenName')
+        const screen = JSON.parse(screen_json)
+        document.getElementById('screenId').textContent = screen.screen
+        document.getElementById('screenName').textContent = screen.name
     </script>
   </head>
   <body>
