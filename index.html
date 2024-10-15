@@ -12,7 +12,7 @@
   </head>
   <body>
     <h1>Entu ScreenWerk '25</h1>
-    <p>Screen id: <span id="screenId"></span></p>
+    <p>Screen id: <a id="screenId" href=""></a></p>
     <p>Screen name: <span id="screenName"></span></p>
   </body>
   <script>
@@ -22,7 +22,9 @@
         window.location.href = 'screen_select.html'
     }
     const screen = JSON.parse(screen_json)
-    document.getElementById('screenId').textContent = screen.screen
+    const screenIdElement = document.getElementById('screenId')
+    screenIdElement.textContent = screen.screen
+    screenIdElement.setAttribute('href', `https://entu.app/piletilevi/${screen.screen}`)
     document.getElementById('screenName').textContent = screen.name
   </script>
 </html>
