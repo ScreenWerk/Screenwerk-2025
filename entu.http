@@ -10,12 +10,27 @@ Accept-Encoding: deflate
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,published.string HTTP/1.1
 Accept-Encoding: deflate
 
 ###
 # GET sw_screen
-GET {{hostname}}/{{account}}/entity/510381f94ecca5c17a599cbf HTTP/1.1
+GET {{hostname}}/{{account}}/entity/568cd3464ecca5c17a599abb HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_screen_group
+GET {{hostname}}/{{account}}/entity/542557254ecca5c17a598bbf HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_configuration
+GET {{hostname}}/{{account}}/entity/5425570e4ecca5c17a598bbe HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_schedules
+GET {{hostname}}/{{account}}/entity?_type.string=sw_schedule&_parent.reference=5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 
 

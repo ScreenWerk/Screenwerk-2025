@@ -64,8 +64,10 @@
             }
             screenGroups[groupName].push(
               {
-                screen: screen._id, 
-                name: screen.name[0].string
+                id: screen._id, 
+                name: screen.name[0].string,
+                published: screen.published[0].string,
+                screen_group_id: screen.screen_group[0].reference
               }
             )
           } else {
