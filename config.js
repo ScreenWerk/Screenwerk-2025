@@ -62,7 +62,8 @@ async function get() {
     // fetch remote schedule.layout
     for (const sw_schedule of sw_schedules) {
       await expandProperty(sw_schedule, 'layout')
-      const sw_layout_playlists = await fetchChilds(sw_layout.id, 'sw_layout_playlist')
+      const sw_layout_id = sw_schedule.layout[0].reference
+      const sw_layout_playlists = await fetchChilds(sw_layout_id, 'sw_layout_playlist')
       if (!sw_layout_playlists) {
         console.log('sw_layout_playlists not found')
         throw new Error('sw_layout_playlists not found')
@@ -70,7 +71,8 @@ async function get() {
 
       for (const sw_layout_playlist of sw_layout_playlists) {
         await expandProperty(sw_layout_playlist, 'playlist')
-        const sw_playlist_medias = await fetchChilds(sw_playlist.id, 'sw_playlist_media')
+        const sw_playlist_id = sw_layout_playlist.playlist[0].reference
+        const sw_playlist_medias = await fetchChilds(sw_playlist_id, 'sw_playlist_media')
         if (!sw_playlist_medias) {
           console.log('sw_playlist_medias not found')
           throw new Error('sw_playlist_medias not found')
@@ -89,7 +91,7 @@ async function get() {
 const expandProperty = async(entity, property) => {
   for (const item of entity[property]) {
     const id = item.reference
-    item = await fetchEntity(id)
+    item.entity = await fetchEntity(id)
   }
 }
 
