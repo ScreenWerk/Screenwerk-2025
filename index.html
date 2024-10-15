@@ -8,20 +8,21 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entu Screen</title>
-    <script>
-        const screen_json = localStorage.getItem('selectedScreen')
-        // if there is no screen selected, redirect to screen selection page
-        if (!screen_json) {
-            window.location.href = 'screen_select.html'
-        }
-        const screen = JSON.parse(screen_json)
-        document.getElementById('screenId').textContent = screen.screen
-        document.getElementById('screenName').textContent = screen.name
-    </script>
+    <title>Entu ScreenWerk '25</title>
   </head>
   <body>
     <h1>Entu Screen</h1>
     <p>Screen id: <span id="screenId"></span></p>
     <p>Screen name: <span id="screenName"></span></p>
   </body>
+  <script>
+    const screen_json = localStorage.getItem('selectedScreen')
+    // if there is no screen selected, redirect to screen selection page
+    if (!screen_json) {
+        window.location.href = 'screen_select.html'
+    }
+    const screen = JSON.parse(screen_json)
+    document.getElementById('screenId').textContent = screen.screen
+    document.getElementById('screenName').textContent = screen.name
+  </script>
+</html>
