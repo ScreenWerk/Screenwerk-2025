@@ -53,15 +53,19 @@
         const response = await fetch(url)
         const data = await response.json()
         const entities = data.entities
-        console.log(`fetched ${entities.limit}/${entities.count} screens`)
+        console.log(`fetched ${data.limit}/${data.count} screens`)
         console.log(data)
         const screenGroups = {}
         data.entities.forEach(screen => {
-          const groupName = screen.screen_group[0].string
-          if (!screenGroups[groupName]) {
-            screenGroups[groupName] = []
+          if (screen.screen_group && screen.screen_group.length > 0) {
+            const groupName = screen.screen_group[0].string
+            if (!screenGroups[groupName]) {
+              screenGroups[groupName] = []
+            }
+            screenGroups[groupName].push({screen: screen._id, name: screen.name[0].string})
+          } else {
+            console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
-          screenGroups[groupName].push({screen: screen._id, name: screen.screen_group[0].string})
         })
         return screenGroups
       }

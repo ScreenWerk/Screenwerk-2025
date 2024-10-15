@@ -10,7 +10,7 @@ Accept-Encoding: deflate
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string HTTP/1.1
 Accept-Encoding: deflate
 
 ###
