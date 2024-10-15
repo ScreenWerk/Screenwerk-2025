@@ -1,0 +1,99 @@
+<!-- 
+ 0. disclaimer 
+   - no 3rd-party tools like jQuery
+   - avoid using unnecessary semicolon
+ 1. fetch all available screen groups and screens from 
+      @hostname=entu.app/api
+      @account=piletilevi
+    with request
+      GET {{hostname}}/{{account}}/entity?_type.string=sw_screen HTTP/1.1
+          Accept-Encoding: deflate
+    with response
+      {
+        "entities": [
+          {
+            "_id": "510381f94ecca5c17a599cbf",
+            "_parent": [
+              {
+                "_id": "510381f94ecca5c17a635660",
+                "reference": "510383194ecca5c17a59a116",
+                "string": "Maxima"
+              }
+            ],
+            "_sharing": [
+              {
+                "_id": "665607054ecca5c17a636d3d",
+                "string": "public"
+              }
+            ],
+            "_type": [
+              {
+                "_id": "510381f94ecca5c17a635661",
+                "reference": "665606334ecca5c17a59aa63",
+                "string": "sw_screen"
+              }
+            ]
+          },
+          ...
+        }
+
+ 2. display the list grouped by _parent.string
+ 3. save selected screen to local storage
+ -->
+<html>
+  <head>
+    <title>Screen Select</title>
+    <script>
+      const hostname = 'entu.app/api'
+      const account = 'piletilevi'
+      const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group.string`
+
+      async function fetchScreenGroups() {
+        // set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+        const response = await fetch(url, {mode: 'no-cors'})
+        await response.json()
+        const data = await response
+        const screenGroups = {}
+        data.entities.forEach(screen => {
+          const groupName = screen.screen_group[0].string
+          if (!screenGroups[groupName]) {
+            screenGroups[groupName] = []
+          }
+          screenGroups[groupName].push({screen: screen._id, name: screen.screen_group[0].string})
+        })
+        return screenGroups
+      }
+
+      function displayScreenGroups(screenGroups) {
+        const screenGroupList = document.getElementById('screen-group-list')
+        for (const groupName in screenGroups) {
+          const groupItem = document.createElement('li')
+          groupItem.textContent = groupName
+          const screenList = document.createElement('ul')
+          screenGroups[groupName].forEach(screen => {
+            const screenItem = document.createElement('li')
+            screenItem.textContent = screen.name
+            screenItem.addEventListener('click', () => {
+              localStorage.setItem('selectedScreen', screen.screen)
+              window.location.href = 'index.html'
+            })
+            screenList.appendChild(screenItem)
+          })
+          groupItem.appendChild(screenList)
+          screenGroupList.appendChild(groupItem)
+        }
+      }
+
+      async function main() {
+        const screenGroups = await fetchScreenGroups()
+        displayScreenGroups(screenGroups)
+      }
+
+      main()
+    </script>
+  </head>
+  <body>
+    <h1>Select Screen</h1>
+    <ul id="screen-group-list"></ul>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+@hostname=entu.app/api
+@account=piletilevi
+###
+# only requesting publicly available data
+
+###
+# account
+GET {{hostname}}/{{account}} HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET list of sw_screen's
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_screen
+GET {{hostname}}/{{account}}/entity/510381f94ecca5c17a599cbf HTTP/1.1
+Accept-Encoding: deflate
+
+
+###
+# auth
+GET {{hostname}}/auth?account={{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_key}}
+
+###
+# GET list of entities's
+GET {{hostname}}/{{account}}/entity?props=_id,_type.string&limit=50000 HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
