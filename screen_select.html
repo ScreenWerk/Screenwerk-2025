@@ -54,6 +54,7 @@
         const data = await response.json()
         const entities = data.entities
         console.log(`fetched ${entities.limit}/${entities.count} screens`)
+        console.log(data)
         const screenGroups = {}
         data.entities.forEach(screen => {
           const groupName = screen.screen_group[0].string
