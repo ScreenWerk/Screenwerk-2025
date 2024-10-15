@@ -106,5 +106,5 @@ const fetchEntity = async (id) => {
   const url = `https://${hostname}/${account}/entity/${id}`
   const response = await fetch(url)
   const data = await response.json()
-  return data
+  return data.entity
 }
