@@ -46,7 +46,7 @@
     <script>
       const hostname = 'entu.app/api'
       const account = 'piletilevi'
-      const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group.string,published.string&sort=name.string`
+      const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string`
 
       async function fetchScreenGroups() {
         // set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
