@@ -1,0 +1,26 @@
+<!-- 
+ Read screen id from local storage.
+ If it is missing, redirect to screen selection page.
+ -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entu Screen</title>
+    <script>
+        const screen = localStorage.getItem('selectedScreen')
+        // if there is no screen selected, redirect to screen selection page
+        if (!screen) {
+            window.location.href = 'screen_select.html'
+        }
+        document.getElementById('screenId').textContent = screen
+        document.getElementById('screenName').textContent = localStorage.getItem('selectedScreenName')
+    </script>
+  </head>
+  <body>
+    <h1>Entu Screen</h1>
+    <p>Screen id: <span id="screen.screen"></span></p>
+    <p>Screen name: <span id="screen.name"></span></p>
+  </body>
