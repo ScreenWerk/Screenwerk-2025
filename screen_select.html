@@ -51,8 +51,7 @@
       async function fetchScreenGroups() {
         // set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
         const response = await fetch(url, {mode: 'no-cors'})
-        console.log(await response.json())
-        const data = await response
+        const data = await response.json()
         const screenGroups = {}
         data.entities.forEach(screen => {
           const groupName = screen.screen_group[0].string
