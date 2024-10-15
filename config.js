@@ -102,7 +102,7 @@ const fetchChilds = async (id, type = null) => {
   const url = `https://${hostname}/${account}/entity?${e_type}_parent.reference=${id}`
   const response = await fetch(url)
   const data = await response.json()
-  return data
+  return data.entities
 }
 
 const fetchEntity = async (id) => {
