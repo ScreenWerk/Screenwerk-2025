@@ -26,13 +26,20 @@ async function get() {
   const selectedScreen = JSON.parse(localStorage.getItem('selectedScreen'))
   const screen_id = selectedScreen.id
   const screen_group_id = selectedScreen.screen_group_id
-  const published = selectedScreen.published
+
+  // true, if selected screen has saved schedule in localStore
+  const compiled = `schedule_${screen_id}` in localStorage
+  // null, if selected screen has no saved schedule in localStore
+  const compiled_schedule = JSON.parse(localStorage.getItem(`schedule_${screen_id}`))
+  const local_published = compiled ? compiled_schedule.published[0].string : '0'
 
   // read remote screen
   const remote_screen = await fetchEntity(screen_id)
   const remote_published = remote_screen.published[0].string
 
-  if (remote_published > published) {
+  if (compiled && remote_published <= local_published) {
+    return compiled_schedule
+  } else {
     // fetch remote configuration
     const sw_screen_group = await fetchEntity(screen_group_id)
     if (!sw_screen_group) {
@@ -75,12 +82,8 @@ async function get() {
       }
     }
 
-    console.log(sw_schedules)
-
-    // compile and store configuration
+    return sw_schedules
   }
-  console.log(data)
-  return {}
 }
 
 const expandProperty = async(entity, property) => {
