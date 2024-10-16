@@ -22,7 +22,7 @@
 const hostname = 'entu.app/api'
 const account = 'piletilevi'
 
-async function getConfiguration() {
+async function getConfiguration(callback) {
   const selectedScreen = JSON.parse(localStorage.getItem('selectedScreen'))
   const screen_id = selectedScreen.id
   const screen_group_id = selectedScreen.screen_group_id
@@ -38,6 +38,7 @@ async function getConfiguration() {
   const remote_published = remote_screen.published[0].string
 
   if (compiled && remote_published <= local_published) {
+    callback(compiled_schedule)
     return compiled_schedule
   } else {
     // fetch remote configuration
@@ -83,7 +84,7 @@ async function getConfiguration() {
         }
       }
     }
-
+    callback(sw_schedules)
     return sw_schedules
   }
 }
