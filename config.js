@@ -91,7 +91,11 @@ async function getConfiguration() {
 const expandProperty = async(entity, property) => {
   for (const item of entity[property]) {
     const id = item.reference
-    item.entity = await fetchEntity(id)
+    try {
+      item.entity = await fetchEntity(id)
+    } catch (error) {
+      console.log(`Error fetching ${property} ${id}: ${error.message}`)
+    }
   }
 }
 
