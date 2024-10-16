@@ -33,6 +33,16 @@ Accept-Encoding: deflate
 GET {{hostname}}/{{account}}/entity?_type.string=sw_schedule&_parent.reference=5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 
+###
+# GET sw_layout_playlists
+GET {{hostname}}/{{account}}/entity?_type.string=sw_layout_playlist&_parent.reference=5425473e4ecca5c17a598bba HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_playlist_medias
+GET {{hostname}}/{{account}}/entity?_type.string=sw_playlist_media&_parent.reference=5476deae4ecca5c17a598d9a HTTP/1.1
+Accept-Encoding: deflate
+
 
 ###
 # auth
