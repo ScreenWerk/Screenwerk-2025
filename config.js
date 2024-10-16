@@ -106,9 +106,14 @@ const fetchChilds = async (id, type = null) => {
     e_type = `_type.string=${type}&`
   }
   const url = `https://${hostname}/${account}/entity?${e_type}_parent.reference=${id}`
-  const response = await fetch(url)
-  const data = await response.json()
-  return data.entities
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    return data.entities
+  } catch (error) {
+    console.log(`Error fetching childs ${id}: ${error.message}`)
+    return null
+  }
 }
 
 const fetchEntity = async (id) => {
