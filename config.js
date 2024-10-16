@@ -113,7 +113,12 @@ const fetchChilds = async (id, type = null) => {
 
 const fetchEntity = async (id) => {
   const url = `https://${hostname}/${account}/entity/${id}`
-  const response = await fetch(url)
-  const data = await response.json()
-  return data.entity
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    return data.entity
+  } catch (error) {
+    console.log(`Error fetching entity ${id}: ${error.message}`)
+    return null
+  }
 }
