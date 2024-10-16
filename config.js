@@ -22,7 +22,7 @@
 const hostname = 'entu.app/api'
 const account = 'piletilevi'
 
-async function get() {
+async function getConfiguration() {
   const selectedScreen = JSON.parse(localStorage.getItem('selectedScreen'))
   const screen_id = selectedScreen.id
   const screen_group_id = selectedScreen.screen_group_id
