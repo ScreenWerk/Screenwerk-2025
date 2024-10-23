@@ -151,7 +151,7 @@ const distill = (conf_in) => {
           const sw_playlist = layout_playlist.playlist[0].entity
           return {
             lp_id: layout_playlist._id, // of layout_playlist
-            lp_name: layout_playlist.name[0].string,
+            // lp_name: layout_playlist.name[0].string,
             _id: sw_playlist._id,
             name: sw_playlist.name[0].string,
             height: layout_playlist.height[0].number,
@@ -163,10 +163,11 @@ const distill = (conf_in) => {
               const sw_media = playlist_media.media[0].entity
               return {
                 pm_id: playlist_media._id,
-                pm_name: playlist_media.name[0].string,
-                name: playlist_media.name[0].string,
-                media: playlist_media.media[0].entity._id,
-                media_name: playlist_media.media[0].entity.name[0].string,
+                // pm_name: playlist_media.name[0].string,
+                _id: sw_media._id,
+                name: sw_media.name[0].string,
+                type: sw_media.type[0].string,
+                file: sw_media.file[0],
               }
             })
           }

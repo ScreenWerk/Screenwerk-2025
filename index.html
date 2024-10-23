@@ -16,6 +16,7 @@
     <p>Screen id: <a id="screenId" href=""></a></p>
     <p>Screen name: <span id="screenName"></span></p>
     <p>Configuration: <pre id="configuration"></pre></p>
+    <p>Distilled: <pre id="distilled"></pre></p>
   </body>
   <script>
     const screen_json = localStorage.getItem('selectedScreen')
@@ -29,9 +30,11 @@
     screenIdElement.setAttribute('href', `https://entu.app/piletilevi/${screen.id}`)
     document.getElementById('screenName').textContent = screen.name
 
-    const configuration = getConfiguration((configuration) => {
+    const configuration = await getConfiguration((configuration) => {
       console.log('Configuration loaded', configuration)
       document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
     })
+    const distilled = distill(configuration)
+    document.getElementById('distilled').textContent = JSON.stringify(distilled, null, 2)
   </script>
 </html>
