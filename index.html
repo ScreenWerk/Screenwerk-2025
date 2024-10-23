@@ -30,7 +30,7 @@
     screenIdElement.setAttribute('href', `https://entu.app/piletilevi/${screen.id}`)
     document.getElementById('screenName').textContent = screen.name
 
-    const configuration = await getConfiguration((configuration) => {
+    const configuration = getConfiguration((configuration) => {
       console.log('Configuration loaded', configuration)
       document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
     })
