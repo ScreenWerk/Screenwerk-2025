@@ -81,6 +81,8 @@ async function getConfiguration(callback) {
           console.log('sw_playlist_medias not found')
           throw new Error('sw_playlist_medias not found')
         }
+        console.log(`sw_playlist_medias: ${sw_playlist_medias.length}`)
+        console.log(sw_playlist_medias)
         sw_playlist.medias = sw_playlist_medias
 
         for (const sw_playlist_media of sw_playlist_medias) {
@@ -139,9 +141,36 @@ const distill = (conf_in) => {
   const conf_out = conf_in.map(schedule => {
     return {
       _id: schedule._id,
-      cleanup: schedule.cleanup.boolean,
-      crontab: schedule.crontab.string,
-      layout: schedule.layout[0]
+      cleanup: schedule.cleanup[0].boolean,
+      crontab: schedule.crontab[0].string,
+      layout: {
+        _id: schedule.layout[0].entity._id,
+        name: schedule.layout[0].entity.name[0].string,
+        playlists: schedule.layout[0].entity.playlists.map(layout_playlist => {
+          const sw_playlist = layout_playlist.playlist[0].entity
+          return {
+            lp_id: layout_playlist._id, // of layout_playlist
+            lp_name: layout_playlist.name[0].string,
+            _id: sw_playlist._id,
+            name: sw_playlist.name[0].string,
+            height: layout_playlist.height[0].number,
+            width: layout_playlist.width[0].number,
+            top: layout_playlist.top[0].number,
+            left: layout_playlist.left[0].number,
+            loop: layout_playlist.loop[0].boolean,
+            medias: sw_playlist.medias.map(playlist_media => {
+              const sw_media = playlist_media.media[0].entity
+              return {
+                pm_id: playlist_media._id,
+                pm_name: playlist_media.name[0].string,
+                name: playlist_media.name[0].string,
+                media: playlist_media.media[0].entity._id,
+                media_name: playlist_media.media[0].entity.name[0].string,
+              }
+            })
+          }
+        })
+      }
     }    
   })
   return conf_out
