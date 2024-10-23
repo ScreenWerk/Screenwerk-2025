@@ -90,7 +90,8 @@ async function getConfiguration(callback) {
         }
       }
     }
-    callback(distill(sw_schedules))
+    callback(sw_schedules)
+    // callback(distill(sw_schedules))
     return sw_schedules
   }
 }
