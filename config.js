@@ -88,7 +88,7 @@ async function getConfiguration(callback) {
         }
       }
     }
-    callback(sw_schedules)
+    callback(distill(sw_schedules))
     return sw_schedules
   }
 }
@@ -131,4 +131,18 @@ const fetchEntity = async (id) => {
     console.log(`Error fetching entity ${id}: ${error.message}`)
     return null
   }
+}
+
+// distill configuration to have only information essential
+// for player
+const distill = (conf_in) => {
+  const conf_out = conf_in.map(schedule => {
+    return {
+      _id: schedule._id,
+      cleanup: schedule.cleanup.boolean,
+      crontab: schedule.crontab.string,
+      layout: schedule.layout[0]
+    }    
+  })
+  return conf_out
 }
