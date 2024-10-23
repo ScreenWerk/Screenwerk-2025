@@ -74,12 +74,14 @@ async function getConfiguration(callback) {
 
       for (const sw_layout_playlist of sw_layout_playlists) {
         await expandProperty(sw_layout_playlist, 'playlist')
-        const sw_playlist_id = sw_layout_playlist.playlist[0].reference
+        const sw_playlist = sw_layout_playlist.playlist[0].entity
+        const sw_playlist_id = sw_playlist._id
         const sw_playlist_medias = await fetchChilds(sw_playlist_id, 'sw_playlist_media')
         if (!sw_playlist_medias) {
           console.log('sw_playlist_medias not found')
           throw new Error('sw_playlist_medias not found')
         }
+        sw_playlist.medias = sw_playlist_medias
 
         for (const sw_playlist_media of sw_playlist_medias) {
           await expandProperty(sw_playlist_media, 'media')
