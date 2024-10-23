@@ -63,12 +63,14 @@ async function getConfiguration(callback) {
     // fetch remote schedule.layout
     for (const sw_schedule of sw_schedules) {
       await expandProperty(sw_schedule, 'layout')
-      const sw_layout_id = sw_schedule.layout[0].reference
+      const sw_layout = sw_schedule.layout[0].entity
+      const sw_layout_id = sw_layout._id
       const sw_layout_playlists = await fetchChilds(sw_layout_id, 'sw_layout_playlist')
       if (!sw_layout_playlists) {
         console.log('sw_layout_playlists not found')
         throw new Error('sw_layout_playlists not found')
       }
+      sw_layout.playlists = sw_layout_playlists
 
       for (const sw_layout_playlist of sw_layout_playlists) {
         await expandProperty(sw_layout_playlist, 'playlist')
