@@ -63,21 +63,27 @@ async function getConfiguration(callback) {
     // fetch remote schedule.layout
     for (const sw_schedule of sw_schedules) {
       await expandProperty(sw_schedule, 'layout')
-      const sw_layout_id = sw_schedule.layout[0].reference
+      const sw_layout = sw_schedule.layout[0].entity
+      const sw_layout_id = sw_layout._id
       const sw_layout_playlists = await fetchChilds(sw_layout_id, 'sw_layout_playlist')
       if (!sw_layout_playlists) {
         console.log('sw_layout_playlists not found')
         throw new Error('sw_layout_playlists not found')
       }
+      sw_layout.playlists = sw_layout_playlists
 
       for (const sw_layout_playlist of sw_layout_playlists) {
         await expandProperty(sw_layout_playlist, 'playlist')
-        const sw_playlist_id = sw_layout_playlist.playlist[0].reference
+        const sw_playlist = sw_layout_playlist.playlist[0].entity
+        const sw_playlist_id = sw_playlist._id
         const sw_playlist_medias = await fetchChilds(sw_playlist_id, 'sw_playlist_media')
         if (!sw_playlist_medias) {
           console.log('sw_playlist_medias not found')
           throw new Error('sw_playlist_medias not found')
         }
+        console.log(`sw_playlist_medias: ${sw_playlist_medias.length}`)
+        console.log(sw_playlist_medias)
+        sw_playlist.medias = sw_playlist_medias
 
         for (const sw_playlist_media of sw_playlist_medias) {
           await expandProperty(sw_playlist_media, 'media')
@@ -85,6 +91,7 @@ async function getConfiguration(callback) {
       }
     }
     callback(sw_schedules)
+    // callback(distill(sw_schedules))
     return sw_schedules
   }
 }
@@ -121,10 +128,53 @@ const fetchEntity = async (id) => {
   const url = `https://${hostname}/${account}/entity/${id}`
   try {
     const response = await fetch(url)
+    console.log(response)
     const data = await response.json()
     return data.entity
   } catch (error) {
     console.log(`Error fetching entity ${id}: ${error.message}`)
     return null
   }
+}
+
+// distill configuration to have only information essential
+// for player
+const distill = (conf_in) => {
+  const conf_out = conf_in.map(schedule => {
+    return {
+      _id: schedule._id,
+      cleanup: schedule.cleanup[0].boolean,
+      crontab: schedule.crontab[0].string,
+      layout: {
+        _id: schedule.layout[0].entity._id,
+        name: schedule.layout[0].entity.name[0].string,
+        playlists: schedule.layout[0].entity.playlists.map(layout_playlist => {
+          const sw_playlist = layout_playlist.playlist[0].entity
+          return {
+            lp_id: layout_playlist._id, // of layout_playlist
+            // lp_name: layout_playlist.name[0].string,
+            _id: sw_playlist._id,
+            name: sw_playlist.name[0].string,
+            height: layout_playlist.height[0].number,
+            width: layout_playlist.width[0].number,
+            top: layout_playlist.top[0].number,
+            left: layout_playlist.left[0].number,
+            loop: layout_playlist.loop[0].boolean,
+            medias: sw_playlist.medias.map(playlist_media => {
+              const sw_media = playlist_media.media[0].entity
+              return {
+                pm_id: playlist_media._id,
+                // pm_name: playlist_media.name[0].string,
+                _id: sw_media._id,
+                name: sw_media.name[0].string,
+                type: sw_media.type[0].string,
+                file: sw_media.file[0],
+              }
+            })
+          }
+        })
+      }
+    }    
+  })
+  return conf_out
 }
