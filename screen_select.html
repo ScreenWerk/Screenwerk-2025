@@ -83,12 +83,10 @@
         return screenGroups
       }
 
-      async function main() {
+      window.onload = async function () {
         const screenGroups = await fetchScreenGroups()
         alert ('Conigurations loaded')
       }
-
-      main()
     </script>
   </head>
   <body>
