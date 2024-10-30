@@ -64,9 +64,9 @@
             if (!screenGroups[groupName]) {
               screenGroups[groupName] = []
               const newGroupItem = document.createElement('li')
-              groupItem.textContent = groupName
-              groupItem.id = screen.screen_group[0].reference
-              screenGroupList_E.appendChild(groupItem)
+              newGroupItem.textContent = groupName
+              newGroupItem.id = screen.screen_group[0].reference
+              screenGroupList_E.appendChild(newGroupItem)
             }
             const groupItem = document.getElementById(screen.screen_group[0].reference)
             const screenItem = document.createElement('li')
