@@ -63,7 +63,7 @@
             const groupName = screen.screen_group[0].string
             const groupId = screen.screen_group[0].reference
             // if new group, register its id in array
-            if (!screenGroupIds.includes(groupId))
+            if (!screenGroupIds.includes(groupId)) {
               screenGroupIds.push(groupId)
 
               const newGroupItem = document.createElement('li')
