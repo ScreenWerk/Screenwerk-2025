@@ -44,12 +44,14 @@
   <head>
     <title>Screen Select</title>
     <script>
+      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/'
       const hostname = 'entu.app/api'
       const account = 'piletilevi'
       const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
+      
+      const screenGroupList_E = document.getElementById('screen-group-list')
 
       async function fetchScreenGroups() {
-        // set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
         const response = await fetch(url)
         const data = await response.json()
         const entities = data.entities
@@ -61,15 +63,19 @@
             const groupName = screen.screen_group[0].string
             if (!screenGroups[groupName]) {
               screenGroups[groupName] = []
+              const newGroupItem = document.createElement('li')
+              groupItem.textContent = groupName
+              groupItem.id = screen.screen_group[0].reference
+              screenGroupList_E.appendChild(groupItem)
             }
-            screenGroups[groupName].push(
-              {
-                id: screen._id, 
-                name: screen.name[0].string,
-                published: screen.published[0].string,
-                screen_group_id: screen.screen_group[0].reference
-              }
-            )
+            const groupItem = document.getElementById(screen.screen_group[0].reference)
+            const screenItem = document.createElement('li')
+            screenItem.textContent = screen.name[0].string
+            screenItem.addEventListener('click', () => {
+              localStorage.setItem('selectedScreen', JSON.stringify(screen))
+              window.location.href = 'index.html'
+            })
+            groupItem.appendChild(screenItem)
           } else {
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
@@ -77,29 +83,9 @@
         return screenGroups
       }
 
-      function displayScreenGroups(screenGroups) {
-        const screenGroupList = document.getElementById('screen-group-list')
-        for (const groupName in screenGroups) {
-          const groupItem = document.createElement('li')
-          groupItem.textContent = groupName
-          const screenList = document.createElement('ul')
-          screenGroups[groupName].forEach(screen => {
-            const screenItem = document.createElement('li')
-            screenItem.textContent = screen.name
-            screenItem.addEventListener('click', () => {
-              localStorage.setItem('selectedScreen', JSON.stringify(screen))
-              window.location.href = 'index.html'
-            })
-            screenList.appendChild(screenItem)
-          })
-          groupItem.appendChild(screenList)
-          screenGroupList.appendChild(groupItem)
-        }
-      }
-
       async function main() {
         const screenGroups = await fetchScreenGroups()
-        displayScreenGroups(screenGroups)
+        alert ('Conigurations loaded')
       }
 
       main()
