@@ -64,18 +64,21 @@
             if (!screenGroups[groupName]) {
               screenGroups[groupName] = []
               const newGroupItem = document.createElement('li')
+              const newScreenItems = document.createElement('ul')
+              newGroupItem.appendChild(newScreenItems)
               newGroupItem.textContent = groupName
               newGroupItem.id = screen.screen_group[0].reference
               screenGroupList_E.appendChild(newGroupItem)
             }
             const groupItem = document.getElementById(screen.screen_group[0].reference)
+            const screenItems = groupItem.querySelector('ul')
             const screenItem = document.createElement('li')
             screenItem.textContent = screen.name[0].string
             screenItem.addEventListener('click', () => {
               localStorage.setItem('selectedScreen', JSON.stringify(screen))
               window.location.href = 'index.html'
             })
-            groupItem.appendChild(screenItem)
+            screenItems.appendChild(screenItem)
           } else {
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
