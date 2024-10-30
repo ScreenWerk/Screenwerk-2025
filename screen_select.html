@@ -65,12 +65,12 @@
             if (!groupId in screenGroups) {
               screenGroups.push(groupId)
               const newGroupItem = document.createElement('li')
-              const newScreenItems = document.createElement('ul')
               newGroupItem.id = groupId
               newGroupItem.className = 'pending'
-
-              newGroupItem.appendChild(newScreenItems)
+              
               newGroupItem.textContent = groupName
+              const newScreenItems = document.createElement('ul')
+              newGroupItem.appendChild(newScreenItems)
               screenGroupList_E.appendChild(newGroupItem)
             }
             const groupItem = document.getElementById(groupId)
