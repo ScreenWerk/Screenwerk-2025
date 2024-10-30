@@ -44,7 +44,7 @@
   <head>
     <title>Screen Select</title>
     <script>
-      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/'
+      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID to load configuration
       const hostname = 'entu.app/api'
       const account = 'piletilevi'
       const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
@@ -62,17 +62,22 @@
           if (screen.screen_group && screen.screen_group.length > 0) {
             const groupName = screen.screen_group[0].string
             if (!screenGroups[groupName]) {
-              screenGroups[groupName] = []
+              screenGroups[groupName] = ''
               const newGroupItem = document.createElement('li')
               const newScreenItems = document.createElement('ul')
+              newGroupItem.id = screen.screen_group[0].reference
+              newGroupItem.className = 'pending'
+
               newGroupItem.appendChild(newScreenItems)
               newGroupItem.textContent = groupName
-              newGroupItem.id = screen.screen_group[0].reference
               screenGroupList_E.appendChild(newGroupItem)
             }
             const groupItem = document.getElementById(screen.screen_group[0].reference)
             const screenItems = groupItem.querySelector('ul')
             const screenItem = document.createElement('li')
+            screenItem.id = screen._id
+            screenItem.className = 'pending'
+
             screenItem.textContent = screen.name[0].string
             screenItem.addEventListener('click', () => {
               localStorage.setItem('selectedScreen', JSON.stringify(screen))
@@ -83,12 +88,19 @@
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
         })
-        return screenGroups
+        return entities
       }
 
       window.onload = async function () {
-        const screenGroups = await fetchScreenGroups()
-        alert ('Conigurations loaded')
+        const screens = await fetchScreenGroups()
+        // load configurations from publisher API
+        for (const screen of screens) {
+          const screenItem = document.getElementById(screen._id)
+          const response = await fetch(SCREENWERK_PUBLISHER_API + screen._id)
+          const data = await response.json()
+          console.log(`screen ${screen._id} published at ${screen.published[0].string}`)
+          screenItem.className = 'loaded'
+        }
       }
     </script>
   </head>
