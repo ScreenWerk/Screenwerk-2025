@@ -57,22 +57,23 @@
         console.log(`fetched ${data.limit}/${data.count} screens`)
         const entities = data.entities
         console.log(entities)
-        const screenGroups = {}
+        const screenGroups = []
         entities.forEach(screen => {
           if (screen.screen_group && screen.screen_group.length > 0) {
             const groupName = screen.screen_group[0].string
-            if (!screenGroups[groupName]) {
-              screenGroups[groupName] = ''
+            const groupId = screen.screen_group[0].reference
+            if (!groupId in screenGroups) {
+              screenGroups.push(groupId)
               const newGroupItem = document.createElement('li')
               const newScreenItems = document.createElement('ul')
-              newGroupItem.id = screen.screen_group[0].reference
+              newGroupItem.id = groupId
               newGroupItem.className = 'pending'
 
               newGroupItem.appendChild(newScreenItems)
               newGroupItem.textContent = groupName
               screenGroupList_E.appendChild(newGroupItem)
             }
-            const groupItem = document.getElementById(screen.screen_group[0].reference)
+            const groupItem = document.getElementById(groupId)
             const screenItems = groupItem.querySelector('ul')
             const screenItem = document.createElement('li')
             screenItem.id = screen._id
