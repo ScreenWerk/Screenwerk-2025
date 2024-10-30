@@ -57,13 +57,15 @@
         console.log(`fetched ${data.limit}/${data.count} screens`)
         const entities = data.entities
         console.log(entities)
-        const screenGroups = []
+        const screenGroupIds = []
         entities.forEach(screen => {
           if (screen.screen_group && screen.screen_group.length > 0) {
             const groupName = screen.screen_group[0].string
             const groupId = screen.screen_group[0].reference
-            if (!groupId in screenGroups) {
-              screenGroups.push(groupId)
+            // if new group, register its id in array
+            if (!screenGroupIds.includes(groupId))
+              screenGroupIds.push(groupId)
+
               const newGroupItem = document.createElement('li')
               newGroupItem.id = groupId
               newGroupItem.className = 'pending'
