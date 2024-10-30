@@ -49,9 +49,9 @@
       const account = 'piletilevi'
       const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
       
-      const screenGroupList_E = document.getElementById('screen-group-list')
-
+      
       async function fetchScreenGroups() {
+        const screenGroupList_E = document.getElementById('screen-group-list')
         const response = await fetch(url)
         const data = await response.json()
         const entities = data.entities
