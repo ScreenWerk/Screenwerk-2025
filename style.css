@@ -1,0 +1,29 @@
+li.screen-item.pending {
+    background-color: rgb(255, 200, 178);
+}
+
+li.screen-item.completed {
+    color: green;
+}
+
+li.screen-item.errored {
+    color: red;
+}
+
+li.on-hover {
+    cursor: pointer;
+}
+
+li.on-hover:hover {
+    font-weight: bolder;
+}
+
+li.on-hover.active {
+    color: blue;
+    text-transform: uppercase;
+    text-decoration-line: underline;
+}
+
+li.on-hover:visited {
+    color: purple;
+}

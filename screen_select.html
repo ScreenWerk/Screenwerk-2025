@@ -43,6 +43,8 @@
 <html>
   <head>
     <title>Screen Select</title>
+    <!-- style -->
+    <link href="style.css" rel="stylesheet">
     <script>
       const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID to load configuration
       const hostname = 'entu.app/api'
@@ -79,7 +81,8 @@
             const screenItems = groupItem.querySelector('ul')
             const screenItem = document.createElement('li')
             screenItem.id = screen._id
-            screenItem.className = 'pending'
+            screenItem.className = 'pending screen-item on-hover'
+            screenItem.classList.add('foo')
 
             screenItem.textContent = screen.name[0].string
             screenItem.addEventListener('click', () => {
@@ -99,7 +102,7 @@
         // load configurations from publisher API
         for (const screen of screens) {
           const screenItem = document.getElementById(screen._id)
-          const response = await fetch(SCREENWERK_PUBLISHER_API + screen._id)
+          const response = await fetch(SCREENWERK_PUBLISHER_API + screen._id, mode = 'no-cors') // no cors
           const data = await response.json()
           console.log(`screen ${screen._id} published at ${screen.published[0].string}`)
           screenItem.className = 'loaded'
