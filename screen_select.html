@@ -46,33 +46,127 @@
     <!-- style -->
     <link href="style.css" rel="stylesheet">
     <script>
-      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID to load configuration
-      const hostname = 'entu.app/api'
-      const account = 'piletilevi'
-      const url = `https://${hostname}/${account}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
+      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
+      const HOSTNAME = 'entu.app/api'
+      const ACCOUNT = 'piletilevi'
+      const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
+      const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
+
+      var sgList, sgIter
       
-      
+      class Iterable {
+        constructor(seed_array) {
+          //adding items to an array
+          this.items = [].concat(seed_array || [])
+        }
+        // pushing an item to the array
+        add(item) {
+          this.items.push(item)
+        }
+        // report count of items
+        get count() {
+          return this.items.length
+        }
+        // report, if there are items left
+        get hasItems() {
+          return this.items.length > 0
+        }
+        
+        //implement iterator function
+        [Symbol.iterator](){
+          let items = this.items
+          return {
+            next: async function() {
+              async function fetchFromPublisher(screen_id) {
+                const u = SCREENWERK_PUBLISHER_API + screen_id + '.json'
+                const r = await fetch(u)
+                if (r.status === 200) {
+                  return await r.json()
+                }
+                else return false
+              }
+              async function fetchFromEntu(screen_id) {
+                const u = `${ENTU_ENTITY_URL}/${screen_id}`
+                const r = await fetch(u)
+                return await r.json()
+              }
+              //retrieving an item from the array
+              if (items.length) {
+                const item = items.shift()
+                const screen_id = item.screen_id
+                const screengroup_id = item.screengroup_id
+                  return {
+                    value: {
+                      screengroup_id: screengroup_id,
+                      swpublisher: await fetchFromPublisher(screen_id),
+                      entu_screengroup: await fetchFromEntu(screengroup_id)
+                    },
+                    done: false
+                  }
+              }
+              //return true if all items are iterated
+              return { done:true }
+            }
+          }
+        }
+      }
+
+      function toDateTimeString(ISODate) {
+        return ISODate.slice(0, 10) + '\n' + ISODate.slice(11, 19)
+      }
+
+      // async function fetchScreenGroup(id) {}
+
       async function fetchScreenGroups() {
+        const sgList = new Iterable([])
+
         const screenGroupList_E = document.getElementById('screen-group-list')
-        const response = await fetch(url)
+        const response = await fetch(ENTU_SCREENS_URL)
         const data = await response.json()
         console.log(`fetched ${data.limit}/${data.count} screens`)
         const entities = data.entities
         console.log(entities)
+
         const screenGroupIds = []
-        entities.forEach(screen => {
+        const selectedScreen = JSON.parse(localStorage.getItem('selectedScreen') || '{}')
+        console.log(`selected screen: ${selectedScreen}`)
+        entities.forEach(async screen => {
           if (screen.screen_group && screen.screen_group.length > 0) {
             const groupName = screen.screen_group[0].string
             const groupId = screen.screen_group[0].reference
-            // if new group, register its id in array
+
+            // if new group, register it
             if (!screenGroupIds.includes(groupId)) {
               screenGroupIds.push(groupId)
+              
+              // also enqueue the group for configuration retrieval
+              // const newScreenGroup = await fetchScreenGroup(groupId)
+              // console.log(`new group: ${groupName} from Entu:`, newScreenGroup)
+              sgList.add({
+                screen_id: screen._id,
+                screengroup_id: groupId
+              })
 
               const newGroupItem = document.createElement('li')
               newGroupItem.id = groupId
-              newGroupItem.className = 'pending'
+              newGroupItem.className = 'screen-group'
               
               newGroupItem.textContent = groupName
+
+              const publishedElement = document.createElement('div')
+              publishedElement.id = 'dates'
+              newGroupItem.appendChild(publishedElement)
+
+              const entuPublishedElement = document.createElement('pre')
+              entuPublishedElement.id = 'ePublished'
+              publishedElement.appendChild(entuPublishedElement)
+              // entuPublishedElement.textContent = 'Entu: ' + toDateTimeString(screen.published[0].string)
+
+              const swPublishedElement = document.createElement('pre')
+              swPublishedElement.id = 'swPublished'
+              publishedElement.appendChild(swPublishedElement)
+              // localPublishedElement.textContent = 'Local: '
+
               const newScreenItems = document.createElement('ul')
               newGroupItem.appendChild(newScreenItems)
               screenGroupList_E.appendChild(newGroupItem)
@@ -80,11 +174,20 @@
             const groupItem = document.getElementById(groupId)
             const screenItems = groupItem.querySelector('ul')
             const screenItem = document.createElement('li')
+
+
             screenItem.id = screen._id
-            screenItem.className = 'pending screen-item on-hover'
-            screenItem.classList.add('foo')
+            screenItem.className = 'screen-item on-hover'
+            if (selectedScreen._id === screen._id) {
+              screenItem.classList.add('active')
+            }
 
             screenItem.textContent = screen.name[0].string
+
+            const statusElement = document.createElement('span')
+            statusElement.id = 'status'
+            screenItem.appendChild(statusElement)
+
             screenItem.addEventListener('click', () => {
               localStorage.setItem('selectedScreen', JSON.stringify(screen))
               window.location.href = 'index.html'
@@ -94,18 +197,38 @@
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
         })
-        return entities
+        return sgList
       }
 
       window.onload = async function () {
-        const screens = await fetchScreenGroups()
-        // load configurations from publisher API
-        for (const screen of screens) {
-          const screenItem = document.getElementById(screen._id)
-          const response = await fetch(SCREENWERK_PUBLISHER_API + screen._id, mode = 'no-cors') // no cors
-          const data = await response.json()
-          console.log(`screen ${screen._id} published at ${screen.published[0].string}`)
-          screenItem.className = 'loaded'
+        sgList = await fetchScreenGroups()
+        sgIter = sgList[Symbol.iterator]()
+
+        // screengrouploop:
+        while (true) {
+          const next = (await sgIter.next())
+          // console.log(next)
+          if (next.done) break
+          
+          const screengroup_id = next.value.screengroup_id
+          // console.log(`Update dates for ${screengroup_id}`)
+          const screenGroupItem = document.getElementById(screengroup_id)
+          if (screenGroupItem) {
+            const entuPubDate = next.value.entu_screengroup.entity.published[0].datetime
+            // console.log(entuPubDate)
+            if (entuPubDate) {
+              const entuPubDateElement = screenGroupItem.querySelector('#ePublished')
+              entuPubDateElement.textContent = 'Entu: ' + toDateTimeString(entuPubDate)
+            }
+
+            if (next.value.swpublisher) {
+              const swpublisherPubDate = next.value.swpublisher.publishedAt
+              const swpublisherPubDateElement = screenGroupItem.querySelector('#swPublished')
+              swpublisherPubDateElement.textContent = 'SWPublisher: ' + toDateTimeString(swpublisherPubDate)
+            }
+          } else {
+            null
+          }
         }
       }
     </script>

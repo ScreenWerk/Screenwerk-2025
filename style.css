@@ -1,5 +1,30 @@
-li.screen-item.pending {
-    background-color: rgb(255, 200, 178);
+li.screen-group {
+    clear: both;
+    min-height: 4em;
+}
+
+li.screen-group>#dates {
+    float: right;
+    margin: 0em;
+}
+
+li.screen-group #swPublished,
+li.screen-group #ePublished {
+    color: darkgreen;
+    text-align: end;
+    font-size: smaller;
+    margin: 0em;
+}
+li.screen-group #swPublished {
+    color: darkslateblue;
+}
+li.screen-group #ePublished {
+    color: darkgreen;
+}
+
+li.screen-item>#status {
+    color: orange;
+    float: right;
 }
 
 li.screen-item.completed {
@@ -18,11 +43,18 @@ li.on-hover:hover {
     font-weight: bolder;
 }
 
-li.on-hover.active {
-    color: blue;
-    text-transform: uppercase;
-    text-decoration-line: underline;
+li.screen-item.active {
+    background-color: darkolivegreen;
+    color: white;
+    font-weight: bolder;
+    font-size: larger;
+    list-style: disc;
 }
+li.screen-item.active::marker {
+    /* content: "-> "; */
+    color: darkolivegreen;
+}
+
 
 li.on-hover:visited {
     color: purple;
