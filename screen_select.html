@@ -120,79 +120,79 @@
       async function fetchScreenGroups() {
         const sgList = new Iterable([])
 
-        const screenGroupList_E = document.getElementById('screen-group-list')
+        const screen_group_list_E = document.getElementById('screen-group-list')
         const response = await fetch(ENTU_SCREENS_URL)
         const data = await response.json()
         console.log(`fetched ${data.limit}/${data.count} screens`)
         const entities = data.entities
         console.log(entities)
 
-        const screenGroupIds = []
-        const selectedScreen = JSON.parse(localStorage.getItem('selectedScreen') || '{}')
-        console.log(`selected screen: ${selectedScreen}`)
+        const screen_group_ids = []
+        const selected_screen = JSON.parse(localStorage.getItem('selected_screen') || '{}')
+        console.log(`selected screen: ${selected_screen}`)
         entities.forEach(async screen => {
           if (screen.screen_group && screen.screen_group.length > 0) {
-            const groupName = screen.screen_group[0].string
-            const groupId = screen.screen_group[0].reference
+            const group_name = screen.screen_group[0].string
+            const group_id = screen.screen_group[0].reference
 
             // if new group, register it
-            if (!screenGroupIds.includes(groupId)) {
-              screenGroupIds.push(groupId)
+            if (!screen_group_ids.includes(group_id)) {
+              screen_group_ids.push(group_id)
               
               // also enqueue the group for configuration retrieval
               // const newScreenGroup = await fetchScreenGroup(groupId)
               // console.log(`new group: ${groupName} from Entu:`, newScreenGroup)
               sgList.add({
                 screen_id: screen._id,
-                screengroup_id: groupId
+                screengroup_id: group_id
               })
 
-              const newGroupItem = document.createElement('li')
-              newGroupItem.id = groupId
-              newGroupItem.className = 'screen-group'
+              const new_group_item = document.createElement('li')
+              new_group_item.id = group_id
+              new_group_item.className = 'screen-group'
               
-              newGroupItem.textContent = groupName
+              new_group_item.textContent = group_name
 
-              const publishedElement = document.createElement('div')
-              publishedElement.id = 'dates'
-              newGroupItem.appendChild(publishedElement)
+              const published_element = document.createElement('div')
+              published_element.id = 'dates'
+              new_group_item.appendChild(published_element)
 
-              const entuPublishedElement = document.createElement('pre')
-              entuPublishedElement.id = 'ePublished'
-              publishedElement.appendChild(entuPublishedElement)
+              const entu_published_element = document.createElement('pre')
+              entu_published_element.id = 'ePublished'
+              published_element.appendChild(entu_published_element)
               // entuPublishedElement.textContent = 'Entu: ' + toDateTimeString(screen.published[0].string)
 
-              const swPublishedElement = document.createElement('pre')
-              swPublishedElement.id = 'swPublished'
-              publishedElement.appendChild(swPublishedElement)
+              const sw_published_element = document.createElement('pre')
+              sw_published_element.id = 'swPublished'
+              published_element.appendChild(sw_published_element)
               // localPublishedElement.textContent = 'Local: '
 
-              const newScreenItems = document.createElement('ul')
-              newGroupItem.appendChild(newScreenItems)
-              screenGroupList_E.appendChild(newGroupItem)
+              const new_screen_items = document.createElement('ul')
+              new_group_item.appendChild(new_screen_items)
+              screen_group_list_E.appendChild(new_group_item)
             }
-            const groupItem = document.getElementById(groupId)
-            const screenItems = groupItem.querySelector('ul')
-            const screenItem = document.createElement('li')
+            const group_item = document.getElementById(group_id)
+            const screen_items = group_item.querySelector('ul')
+            const screen_item = document.createElement('li')
 
 
-            screenItem.id = screen._id
-            screenItem.className = 'screen-item on-hover'
-            if (selectedScreen._id === screen._id) {
-              screenItem.classList.add('active')
+            screen_item.id = screen._id
+            screen_item.className = 'screen-item on-hover'
+            if (selected_screen._id === screen._id) {
+              screen_item.classList.add('active')
             }
 
-            screenItem.textContent = screen.name[0].string
+            screen_item.textContent = screen.name[0].string
 
-            const statusElement = document.createElement('span')
-            statusElement.id = 'status'
-            screenItem.appendChild(statusElement)
+            const status_element = document.createElement('span')
+            status_element.id = 'status'
+            screen_item.appendChild(status_element)
 
-            screenItem.addEventListener('click', () => {
-              localStorage.setItem('selectedScreen', JSON.stringify(screen))
+            screen_item.addEventListener('click', () => {
+              localStorage.setItem('selected_screen', JSON.stringify(screen))
               window.location.href = 'index.html'
             })
-            screenItems.appendChild(screenItem)
+            screen_items.appendChild(screen_item)
           } else {
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
           }
@@ -212,19 +212,19 @@
           
           const screengroup_id = next.value.screengroup_id
           // console.log(`Update dates for ${screengroup_id}`)
-          const screenGroupItem = document.getElementById(screengroup_id)
-          if (screenGroupItem) {
-            const entuPubDate = next.value.entu_screengroup.entity.published[0].datetime
+          const screengroup_item = document.getElementById(screengroup_id)
+          if (screengroup_item) {
+            const entu_pub_date = next.value.entu_screengroup.entity.published[0].datetime
             // console.log(entuPubDate)
-            if (entuPubDate) {
-              const entuPubDateElement = screenGroupItem.querySelector('#ePublished')
-              entuPubDateElement.textContent = 'Entu: ' + toDateTimeString(entuPubDate)
+            if (entu_pub_date) {
+              const entu_pub_date_E = screengroup_item.querySelector('#ePublished')
+              entu_pub_date_E.textContent = 'Entu: ' + toDateTimeString(entu_pub_date)
             }
 
             if (next.value.swpublisher) {
-              const swpublisherPubDate = next.value.swpublisher.publishedAt
-              const swpublisherPubDateElement = screenGroupItem.querySelector('#swPublished')
-              swpublisherPubDateElement.textContent = 'SWPublisher: ' + toDateTimeString(swpublisherPubDate)
+              const swpublisher_pub_date = next.value.swpublisher.publishedAt
+              const swpublisher_pub_date_E = screengroup_item.querySelector('#swPublished')
+              swpublisher_pub_date_E.textContent = 'SWPublisher: ' + toDateTimeString(swpublisher_pub_date)
             }
           } else {
             null
