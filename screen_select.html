@@ -40,7 +40,8 @@
  2. display the list grouped by _parent.string
  3. save selected screen to local storage
  -->
-<html>
+ <!DOCTYPE html>
+ <html>
   <head>
     <title>Screen Select</title>
     <!-- style -->
@@ -124,13 +125,12 @@
         const screen_group_list_E = document.getElementById('screen-group-list')
         const response = await fetch(ENTU_SCREENS_URL)
         const data = await response.json()
-        console.log(`fetched ${data.limit}/${data.count} screens`)
+        const fetched_str = data.limit < data.count ? `${data.limit} of` : `all ${data.count}`
+        console.log(`fetched ${fetched_str} screens`)
         const entities = data.entities
-        console.log(entities)
 
         const screen_group_ids = []
         const selected_screen = JSON.parse(localStorage.getItem('selected_screen') || '{}')
-        console.log(`selected screen: ${selected_screen}`)
         entities.forEach(async screen => {
           if (screen.screen_group && screen.screen_group.length > 0) {
             const group_name = screen.screen_group[0].string
@@ -184,8 +184,8 @@
 
 
             screen_item.id = screen._id
-            screen_item.className = 'screen-item on-hover'
-            if (selected_screen._id === screen._id) {
+            screen_item.className = 'screen-item'
+            if (selected_screen.screen_id === screen._id) {
               screen_item.classList.add('active')
             }
 
@@ -195,10 +195,16 @@
             status_element.id = 'status'
             screen_item.appendChild(status_element)
 
-            screen_item.addEventListener('click', () => {
-              localStorage.setItem('selected_screen', JSON.stringify(screen))
-              window.location.href = 'index.html'
-            })
+            if (localStorage.getItem(`swpublisher_${group_id}`)) {
+              screen_item.classList.add('on-hover')
+              screen_item.addEventListener('click', () => {
+                localStorage.setItem('selected_screen', JSON.stringify({
+                  screen_id: screen._id,
+                  configuration: JSON.parse(localStorage.getItem(`swpublisher_${group_id}`))
+                }))
+                window.location.href = 'index.html'
+              })
+            }
             screen_items.appendChild(screen_item)
           } else {
             console.log(`screen ${screen._id}, ${screen.name[0].string} has no screen_group`)
@@ -214,25 +220,45 @@
         // screengrouploop:
         while (true) {
           const next = (await sgIter.next())
-          // console.log(next)
           if (next.done) break
           
+          // Update dates
           const screengroup_id = next.value.screengroup_id
-          // console.log(`Update dates for ${screengroup_id}`)
           const screengroup_item = document.getElementById(screengroup_id)
           if (screengroup_item) {
+
+            // Publication date from Entu screen entity
             const entu_pub_date = next.value.entu_screengroup.entity.published[0].datetime
-            // console.log(entuPubDate)
             if (entu_pub_date) {
               const entu_pub_date_E = screengroup_item.querySelector('#ePublished')
               entu_pub_date_E.textContent = 'Entu: ' + toDateTimeString(entu_pub_date)
             }
 
+            // Publication date from SWPublisher
+            // Also create/overwrite the date from localstore
             if (next.value.swpublisher) {
+              // if configuration was not stored before, make screens under it active now
+              if (!localStorage.getItem(`swpublisher_${screengroup_id}`)) {
+                // loop through screen elements under this group
+                const screen_items = screengroup_item.querySelector('ul').children
+                for (let i = 0; i < screen_items.length; i++) {
+                  const screen_item = screen_items[i]
+                  screen_item.classList.add('on-hover')
+                  screen_item.addEventListener('click', () => {
+                    localStorage.setItem('selected_screen', JSON.stringify({
+                      screen_id: screen_item.id,
+                      configuration: next.value.swpublisher
+                    }))
+                    window.location.href = 'index.html'
+                  })
+                }
+              }
               localStorage.setItem(`swpublisher_${screengroup_id}`, JSON.stringify(next.value.swpublisher))
               const swpublisher_pub_date = next.value.swpublisher.publishedAt
               const swpublisher_pub_date_E = screengroup_item.querySelector('#swPublished')
               swpublisher_pub_date_E.textContent = 'SWPublisher: ' + toDateTimeString(swpublisher_pub_date)
+              const local_published_E = screengroup_item.querySelector('#lPublished')
+              local_published_E.textContent = 'Local: ' + toDateTimeString(swpublisher_pub_date)
             }
           } else {
             null
