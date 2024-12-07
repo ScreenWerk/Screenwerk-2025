@@ -81,7 +81,8 @@
                 const u = SCREENWERK_PUBLISHER_API + screen_id + '.json'
                 const r = await fetch(u)
                 if (r.status === 200) {
-                  return await r.json()
+                  const j_data = await r.json()
+                  return j_data
                 }
                 else return false
               }
@@ -112,7 +113,7 @@
       }
 
       function toDateTimeString(ISODate) {
-        return ISODate.slice(0, 10) + '\n' + ISODate.slice(11, 19)
+        return ISODate.slice(0, 10) + ' ' + ISODate.slice(11, 19)
       }
 
       // async function fetchScreenGroup(id) {}
@@ -140,8 +141,6 @@
               screen_group_ids.push(group_id)
               
               // also enqueue the group for configuration retrieval
-              // const newScreenGroup = await fetchScreenGroup(groupId)
-              // console.log(`new group: ${groupName} from Entu:`, newScreenGroup)
               sgList.add({
                 screen_id: screen._id,
                 screengroup_id: group_id
@@ -156,6 +155,14 @@
               const published_element = document.createElement('div')
               published_element.id = 'dates'
               new_group_item.appendChild(published_element)
+
+              const local_published_element = document.createElement('pre')
+              local_published_element.id = 'lPublished'
+              published_element.appendChild(local_published_element)
+              if (localStorage.getItem(`swpublisher_${group_id}`)) {
+                const local_published = JSON.parse(localStorage.getItem(`swpublisher_${group_id}`))
+                local_published_element.textContent = 'Local: ' + toDateTimeString(local_published.publishedAt)
+              }
 
               const entu_published_element = document.createElement('pre')
               entu_published_element.id = 'ePublished'
@@ -222,6 +229,7 @@
             }
 
             if (next.value.swpublisher) {
+              localStorage.setItem(`swpublisher_${screengroup_id}`, JSON.stringify(next.value.swpublisher))
               const swpublisher_pub_date = next.value.swpublisher.publishedAt
               const swpublisher_pub_date_E = screengroup_item.querySelector('#swPublished')
               swpublisher_pub_date_E.textContent = 'SWPublisher: ' + toDateTimeString(swpublisher_pub_date)

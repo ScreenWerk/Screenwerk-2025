@@ -1,19 +1,28 @@
 li.screen-group {
     clear: both;
     min-height: 4em;
+    margin-top: 0.5em;
+    border-top: black solid 1px;
+    padding-top: 0.3em;
 }
 
 li.screen-group>#dates {
     float: right;
     margin: 0em;
+    padding: 0.2em;
+    background: linear-gradient(-45deg, linen, transparent);
 }
 
+li.screen-group #lPublished,
 li.screen-group #swPublished,
 li.screen-group #ePublished {
     color: darkgreen;
     text-align: end;
     font-size: smaller;
     margin: 0em;
+}
+li.screen-group #lPublished {
+    color: darkgoldenrod;
 }
 li.screen-group #swPublished {
     color: darkslateblue;
