@@ -1,3 +1,48 @@
+#player {
+    display: flex;
+    flex-direction: column;
+    height: 180px;
+    width: 320px;
+    background: antiquewhite;
+    border: 1px solid black;
+    margin: 15px;
+    padding: 15px;
+    
+    .layout {
+        background-color: aliceblue;
+        align-items: center;
+        justify-content: center;
+        border: 1px black solid;
+        padding: 15px;
+        margin: 15px;
+        width: 100%;
+        height: 100%;
+
+        .playlist {
+            border: 1px black solid;
+            padding: 15px;
+            margin: 15px;
+            width: 100%;
+            height: 100%;
+
+            .media {
+                background-color: aquamarine;
+                border: 1px black solid;
+                padding: 15px;
+                margin: 15px;
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+}
+
+#player .layout .title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0em;
+}
+
 li.screen-group {
     clear: both;
     min-height: 4em;

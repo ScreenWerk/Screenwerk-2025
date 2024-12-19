@@ -1,40 +1,45 @@
-<!-- 
- Read screen id from local storage.
- If it is missing, redirect to screen selection page.
- -->
 <!DOCTYPE html>
 <html lang="en">
+
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entu ScreenWerk '25</title>
+    <title>Entu ScreenWerk Player '25</title>
+    <link href="style.css" rel="stylesheet">
     <script src="config.js"></script>
+    <script src="renderer.js"></script>
   </head>
+  
   <body>
     <h1>Entu ScreenWerk '25</h1>
-    <p>Screen id: <a id="screenId" href=""></a></p>
-    <p>Screen name: <span id="screenName"></span></p>
-    <p>Distilled: <pre id="distilled"></pre></p>
-    <p>Configuration: <pre id="configuration"></pre></p>
+    <div>Screen on Entu: <a id="screenId" href=""></a></div>
+    <!-- <p>Screen name: <span id="screenName"></span></p> -->
+    <div>Published at: <span id="published"></span></div>
+    <div id="player"></div>
+    <div>Configuration: <pre id="configuration"></pre></div>
   </body>
+
+  <!-- read common functions from common.js -->
+  <script src="common.js"></script>
+
   <script>
-    const screen_json = localStorage.getItem('selectedScreen')
+    const screen_json = localStorage.getItem('selected_screen')
     // if there is no screen selected, redirect to screen selection page
     if (!screen_json) {
         window.location.href = 'screen_select.html'
     }
     const screen = JSON.parse(screen_json)
-    const screenIdElement = document.getElementById('screenId')
-    screenIdElement.textContent = screen.id
-    screenIdElement.setAttribute('href', `https://entu.app/piletilevi/${screen.id}`)
-    document.getElementById('screenName').textContent = screen.name
+    const screen_id_element = document.getElementById('screenId')
+    screen_id_element.textContent = screen.screen_id
+    screen_id_element.setAttribute('href', `https://entu.app/piletilevi/${screen.screen_id}`)
+    
+    const configuration = screen.configuration
+    document.getElementById('published').textContent = toDateTimeString(configuration.publishedAt)
+    document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
 
-    const configuration = getConfiguration((configuration) => {
-      console.log('Configuration loaded', configuration)
-      document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
-      const distilled = distill(configuration)
-      document.getElementById('distilled').textContent = JSON.stringify(distilled, null, 2)
-    })
+    const player_element = document.getElementById('player')
+    sw_render(player_element, configuration)
   </script>
+
 </html>

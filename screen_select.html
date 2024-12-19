@@ -46,6 +46,8 @@
     <title>Screen Select</title>
     <!-- style -->
     <link href="style.css" rel="stylesheet">
+    <!-- read common functions from common.js -->
+    <script src="common.js"></script>
     <script>
       const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
       const HOSTNAME = 'entu.app/api'
@@ -111,10 +113,6 @@
             }
           }
         }
-      }
-
-      function toDateTimeString(ISODate) {
-        return ISODate.slice(0, 10) + ' ' + ISODate.slice(11, 19)
       }
 
       // async function fetchScreenGroup(id) {}
