@@ -81,32 +81,28 @@
           return {
             next: async function() {
               async function fetchFromPublisher(screen_id) {
-                const u = SCREENWERK_PUBLISHER_API + screen_id + '.json'
-                const r = await fetch(u)
-                if (r.status === 200) {
-                  const j_data = await r.json()
-                  return j_data
-                }
-                else return false
+                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+                return await fetchJSON(u)
               }
+
               async function fetchFromEntu(screen_id) {
                 const u = `${ENTU_ENTITY_URL}/${screen_id}`
-                const r = await fetch(u)
-                return await r.json()
+                return await fetchJSON(u)
               }
+
               //retrieving an item from the array
               if (items.length) {
                 const item = items.shift()
                 const screen_id = item.screen_id
                 const screengroup_id = item.screengroup_id
-                  return {
-                    value: {
-                      screengroup_id: screengroup_id,
-                      swpublisher: await fetchFromPublisher(screen_id),
-                      entu_screengroup: await fetchFromEntu(screengroup_id)
-                    },
-                    done: false
-                  }
+                return {
+                  value: {
+                    screengroup_id: screengroup_id,
+                    swpublisher: await fetchFromPublisher(screen_id),
+                    entu_screengroup: await fetchFromEntu(screengroup_id)
+                  },
+                  done: false
+                }
               }
               //return true if all items are iterated
               return { done:true }
@@ -121,8 +117,11 @@
         const sgList = new Iterable([])
 
         const screen_group_list_E = document.getElementById('screen-group-list')
-        const response = await fetch(ENTU_SCREENS_URL)
-        const data = await response.json()
+        const data = await fetchJSON(ENTU_SCREENS_URL)
+        if (!data) {
+          console.error('failed to fetch screens')
+          return
+        }
         const fetched_str = data.limit < data.count ? `${data.limit} of` : `all ${data.count}`
         console.log(`fetched ${fetched_str} screens`)
         const entities = data.entities
