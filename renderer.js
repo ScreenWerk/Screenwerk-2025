@@ -92,14 +92,14 @@ const sw_render = (dom_element, configuration) => {
 
             if (playlist_media.type === 'Image') {
                 const img = document.createElement('img')
-                img.src = playlist_media.file
+                img.src = playlist_media.fileDO
                 img.style.width = '100%'
                 img.style.height = '100%'
                 img.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
                 media_div.appendChild(img)
             } else if (playlist_media.type === 'Video') {
                 const video = document.createElement('video')
-                video.src = playlist_media.file
+                video.src = playlist_media.fileDO
                 video.style.width = '100%'
                 video.style.height = '100%'
                 video.muted = playlist_media.mute
