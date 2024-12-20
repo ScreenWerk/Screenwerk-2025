@@ -90,9 +90,26 @@ const sw_render = (dom_element, configuration) => {
             dom_element.appendChild(media_div)
             playlist_media.dom_element = media_div
 
+            if (playlist_media.type === 'Image') {
+                const img = document.createElement('img')
+                img.src = playlist_media.file
+                img.style.width = '100%'
+                img.style.height = '100%'
+                img.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
+                media_div.appendChild(img)
+            } else if (playlist_media.type === 'Video') {
+                const video = document.createElement('video')
+                video.src = playlist_media.file
+                video.style.width = '100%'
+                video.style.height = '100%'
+                video.muted = playlist_media.mute
+                video.loop = true
+                video.autoplay = true
+                video.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
+                media_div.appendChild(video)
+            }
         })
     }
-
 
     const renderLayout = (dom_element, configuration) => {
         // There are playlists on the layout.
