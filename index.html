@@ -5,14 +5,14 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entu ScreenWerk Player '25</title>
+    <title>Entu ScreenWerk Player '25sss</title>
     <link href="style.css" rel="stylesheet">
     <script src="config.js"></script>
     <script src="renderer.js"></script>
   </head>
   
   <body>
-    <h1>Entu ScreenWerk '25</h1>
+    <h1>Entu ScreenWerk '25s</h1>
     <div>Screen on Entu: <a id="screenId" href=""></a></div>
     <!-- <p>Screen name: <span id="screenName"></span></p> -->
     <div>Published at: <span id="published"></span></div>
@@ -38,18 +38,38 @@
     document.getElementById('published').textContent = toDateTimeString(configuration.publishedAt)
     document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
 
-    const player_element = document.getElementById('player')
-    sw_render(player_element, configuration)
+
+    // register all media urls from configuration in service worker cache
+    // medias are deeply nested under
+    // configuration.schedules[].layoutPlaylists[].playlistMedias[].file
+    const mediaToCache = 
+        configuration.schedules
+        .flatMap(schedule => schedule.layoutPlaylists)
+        .flatMap(layoutPlaylist => layoutPlaylist.playlistMedias)
+        .map(playlistMedia => playlistMedia.file)
+
+    console.log('Media to cache:', mediaToCache)
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
         .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
+            console.log('Service Worker registered with scope:', registration.scope)
+            if (registration.active) {
+                registration.active.postMessage({
+                    type: 'CACHE_URLS',
+                    urls: mediaToCache
+                })
+            }
         })
         .catch(error => {
-            console.log('Service Worker registration failed:', error);
-        });
+            console.log('Service Worker registration failed:', error)
+        })
     }
-  </script>
+
+    // Render the player
+    const player_element = document.getElementById('player')
+    sw_render(player_element, configuration)
+
+</script>
 
 </html>
