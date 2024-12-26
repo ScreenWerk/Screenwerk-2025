@@ -1,5 +1,5 @@
 const CACHE_NAME = 'media-cache-v1';
-const MEDIA_URL_RE = new RegExp('^.*/media/[0-9a-f]{24}/[0-9a-f]{24}.*$')
+const MEDIA_URL_RE = new RegExp('[0-9a-f]{24}/[0-9a-f]{24}')
 
 self.addEventListener('install', event => {
     event.waitUntil(

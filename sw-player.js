@@ -173,7 +173,7 @@ class SwMedia {
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.mediaEid}`)
         this.dom_element.setAttribute('type', configuration.type)
-        this.dom_element.setAttribute('file', configuration.file)
+        this.dom_element.setAttribute('file', configuration.fileDO)
         this.dom_element.setAttribute('validFrom', configuration.validFrom)
         this.dom_element.setAttribute('validTo', configuration.validTo)
         this.dom_element.setAttribute('ordinal', configuration.ordinal)
@@ -182,14 +182,14 @@ class SwMedia {
 
         if (configuration.type === 'Image') {
             const img = document.createElement('img')
-            img.src = configuration.file
+            img.src = configuration.fileDO
             img.style.width = '100%'
             img.style.height = '100%'
             img.style.objectFit = configuration.stretch ? 'cover' : 'contain'
             this.dom_element.appendChild(img)
         } else if (configuration.type === 'Video') {
             const video = document.createElement('video')
-            video.src = configuration.file
+            video.src = configuration.fileDO
             video.style.width = '100%'
             video.style.height = '100%'
             video.muted = configuration.mute
