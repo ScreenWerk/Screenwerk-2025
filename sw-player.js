@@ -109,7 +109,6 @@ class SwPlaylist {
         this.parent = parent
         this.dom_element = dom_element
         this.medias = []
-        this.current_media = null
         while (this.dom_element.firstChild) {
             this.dom_element.removeChild(this.dom_element.firstChild)
         }
@@ -135,7 +134,6 @@ class SwPlaylist {
             const sw_media = new SwMedia(this, media_div, playlist_media)
             this.medias.push(sw_media)
             if (this.medias.length === 1) {
-                this.current_media = sw_media
                 sw_media.next_media = sw_media
                 sw_media.prev_media = sw_media
             } else {
@@ -150,7 +148,7 @@ class SwPlaylist {
         this.medias.forEach(media => {
             media.dom_element.style.display = 'none'
         })
-        this.current_media.play()
+        this.medias[0].play()
     }
 }
 
@@ -195,32 +193,33 @@ class SwMedia {
             video.style.width = '100%'
             video.style.height = '100%'
             video.muted = configuration.mute
-            video.loop = true
-            video.autoplay = true
+            video.loop = false  // Changed to false since we handle looping ourselves
+            video.autoplay = false  // Changed to false for explicit control
             video.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            
+            // Set up the ended event listener during initialization
+            video.addEventListener('ended', () => {
+                console.log('video ended')
+                this.dom_element.style.display = 'none'
+                this.next_media.play()
+            })
+            
             this.dom_element.appendChild(video)
-            // dont play the video until the play() method is called
-            video.pause()
+            video.pause()  // Ensure it's paused initially
         }
     }
     play() {
         this.dom_element.style.display = 'block'
         if (this.type === 'Video') {
             const video_div = this.dom_element.querySelector('video')
-            const promise = video_div.play()
             video_div.currentTime = 0
+            const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
                     console.log('Autoplay started')
                 }).catch(error => {
-                    console.log('Autoplay was prevented')
+                    console.log('Autoplay was prevented:', error)
                 })
-            }
-            // wait for the video to finish, then play the next media
-            video_div.onended = () => {
-                console.log('video ended')
-                this.dom_element.style.display = 'none'
-                this.next_media.play()
             }
         } else if (this.type === 'Image') {
             setTimeout(() => {
