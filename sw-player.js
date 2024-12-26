@@ -68,113 +68,194 @@
 */
 
 
-class EntuScreenWerkPlayer {
-    constructor(dom_element) {
-        this.player = dom_element
-        // clear the player
-        while (this.player.firstChild) {
-            this.player.removeChild(this.player.firstChild)
+const DEFAULTS = {
+    IMAGE_PLAYBACK_DURATION: 10
+}
+class SwLayout {
+    constructor(parent, dom_element, configuration) {
+        this.parent = parent
+        this.dom_element = dom_element
+        this.playlists = []
+        while (this.dom_element.firstChild) {
+            this.dom_element.removeChild(this.dom_element.firstChild)
         }
+        this.render(configuration)
     }
     render(configuration) {
-        const renderPlaylist = (dom_element, configuration) => {
-            // There are medias in the playlist.
-            // For every playlistMedia in playlist, create a new div
-            // and append it to the dom_element as media.
+        console.log('rendering layout', configuration)
+        this.dom_element.id = configuration.layoutEid
+        this.dom_element.setAttribute('name', configuration.name)
+        this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.layoutEid}`)
+        this.dom_element.setAttribute('crontab', configuration.crontab)
+        this.dom_element.setAttribute('cleanup', configuration.cleanup ? 'true' : 'false')
+        this.dom_element.classList.add('layout')
+        this.parent.dom_element.appendChild(this.dom_element)
 
-            configuration.playlistMedias.forEach(playlist_media => {
-                const media_div = document.createElement('div')
-                media_div.id = playlist_media.playlistMediaEid
-                media_div.setAttribute('name', playlist_media.name)
-                media_div.setAttribute('entu', `https://entu.app/piletilevi/${playlist_media.mediaEid}`)
-                media_div.setAttribute('duration', playlist_media.duration)
-                media_div.setAttribute('type', playlist_media.type)
-                media_div.setAttribute('file', playlist_media.file)
-                media_div.setAttribute('stretch', playlist_media.stretch)
-                media_div.setAttribute('validFrom', playlist_media.validFrom)
-                media_div.setAttribute('validTo', playlist_media.validTo)
-                media_div.setAttribute('ordinal', playlist_media.ordinal)
-                media_div.classList.add('media')
-                dom_element.appendChild(media_div)
-                playlist_media.dom_element = media_div
+        configuration.layoutPlaylists.forEach(layout_playlist => {
+            const playlist_div = document.createElement('div')
+            const sw_playlist = new SwPlaylist(this, playlist_div, layout_playlist)
+            this.playlists.push(sw_playlist)
+        })
+    }
+    play() {
+        this.playlists.forEach(playlist => {
+            playlist.play()
+        })
+    }
+}
 
-                if (playlist_media.type === 'Image') {
-                    const img = document.createElement('img')
-                    img.src = playlist_media.fileDO
-                    img.style.width = '100%'
-                    img.style.height = '100%'
-                    img.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
-                    media_div.appendChild(img)
-                } else if (playlist_media.type === 'Video') {
-                    const video = document.createElement('video')
-                    video.src = playlist_media.fileDO
-                    video.style.width = '100%'
-                    video.style.height = '100%'
-                    video.muted = playlist_media.mute
-                    video.loop = true
-                    video.autoplay = true
-                    video.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
-                    media_div.appendChild(video)
-                }
-            })
+class SwPlaylist {
+    constructor(parent, dom_element, configuration) {
+        this.parent = parent
+        this.dom_element = dom_element
+        this.medias = []
+        this.current_media = null
+        while (this.dom_element.firstChild) {
+            this.dom_element.removeChild(this.dom_element.firstChild)
         }
+        this.render(configuration)
+    }
+    render(configuration) {
+        console.log('rendering playlist', configuration)
+        this.dom_element.id = configuration.playlistEid
+        this.dom_element.setAttribute('name', configuration.name)
+        this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.playlistEid}`)
+        this.dom_element.setAttribute('left', configuration.left)
+        this.dom_element.setAttribute('top', configuration.top)
+        this.dom_element.setAttribute('width', configuration.width)
+        this.dom_element.setAttribute('height', configuration.height)
+        this.dom_element.setAttribute('zindex', configuration.zindex)
+        this.dom_element.setAttribute('loop', configuration.loop)
 
-        const renderLayout = (dom_element, configuration) => {
-            // There are playlists on the layout.
-            // For every layoutPlaylist in configuration, create a new div
-            // and append it to the dom_element as playlist.
-            // Then call for renderPlaylist subroutine.
-            configuration.layoutPlaylists.forEach(layout_playlist => {
-                const playlist_div = document.createElement('div')
-                playlist_div.id = layout_playlist.playlistEid
-                playlist_div.setAttribute('name', layout_playlist.name)
-                playlist_div.setAttribute('entu', `https://entu.app/piletilevi/${layout_playlist.playlistEid}`)
+        this.dom_element.classList.add('playlist')
+        this.parent.dom_element.appendChild(this.dom_element)
 
-                playlist_div.setAttribute('top', layout_playlist.top)
-                playlist_div.setAttribute('left', layout_playlist.left)
-                playlist_div.setAttribute('width', layout_playlist.width)
-                playlist_div.setAttribute('height', layout_playlist.height)
+        configuration.playlistMedias.forEach(playlist_media => {
+            const media_div = document.createElement('div')
+            const sw_media = new SwMedia(this, media_div, playlist_media)
+            this.medias.push(sw_media)
+            if (this.medias.length === 1) {
+                this.current_media = sw_media
+                sw_media.next_media = sw_media
+                sw_media.prev_media = sw_media
+            } else {
+                this.medias[this.medias.length - 2].next_media = sw_media
+                this.medias[0].prev_media = sw_media
+                sw_media.prev_media = this.medias[this.medias.length - 2]
+                sw_media.next_media = this.medias[0]
+            }
+        })
+    }
+    play() {
+        this.medias.forEach(media => {
+            media.dom_element.style.display = 'none'
+        })
+        this.current_media.play()
+    }
+}
 
-                playlist_div.classList.add('playlist')
-                dom_element.appendChild(playlist_div)
-                layout_playlist.dom_element = playlist_div
-                renderPlaylist(playlist_div, layout_playlist)
-            })
+class SwMedia {
+    constructor(parent, dom_element, configuration) {
+        this.parent = parent
+        this.dom_element = dom_element
+        this.type = configuration.type
+        this.prev_media = null
+        this.next_media = null
+        if (this.type === 'Image') {
+            this.duration = configuration.duration || DEFAULTS.IMAGE_PLAYBACK_DURATION
         }
+        while (this.dom_element.firstChild) {
+            this.dom_element.removeChild(this.dom_element.firstChild)
+        }
+        this.render(configuration)
+    }
+    render(configuration) {
+        console.log('rendering media', configuration)
+        this.dom_element.id = configuration.playlistMediaEid
+        this.dom_element.setAttribute('name', configuration.name)
+        this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.mediaEid}`)
+        this.dom_element.setAttribute('type', configuration.type)
+        this.dom_element.setAttribute('file', configuration.file)
+        this.dom_element.setAttribute('validFrom', configuration.validFrom)
+        this.dom_element.setAttribute('validTo', configuration.validTo)
+        this.dom_element.setAttribute('ordinal', configuration.ordinal)
+        this.dom_element.classList.add('media')
+        this.parent.dom_element.appendChild(this.dom_element)
 
-        // For every schedule in configuration, create a new div
-        // and append it to the dom_element as layout.
-        // Then call for renderLayout subroutine.
+        if (configuration.type === 'Image') {
+            const img = document.createElement('img')
+            img.src = configuration.file
+            img.style.width = '100%'
+            img.style.height = '100%'
+            img.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            this.dom_element.appendChild(img)
+        } else if (configuration.type === 'Video') {
+            const video = document.createElement('video')
+            video.src = configuration.file
+            video.style.width = '100%'
+            video.style.height = '100%'
+            video.muted = configuration.mute
+            video.loop = true
+            video.autoplay = true
+            video.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            this.dom_element.appendChild(video)
+            // dont play the video until the play() method is called
+            video.pause()
+        }
+    }
+    play() {
+        this.dom_element.style.display = 'block'
+        if (this.type === 'Video') {
+            const video_div = this.dom_element.querySelector('video')
+            const promise = video_div.play()
+            video_div.currentTime = 0
+            if (promise !== undefined) {
+                promise.then(_ => {
+                    console.log('Autoplay started')
+                }).catch(error => {
+                    console.log('Autoplay was prevented')
+                })
+            }
+            // wait for the video to finish, then play the next media
+            video_div.onended = () => {
+                console.log('video ended')
+                this.dom_element.style.display = 'none'
+                this.next_media.play()
+            }
+        } else if (this.type === 'Image') {
+            setTimeout(() => {
+                this.dom_element.style.display = 'none'
+                this.next_media.play()
+            }, this.duration * 1e3)
+        }
+    }
+}
+
+class EntuScreenWerkPlayer {
+    constructor(dom_element, configuration) {
+        this.dom_element = dom_element
+        this.layouts = []
+        // clear the player
+        while (this.dom_element.firstChild) {
+            this.dom_element.removeChild(this.dom_element.firstChild)
+        }
+        this.render(configuration)
+    }
+    render(configuration) {
+        console.log('rendering player', configuration)
         configuration.schedules.forEach(schedule => {
             const layout_div = document.createElement('div')
-            layout_div.id = schedule.layoutEid
-            layout_div.setAttribute('name', schedule.name)
-            layout_div.setAttribute('entu', `https://entu.app/piletilevi/${schedule.layoutEid}`)
-            layout_div.setAttribute('crontab', schedule.crontab)
-            layout_div.setAttribute('cleanup', schedule.cleanup ? 'true' : 'false')
-
-            layout_div.classList.add('layout')
-            this.player.appendChild(layout_div)
-            renderLayout(layout_div, schedule)
+            const sw_layout = new SwLayout(this, layout_div, schedule)
+            this.layouts.push(sw_layout)
         })
     }
 
     play() {
-        this.player.querySelectorAll('.media').forEach(media => {
-            media.style.display = 'none'
-        })
-
-        this.player.querySelectorAll('.playlist').forEach(playlist => {
-            const media = playlist.querySelector('.media')
-            if (media) {
-                media.style.display = 'block'
-            }
+        this.layouts.forEach(layout => {
+            layout.play()
         })
     }
 
     stop() {
-        this.player.querySelectorAll('.media').forEach(media => {
-            media.style.display = 'none'
-        })
     }
 }

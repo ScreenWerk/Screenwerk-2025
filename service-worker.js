@@ -1,5 +1,5 @@
 const CACHE_NAME = 'media-cache-v1';
-const MEDIA_URL_RE = new RegExp('^.*/media/[0-9a-f]{24}/[0-9a-f]{24}$')
+const MEDIA_URL_RE = new RegExp('^.*/media/[0-9a-f]{24}/[0-9a-f]{24}.*$')
 
 self.addEventListener('install', event => {
     event.waitUntil(
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
 
 // Look into cache only, if requested url is in form of "/media/6765320b32faaba00f8f92f8/6765321232faaba00f8f9301"
 self.addEventListener('fetch', event => {
-    console.log(`Fetching ${event.request.url}`)
+    console.log(`Fetching zz ${event.request.url}`)
     if (!MEDIA_URL_RE.test(event.request.url)) {
         console.log(`Ignoring ${event.request.url}`)
         return
