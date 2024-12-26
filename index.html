@@ -68,7 +68,10 @@
 
     // Render the player
     const player_element = document.getElementById('player')
-    sw_render(player_element, configuration)
+    const player = new EntuScreenWerkPlayer(player_element)
+    player.render(configuration)
+    player.play()
+
 
 </script>
 

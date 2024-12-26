@@ -67,87 +67,114 @@
   }
 */
 
-const sw_render = (dom_element, configuration) => {
 
-    const renderPlaylist = (dom_element, configuration) => {
-        // There are medias in the playlist.
-        // For every playlistMedia in playlist, create a new div
-        // and append it to the dom_element as media.
+class EntuScreenWerkPlayer {
+    constructor(dom_element) {
+        this.player = dom_element
+        // clear the player
+        while (this.player.firstChild) {
+            this.player.removeChild(this.player.firstChild)
+        }
+    }
+    render(configuration) {
+        const renderPlaylist = (dom_element, configuration) => {
+            // There are medias in the playlist.
+            // For every playlistMedia in playlist, create a new div
+            // and append it to the dom_element as media.
 
-        configuration.playlistMedias.forEach(playlist_media => {
-            const media_div = document.createElement('div')
-            media_div.id = playlist_media.playlistMediaEid
-            media_div.setAttribute('name', playlist_media.name)
-            media_div.setAttribute('entu', `https://entu.app/piletilevi/${playlist_media.mediaEid}`)
-            media_div.setAttribute('duration', playlist_media.duration)
-            media_div.setAttribute('type', playlist_media.type)
-            media_div.setAttribute('file', playlist_media.file)
-            media_div.setAttribute('stretch', playlist_media.stretch)
-            media_div.setAttribute('validFrom', playlist_media.validFrom)
-            media_div.setAttribute('validTo', playlist_media.validTo)
-            media_div.setAttribute('ordinal', playlist_media.ordinal)
-            media_div.classList.add('media')
-            dom_element.appendChild(media_div)
-            playlist_media.dom_element = media_div
+            configuration.playlistMedias.forEach(playlist_media => {
+                const media_div = document.createElement('div')
+                media_div.id = playlist_media.playlistMediaEid
+                media_div.setAttribute('name', playlist_media.name)
+                media_div.setAttribute('entu', `https://entu.app/piletilevi/${playlist_media.mediaEid}`)
+                media_div.setAttribute('duration', playlist_media.duration)
+                media_div.setAttribute('type', playlist_media.type)
+                media_div.setAttribute('file', playlist_media.file)
+                media_div.setAttribute('stretch', playlist_media.stretch)
+                media_div.setAttribute('validFrom', playlist_media.validFrom)
+                media_div.setAttribute('validTo', playlist_media.validTo)
+                media_div.setAttribute('ordinal', playlist_media.ordinal)
+                media_div.classList.add('media')
+                dom_element.appendChild(media_div)
+                playlist_media.dom_element = media_div
 
-            if (playlist_media.type === 'Image') {
-                const img = document.createElement('img')
-                img.src = playlist_media.fileDO
-                img.style.width = '100%'
-                img.style.height = '100%'
-                img.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
-                media_div.appendChild(img)
-            } else if (playlist_media.type === 'Video') {
-                const video = document.createElement('video')
-                video.src = playlist_media.fileDO
-                video.style.width = '100%'
-                video.style.height = '100%'
-                video.muted = playlist_media.mute
-                video.loop = true
-                video.autoplay = true
-                video.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
-                media_div.appendChild(video)
+                if (playlist_media.type === 'Image') {
+                    const img = document.createElement('img')
+                    img.src = playlist_media.fileDO
+                    img.style.width = '100%'
+                    img.style.height = '100%'
+                    img.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
+                    media_div.appendChild(img)
+                } else if (playlist_media.type === 'Video') {
+                    const video = document.createElement('video')
+                    video.src = playlist_media.fileDO
+                    video.style.width = '100%'
+                    video.style.height = '100%'
+                    video.muted = playlist_media.mute
+                    video.loop = true
+                    video.autoplay = true
+                    video.style.objectFit = playlist_media.stretch ? 'cover' : 'contain'
+                    media_div.appendChild(video)
+                }
+            })
+        }
+
+        const renderLayout = (dom_element, configuration) => {
+            // There are playlists on the layout.
+            // For every layoutPlaylist in configuration, create a new div
+            // and append it to the dom_element as playlist.
+            // Then call for renderPlaylist subroutine.
+            configuration.layoutPlaylists.forEach(layout_playlist => {
+                const playlist_div = document.createElement('div')
+                playlist_div.id = layout_playlist.playlistEid
+                playlist_div.setAttribute('name', layout_playlist.name)
+                playlist_div.setAttribute('entu', `https://entu.app/piletilevi/${layout_playlist.playlistEid}`)
+
+                playlist_div.setAttribute('top', layout_playlist.top)
+                playlist_div.setAttribute('left', layout_playlist.left)
+                playlist_div.setAttribute('width', layout_playlist.width)
+                playlist_div.setAttribute('height', layout_playlist.height)
+
+                playlist_div.classList.add('playlist')
+                dom_element.appendChild(playlist_div)
+                layout_playlist.dom_element = playlist_div
+                renderPlaylist(playlist_div, layout_playlist)
+            })
+        }
+
+        // For every schedule in configuration, create a new div
+        // and append it to the dom_element as layout.
+        // Then call for renderLayout subroutine.
+        configuration.schedules.forEach(schedule => {
+            const layout_div = document.createElement('div')
+            layout_div.id = schedule.layoutEid
+            layout_div.setAttribute('name', schedule.name)
+            layout_div.setAttribute('entu', `https://entu.app/piletilevi/${schedule.layoutEid}`)
+            layout_div.setAttribute('crontab', schedule.crontab)
+            layout_div.setAttribute('cleanup', schedule.cleanup ? 'true' : 'false')
+
+            layout_div.classList.add('layout')
+            this.player.appendChild(layout_div)
+            renderLayout(layout_div, schedule)
+        })
+    }
+
+    play() {
+        this.player.querySelectorAll('.media').forEach(media => {
+            media.style.display = 'none'
+        })
+
+        this.player.querySelectorAll('.playlist').forEach(playlist => {
+            const media = playlist.querySelector('.media')
+            if (media) {
+                media.style.display = 'block'
             }
         })
     }
 
-    const renderLayout = (dom_element, configuration) => {
-        // There are playlists on the layout.
-        // For every layoutPlaylist in configuration, create a new div
-        // and append it to the dom_element as playlist.
-        // Then call for renderPlaylist subroutine.
-        configuration.layoutPlaylists.forEach(layout_playlist => {
-            const playlist_div = document.createElement('div')
-            playlist_div.id = layout_playlist.playlistEid
-            playlist_div.setAttribute('name', layout_playlist.name)
-            playlist_div.setAttribute('entu', `https://entu.app/piletilevi/${layout_playlist.playlistEid}`)
-
-            playlist_div.setAttribute('top', layout_playlist.top)
-            playlist_div.setAttribute('left', layout_playlist.left)
-            playlist_div.setAttribute('width', layout_playlist.width)
-            playlist_div.setAttribute('height', layout_playlist.height)
-
-            playlist_div.classList.add('playlist')
-            dom_element.appendChild(playlist_div)
-            layout_playlist.dom_element = playlist_div
-            renderPlaylist(playlist_div, layout_playlist)
+    stop() {
+        this.player.querySelectorAll('.media').forEach(media => {
+            media.style.display = 'none'
         })
     }
-
-    // For every schedule in configuration, create a new div
-    // and append it to the dom_element as layout.
-    // Then call for renderLayout subroutine.
-    configuration.schedules.forEach(schedule => {
-        const layout_div = document.createElement('div')
-        layout_div.id = schedule.layoutEid
-        layout_div.setAttribute('name', schedule.name)
-        layout_div.setAttribute('entu', `https://entu.app/piletilevi/${schedule.layoutEid}`)
-        layout_div.setAttribute('crontab', schedule.crontab)
-        layout_div.setAttribute('cleanup', schedule.cleanup ? 'true' : 'false')
-        
-        layout_div.classList.add('layout')
-        dom_element.appendChild(layout_div)
-        renderLayout(layout_div, schedule)
-    })
-
 }
