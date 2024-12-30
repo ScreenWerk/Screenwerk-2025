@@ -27,7 +27,7 @@
     const screen_json = localStorage.getItem('selected_screen')
     // if there is no screen selected, redirect to screen selection page
     if (!screen_json) {
-        window.location.href = 'screen_select.html'
+        window.location.href = 'screen-select.html'
     }
     const screen = JSON.parse(screen_json)
     const screen_id_element = document.getElementById('screenId')
