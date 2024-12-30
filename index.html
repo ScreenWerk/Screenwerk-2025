@@ -1,77 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <title>Entu ScreenWerk Player '25sss</title>
+        <link href='style.css' rel='stylesheet' />
+        <script src='config.js'></script>
+        <script src='sw-player.js'></script>
+    </head>
 
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entu ScreenWerk Player '25sss</title>
-    <link href="style.css" rel="stylesheet">
-    <script src="config.js"></script>
-    <script src="sw-player.js"></script>
-  </head>
-  
-  <body>
-    <h1>Entu ScreenWerk '25s</h1>
-    <div>Screen on Entu: <a id="screenId" href=""></a></div>
-    <!-- <p>Screen name: <span id="screenName"></span></p> -->
-    <div>Published at: <span id="published"></span></div>
-    <div id="player"></div>
-    <div>Configuration: <pre id="configuration"></pre></div>
-  </body>
+    <body>
+        <pre id='error' style='display: none'></pre>
+        <h1>Entu ScreenWerk '25s</h1>
+        <div>Screen on Entu: <a id='screenId' href=''></a></div>
+        <!-- <p>Screen name: <span id='screenName'></span></p> -->
+        <div>Published at: <span id='published'></span></div>
+        <div id='player'></div>
+        <div>
+        Configuration:
+        <pre id='configuration'></pre>
+        </div>
+    </body>
 
-  <!-- read common functions from common.js -->
-  <script src="common.js"></script>
+    <!-- read common functions from common.js -->
+    <script src='common.js'></script>
 
-  <script>
-    const screen_json = localStorage.getItem('selected_screen')
-    // if there is no screen selected, redirect to screen selection page
-    if (!screen_json) {
-        window.location.href = 'screen-select.html'
-    }
-    const screen = JSON.parse(screen_json)
-    const screen_id_element = document.getElementById('screenId')
-    screen_id_element.textContent = screen.screen_id
-    screen_id_element.setAttribute('href', `https://entu.app/piletilevi/${screen.screen_id}`)
-    
-    const configuration = screen.configuration
-    document.getElementById('published').textContent = toDateTimeString(configuration.publishedAt)
-    document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
-
-
-    // register all media urls from configuration in service worker cache
-    // medias are deeply nested under
-    // configuration.schedules[].layoutPlaylists[].playlistMedias[].file
-    const mediaToCache = 
-        configuration.schedules
-        .flatMap(schedule => schedule.layoutPlaylists)
-        .flatMap(layoutPlaylist => layoutPlaylist.playlistMedias)
-        .map(playlistMedia => playlistMedia.fileDO)
-
-    // console.log('Media to cache:', mediaToCache)
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope)
-            if (registration.active) {
-                registration.active.postMessage({
-                    type: 'CACHE_URLS',
-                    urls: mediaToCache
-                })
+    <script>
+        const reportProblem = (message, with_link = false) => {
+            console.error(message)
+            document.getElementById('error').textContent = message
+            document.getElementById('error').style.display = 'block'
+            if (with_link) {
+                const link = document.createElement('a')
+                link.href = 'screen-select.html'
+                link.textContent = 'Go to screen selection page'
+                document.getElementById('error').appendChild(document.createElement('br'))
+                document.getElementById('error').appendChild(link)
             }
-        })
-        .catch(error => {
-            console.log('Service Worker registration failed:', error)
-        })
-    }
+        }
 
-    // Render the player
-    const player_element = document.getElementById('player')
-    const player = new EntuScreenWerkPlayer(player_element, configuration)
-    player.play()
+        window.onload = async () => {
+            // check if there is a screen selected in URL query
+            if (window.location.search) {
+                const urlParams = new URLSearchParams(window.location.search)
+                const screen_id = urlParams.get('screen_id')
+                if (!screen_id) {
+                    reportProblem('No screen_id in URL query', true)
+                    return
+                }
 
+                const eid_re = /^[0-9a-f]{24}$/
+                if (!eid_re.test(screen_id)) {
+                    reportProblem('Invalid screen_id in URL query', true)
+                    return
+                }
 
-</script>
+                // fetch screen configuration from swpublisher API
+                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+                const sw_configuration = await fetchJSON(u)
+                const configuration_id = sw_configuration.configurationEid
+                unset = ['screenEid', 'configurationEid', 'screenGroupEid']
+                unset.forEach((key) => delete sw_configuration[key])
 
+                // save selected screen to local storage
+                localStorage.setItem(
+                    'selected_screen',
+                    JSON.stringify({
+                        screen_id: screen_id,
+                        configuration_id: configuration_id,
+                    })
+                )
+                localStorage.setItem(
+                    `swConfiguration_${configuration_id}`, JSON.stringify(sw_configuration)
+                )
+            }
+            const screen_json = localStorage.getItem('selected_screen')
+            // if there is no screen selected, redirect to screen selection page
+            if (!screen_json) {
+                window.location.href = 'screen-select.html'
+            }
+            const {screen_id, configuration_id} = JSON.parse(screen_json)
+            const configuration_json = localStorage.getItem(`swConfiguration_${configuration_id}`)
+            const configuration = JSON.parse(configuration_json)
+            const screen_id_element = document.getElementById('screenId')
+            screen_id_element.textContent = screen_id
+            screen_id_element.setAttribute(
+                'href',
+                `https://entu.app/piletilevi/${screen_id}`
+            )
+
+            document.getElementById('published').textContent = toDateTimeString(
+                configuration.publishedAt
+            )
+            document.getElementById('configuration').textContent = JSON.stringify(
+                configuration,
+                null,
+                2
+            )
+
+            // register all media urls from configuration in service worker cache
+            // medias are deeply nested under
+            // configuration.schedules[].layoutPlaylists[].playlistMedias[].file
+            // const mediaToCache = configuration.schedules
+            //     .flatMap((schedule) => schedule.layoutPlaylists)
+            //     .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
+            //     .map((playlistMedia) => playlistMedia.fileDO)
+
+            // console.log('Media to cache:', mediaToCache)
+
+            // if ('serviceWorker' in navigator) {
+            //     navigator.serviceWorker.register('/service-worker.js')
+            //     .then(registration => {
+            //         console.log('Service Worker registered with scope:', registration.scope)
+            //         if (registration.active) {
+            //             registration.active.postMessage({
+            //                 type: 'CACHE_URLS',
+            //                 urls: mediaToCache
+            //             })
+            //         }
+            //     })
+            //     .catch(error => {
+            //         console.log('Service Worker registration failed:', error)
+            //     })
+            // }
+
+            // Render the player
+            const player_element = document.getElementById('player')
+            const player = new EntuScreenWerkPlayer(player_element, configuration)
+            player.play()
+        }
+    </script>
 </html>

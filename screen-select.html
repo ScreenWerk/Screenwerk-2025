@@ -49,7 +49,6 @@
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
     <script>
-      const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
       const HOSTNAME = 'entu.app/api'
       const ACCOUNT = 'piletilevi'
       const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
@@ -219,13 +218,16 @@
           const next = (await sgIter.next())
           if (next.done) break
           
+          const next_group = next.value
+
           // Update dates
-          const screengroup_id = next.value.screengroup_id
+          const screengroup_id = next_group.screengroup_id
+          const configuration_id = next_group.swpublisher.configurationEid
           const screengroup_item = document.getElementById(screengroup_id)
           if (screengroup_item) {
 
             // Publication date from Entu screen entity
-            const entu_pub_date = next.value.entu_screengroup.entity.published[0].datetime
+            const entu_pub_date = next_group.entu_screengroup.entity.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E = screengroup_item.querySelector('#ePublished')
               entu_pub_date_E.textContent = 'Entu: ' + toDateTimeString(entu_pub_date)
@@ -233,7 +235,7 @@
 
             // Publication date from SWPublisher
             // Also create/overwrite the date from localstore
-            if (next.value.swpublisher) {
+            if (next_group.swpublisher) {
               // if configuration was not stored before, make screens under it active now
               if (!localStorage.getItem(`swpublisher_${screengroup_id}`)) {
                 // loop through screen elements under this group
@@ -244,14 +246,18 @@
                   screen_item.addEventListener('click', () => {
                     localStorage.setItem('selected_screen', JSON.stringify({
                       screen_id: screen_item.id,
-                      configuration: next.value.swpublisher
+                      configuration_id: configuration_id
                     }))
-                    window.location.href = 'index.html'
+                    window.location.href = '/?screen_id=' + screen_item.id
                   })
                 }
               }
-              localStorage.setItem(`swpublisher_${screengroup_id}`, JSON.stringify(next.value.swpublisher))
-              const swpublisher_pub_date = next.value.swpublisher.publishedAt
+              // unset screen ID from swpublisher
+              delete next_group.swpublisher.screenEid
+              delete next_group.swpublisher.configurationEid
+              delete next_group.swpublisher.screenGroupEid
+              localStorage.setItem(`swConfiguration_${configuration_id}`, JSON.stringify(next_group.swpublisher))
+              const swpublisher_pub_date = next_group.swpublisher.publishedAt
               const swpublisher_pub_date_E = screengroup_item.querySelector('#swPublished')
               swpublisher_pub_date_E.textContent = 'SWPublisher: ' + toDateTimeString(swpublisher_pub_date)
               const local_published_E = screengroup_item.querySelector('#lPublished')

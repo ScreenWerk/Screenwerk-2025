@@ -113,3 +113,12 @@ li.screen-item.active::marker {
 li.on-hover:visited {
     color: purple;
 }
+
+
+#error {
+    color: red;
+    font-weight: bold;
+    font-size: 1.5em;
+    text-align: center;
+    margin: 0.5em;
+}
