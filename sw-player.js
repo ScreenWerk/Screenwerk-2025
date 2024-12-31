@@ -49,10 +49,17 @@ class SwPlaylist {
         this.dom_element.id = configuration.playlistEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.playlistEid}`)
-        this.dom_element.setAttribute('left', configuration.left)
-        this.dom_element.setAttribute('top', configuration.top)
-        this.dom_element.setAttribute('width', configuration.width)
-        this.dom_element.setAttribute('height', configuration.height)
+        
+        // Set position and dimensions using percentage values
+        const left = configuration.left + '%'
+        const top = configuration.top + '%'
+        const width = configuration.width + '%'
+        const height = configuration.height + '%'
+        
+        this.dom_element.style.left = left
+        this.dom_element.style.top = top
+        this.dom_element.style.width = width
+        this.dom_element.style.height = height
         this.dom_element.setAttribute('zindex', configuration.zindex)
         this.dom_element.setAttribute('loop', configuration.loop)
 
@@ -115,7 +122,7 @@ class SwMedia {
             img.src = configuration.fileDO
             img.style.width = '100%'
             img.style.height = '100%'
-            img.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            // img.style.objectFit = configuration.stretch ? 'cover' : 'contain'
             this.dom_element.appendChild(img)
         } else if (configuration.type === 'Video') {
             const video = document.createElement('video')
@@ -125,11 +132,12 @@ class SwMedia {
             video.muted = configuration.mute
             video.loop = false  // Changed to false since we handle looping ourselves
             video.autoplay = false  // Changed to false for explicit control
-            video.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            // video.style.objectFit = configuration.stretch ? 'cover' : 'contain'
             
             // Set up the ended event listener during initialization
             video.addEventListener('ended', () => {
-                console.log('video ended')
+                const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
+                console.log(`Video ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.dom_element.style.display = 'none'
                 this.next_media.play()
             })
@@ -140,20 +148,24 @@ class SwMedia {
     }
     play() {
         this.dom_element.style.display = 'block'
+        this.dom_element.start_ms = new Date().getTime()
         if (this.type === 'Video') {
             const video_div = this.dom_element.querySelector('video')
-            video_div.currentTime = 0
+            video_div.currentTime = 0 // rewind
             const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
-                    console.log('Autoplay started')
+                    console.log(`Autoplay started for ${this.dom_element.id}`)
                 }).catch(error => {
-                    console.log('Autoplay was prevented:', error)
+                    console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
                 })
             }
         } else if (this.type === 'Image') {
+            console.log(`Image ${this.dom_element.id} started for ${this.duration} s`)
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
+                const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
+                console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.next_media.play()
             }, this.duration * 1e3)
         }
