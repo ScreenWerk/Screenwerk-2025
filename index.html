@@ -21,6 +21,7 @@
         Configuration:
         <pre id='configuration'></pre>
         </div>
+        <button id="fullscreenButton" style="display: none;">Enter Fullscreen</button>
     </body>
 
     <!-- read common functions from common.js -->
@@ -40,7 +41,33 @@
             }
         }
 
+        const requestFullscreen = () => {
+            const elem = document.documentElement
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen()
+            } else if (elem.webkitRequestFullscreen) { // Safari
+                elem.webkitRequestFullscreen()
+            } else if (elem.msRequestFullscreen) { // IE11
+                elem.msRequestFullscreen()
+            }
+            closeDevTools()
+        }
+
+        const closeDevTools = () => {
+            if (window.devtools) {
+                window.devtools.close()
+            }
+        }
+
         window.onload = async () => {
+            // Show fullscreen button and add click event listener
+            const fullscreenButton = document.getElementById('fullscreenButton')
+            fullscreenButton.style.display = 'block'
+            fullscreenButton.addEventListener('click', () => {
+                requestFullscreen()
+                fullscreenButton.style.display = 'none'
+            })
+
             // check if there is a screen selected in URL query
             if (window.location.search) {
                 const urlParams = new URLSearchParams(window.location.search)
