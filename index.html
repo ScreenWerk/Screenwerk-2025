@@ -140,6 +140,26 @@
                 navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registered with scope:', registration.scope)
+                    
+                    // Check if there's an update available
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing
+                        console.log('New service worker installing...')
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    console.log('New service worker available - refreshing page in 3 seconds')
+                                    setTimeout(() => {
+                                        window.location.reload()
+                                    }, 3000)
+                                } else {
+                                    console.log('Service Worker installed for the first time')
+                                }
+                            }
+                        })
+                    })
+
                     if (registration.active) {
                         registration.active.postMessage({
                             type: 'CACHE_URLS',
@@ -149,6 +169,11 @@
                 })
                 .catch(error => {
                     console.log('Service Worker registration failed:', error)
+                })
+
+                // Listen for when the new service worker takes over
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('New service worker is now controlling the page')
                 })
             }
 
