@@ -28,6 +28,8 @@
     <script src='common.js'></script>
 
     <script>
+        const CONFIG_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
         const reportProblem = (message, with_link = false) => {
             console.error(message)
             document.getElementById('error').textContent = message
@@ -56,6 +58,37 @@
         const closeDevTools = () => {
             if (window.devtools) {
                 window.devtools.close()
+            }
+        }
+
+        const checkConfiguration = async (screen_id, current_config) => {
+            try {
+                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+                const new_config = await fetchJSON(u)
+                
+                if (new_config.publishedAt > current_config.publishedAt) {
+                    console.log('New configuration available')
+                    const configuration_id = new_config.configurationEid
+                    unset = ['screenEid', 'configurationEid', 'screenGroupEid']
+                    unset.forEach((key) => delete new_config[key])
+
+                    localStorage.setItem(
+                        'selected_screen',
+                        JSON.stringify({
+                            screen_id: screen_id,
+                            configuration_id: configuration_id,
+                        })
+                    )
+                    localStorage.setItem(
+                        `swConfiguration_${configuration_id}`, 
+                        JSON.stringify(new_config)
+                    )
+                    window.location.reload()
+                } else {
+                    console.log('Configuration is up to date')
+                }
+            } catch (error) {
+                console.error('Failed to check configuration:', error)
             }
         }
 
@@ -125,6 +158,11 @@
                 null,
                 2
             )
+
+            // Add periodic configuration check
+            setInterval(() => {
+                checkConfiguration(screen_id, configuration)
+            }, CONFIG_CHECK_INTERVAL)
 
             // register all media urls from configuration in service worker cache
             // medias are deeply nested under
