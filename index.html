@@ -129,28 +129,28 @@
             // register all media urls from configuration in service worker cache
             // medias are deeply nested under
             // configuration.schedules[].layoutPlaylists[].playlistMedias[].file
-            // const mediaToCache = configuration.schedules
-            //     .flatMap((schedule) => schedule.layoutPlaylists)
-            //     .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
-            //     .map((playlistMedia) => playlistMedia.fileDO)
+            const mediaToCache = configuration.schedules
+                .flatMap((schedule) => schedule.layoutPlaylists)
+                .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
+                .map((playlistMedia) => playlistMedia.fileDO)
 
-            // console.log('Media to cache:', mediaToCache)
+            console.log('Media to cache:', mediaToCache)
 
-            // if ('serviceWorker' in navigator) {
-            //     navigator.serviceWorker.register('/service-worker.js')
-            //     .then(registration => {
-            //         console.log('Service Worker registered with scope:', registration.scope)
-            //         if (registration.active) {
-            //             registration.active.postMessage({
-            //                 type: 'CACHE_URLS',
-            //                 urls: mediaToCache
-            //             })
-            //         }
-            //     })
-            //     .catch(error => {
-            //         console.log('Service Worker registration failed:', error)
-            //     })
-            // }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope)
+                    if (registration.active) {
+                        registration.active.postMessage({
+                            type: 'CACHE_URLS',
+                            urls: mediaToCache
+                        })
+                    }
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error)
+                })
+            }
 
             // Render the player
             const player_element = document.getElementById('player')
