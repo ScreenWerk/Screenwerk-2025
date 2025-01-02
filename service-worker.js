@@ -12,21 +12,22 @@ self.addEventListener('install', event => {
 
 // Look into cache only, if requested url is in form of "/media/6765320b32faaba00f8f92f8/6765321232faaba00f8f9301"
 self.addEventListener('fetch', event => {
-    console.log(`Fetching ${event.request.url}`)
     if (!MEDIA_URL_RE.test(event.request.url)) {
-        console.log(`Ignoring ${event.request.url}`)
+        // console.log(`Ignoring ${event.request.url}`)
         return
     }
+    const mediaId = event.request.url.match(MEDIA_URL_RE)[0].split('/')[1];
+    console.log(`Fetching ${event.request.url} as ${mediaId}`)
     event.respondWith(
-        caches.match(event.request)
+        caches.match(mediaId)
         .then(response => {
             // Cache hit - return the response from the cache
             if (response) {
-                console.log(`Cache hit for ${event.request.url}`)
+                console.log(`Cache hit for ${mediaId}`)
                 return response
             }
             // Cache miss - fetch from the network
-            console.log(`Cache miss for ${event.request.url}`)
+            console.log(`Cache miss for ${mediaId}`)
             return fetch(event.request).then(
                 response => {
                     // Check if we received a valid response
@@ -37,7 +38,7 @@ self.addEventListener('fetch', event => {
                     const responseToCache = response.clone()
                     caches.open(CACHE_NAME)
                     .then(cache => {
-                        cache.put(event.request, responseToCache)
+                        cache.put(mediaId, responseToCache)
                     })
                     return response
                 }
@@ -50,11 +51,13 @@ self.addEventListener('message', event => {
     if (event.data && event.data.type === 'CACHE_URLS') {
         // test against the regex
         const urlsToCache = event.data.urls.filter(url => MEDIA_URL_RE.test(url))
-        console.log(`Caching ${urlsToCache.length} URLs`)
-        console.log(urlsToCache)
+        const mediaIdsToCache = urlsToCache.map(url => url.match(MEDIA_URL_RE)[0].split('/')[1])
+        console.log(`Caching ${mediaIdsToCache.length} URLs`)
+        console.log(mediaIdsToCache)
         caches.open(CACHE_NAME)
         .then(cache => {
-            return cache.addAll(urlsToCache)
+            return Promise.all(mediaIdsToCache.map(mediaId => fetch(urlsToCache.find(url => url.includes(mediaId)))
+                .then(response => cache.put(mediaId, response))))
         })
     }
 })
