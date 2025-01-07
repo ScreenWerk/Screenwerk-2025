@@ -12,51 +12,51 @@
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
     <script>
-      const HOSTNAME = "entu.app/api";
-      const ACCOUNT = "piletilevi";
-      const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`;
-      const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`;
+      const HOSTNAME = "entu.app/api"
+      const ACCOUNT = "piletilevi"
+      const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
+      const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
 
-      var sgList, sgIter;
+      var sgList, sgIter
 
       class Iterable {
         constructor(seed_array) {
           //adding items to an array
-          this.items = [].concat(seed_array || []);
+          this.items = [].concat(seed_array || [])
         }
         // pushing an item to the array
         add(item) {
-          this.items.push(item);
+          this.items.push(item)
         }
         // report count of items
         get count() {
-          return this.items.length;
+          return this.items.length
         }
         // report, if there are items left
         get hasItems() {
-          return this.items.length > 0;
+          return this.items.length > 0
         }
 
         //implement iterator function
         [Symbol.iterator]() {
-          let items = this.items;
+          let items = this.items
           return {
             next: async function () {
               async function fetchFromPublisher(screen_id) {
-                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`;
-                return await fetchJSON(u);
+                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+                return await fetchJSON(u)
               }
 
               async function fetchFromEntu(screen_id) {
-                const u = `${ENTU_ENTITY_URL}/${screen_id}`;
-                return await fetchJSON(u);
+                const u = `${ENTU_ENTITY_URL}/${screen_id}`
+                return await fetchJSON(u)
               }
 
               //retrieving an item from the array
               if (items.length) {
-                const item = items.shift();
-                const screen_id = item.screen_id;
-                const screengroup_id = item.screengroup_id;
+                const item = items.shift()
+                const screen_id = item.screen_id
+                const screengroup_id = item.screengroup_id
                 return {
                   value: {
                     screengroup_id: screengroup_id,
@@ -64,104 +64,104 @@
                     entu_screengroup: await fetchFromEntu(screengroup_id),
                   },
                   done: false,
-                };
+                }
               }
               //return true if all items are iterated
-              return { done: true };
+              return { done: true }
             },
-          };
+          }
         }
       }
 
       // async function fetchScreenGroup(id) {}
 
       async function fetchScreenGroups() {
-        const sgList = new Iterable([]);
+        const sgList = new Iterable([])
 
         const screen_group_list_E =
-          document.getElementById("screen-group-list");
-        const data = await fetchJSON(ENTU_SCREENS_URL);
+          document.getElementById("screen-group-list")
+        const data = await fetchJSON(ENTU_SCREENS_URL)
         if (!data) {
-          console.error("failed to fetch screens");
-          return;
+          console.error("failed to fetch screens")
+          return
         }
         const fetched_str =
-          data.limit < data.count ? `${data.limit} of` : `all ${data.count}`;
-        console.log(`fetched ${fetched_str} screens`);
-        const entities = data.entities;
+          data.limit < data.count ? `${data.limit} of` : `all ${data.count}`
+        console.log(`fetched ${fetched_str} screens`)
+        const entities = data.entities
 
-        const screen_group_ids = [];
+        const screen_group_ids = []
         const selected_screen = JSON.parse(
           localStorage.getItem("selected_screen") || "{}"
-        );
+        )
         entities.forEach(async (screen) => {
           if (screen.screen_group && screen.screen_group.length > 0) {
-            const group_name = screen.screen_group[0].string;
-            const group_id = screen.screen_group[0].reference;
+            const group_name = screen.screen_group[0].string
+            const group_id = screen.screen_group[0].reference
 
             // if new group, register it
             if (!screen_group_ids.includes(group_id)) {
-              screen_group_ids.push(group_id);
+              screen_group_ids.push(group_id)
 
               // also enqueue the group for configuration retrieval
               sgList.add({
                 screen_id: screen._id,
                 screengroup_id: group_id,
-              });
+              })
 
-              const new_group_item = document.createElement("li");
-              new_group_item.id = group_id;
-              new_group_item.className = "screen-group";
+              const new_group_item = document.createElement("li")
+              new_group_item.id = group_id
+              new_group_item.className = "screen-group"
 
-              new_group_item.textContent = group_name;
+              new_group_item.textContent = group_name
 
-              const published_element = document.createElement("div");
-              published_element.id = "dates";
-              new_group_item.appendChild(published_element);
+              const published_element = document.createElement("div")
+              published_element.id = "dates"
+              new_group_item.appendChild(published_element)
 
-              const local_published_element = document.createElement("pre");
-              local_published_element.id = "lPublished";
-              published_element.appendChild(local_published_element);
+              const local_published_element = document.createElement("pre")
+              local_published_element.id = "lPublished"
+              published_element.appendChild(local_published_element)
               if (localStorage.getItem(`swpublisher_${group_id}`)) {
                 const local_published = JSON.parse(
                   localStorage.getItem(`swpublisher_${group_id}`)
-                );
+                )
                 local_published_element.textContent =
-                  "Local: " + toDateTimeString(local_published.publishedAt);
+                  "Local: " + toDateTimeString(local_published.publishedAt)
               }
 
-              const entu_published_element = document.createElement("pre");
-              entu_published_element.id = "ePublished";
-              published_element.appendChild(entu_published_element);
+              const entu_published_element = document.createElement("pre")
+              entu_published_element.id = "ePublished"
+              published_element.appendChild(entu_published_element)
               // entuPublishedElement.textContent = 'Entu: ' + toDateTimeString(screen.published[0].string)
 
-              const sw_published_element = document.createElement("pre");
-              sw_published_element.id = "swPublished";
-              published_element.appendChild(sw_published_element);
+              const sw_published_element = document.createElement("pre")
+              sw_published_element.id = "swPublished"
+              published_element.appendChild(sw_published_element)
               // localPublishedElement.textContent = 'Local: '
 
-              const new_screen_items = document.createElement("ul");
-              new_group_item.appendChild(new_screen_items);
-              screen_group_list_E.appendChild(new_group_item);
+              const new_screen_items = document.createElement("ul")
+              new_group_item.appendChild(new_screen_items)
+              screen_group_list_E.appendChild(new_group_item)
             }
-            const group_item = document.getElementById(group_id);
-            const screen_items = group_item.querySelector("ul");
-            const screen_item = document.createElement("li");
+            const group_item = document.getElementById(group_id)
+            const screen_items = group_item.querySelector("ul")
+            const screen_item = document.createElement("li")
 
-            screen_item.id = screen._id;
-            screen_item.className = "screen-item";
+            screen_item.id = screen._id
+            screen_item.className = "screen-item"
             if (selected_screen.screen_id === screen._id) {
-              screen_item.classList.add("active");
+              screen_item.classList.add("active")
             }
 
-            screen_item.textContent = screen.name[0].string;
+            screen_item.textContent = screen.name[0].string
 
-            const status_element = document.createElement("span");
-            status_element.id = "status";
-            screen_item.appendChild(status_element);
+            const status_element = document.createElement("span")
+            status_element.id = "status"
+            screen_item.appendChild(status_element)
 
             if (localStorage.getItem(`swpublisher_${group_id}`)) {
-              screen_item.classList.add("on-hover");
+              screen_item.classList.add("on-hover")
               screen_item.addEventListener("click", () => {
                 localStorage.setItem(
                   "selected_screen",
@@ -171,44 +171,44 @@
                       localStorage.getItem(`swpublisher_${group_id}`)
                     ),
                   })
-                );
-                window.location.href = "index.html";
-              });
+                )
+                window.location.href = "index.html"
+              })
             }
-            screen_items.appendChild(screen_item);
+            screen_items.appendChild(screen_item)
           } else {
             console.log(
               `screen ${screen._id}, ${screen.name[0].string} has no screen_group`
-            );
+            )
           }
-        });
-        return sgList;
+        })
+        return sgList
       }
 
       window.onload = async function () {
-        sgList = await fetchScreenGroups();
-        sgIter = sgList[Symbol.iterator]();
+        sgList = await fetchScreenGroups()
+        sgIter = sgList[Symbol.iterator]()
 
         // screengrouploop:
         while (true) {
-          const next = await sgIter.next();
-          if (next.done) break;
+          const next = await sgIter.next()
+          if (next.done) break
 
-          const next_group = next.value;
+          const next_group = next.value
 
           // Update dates
-          const screengroup_id = next_group.screengroup_id;
-          const configuration_id = next_group.swpublisher.configurationEid;
-          const screengroup_item = document.getElementById(screengroup_id);
+          const screengroup_id = next_group.screengroup_id
+          const configuration_id = next_group.swpublisher.configurationEid
+          const screengroup_item = document.getElementById(screengroup_id)
           if (screengroup_item) {
             // Publication date from Entu screen entity
             const entu_pub_date =
-              next_group.entu_screengroup.entity.published[0].datetime;
+              next_group.entu_screengroup.entity.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
-                screengroup_item.querySelector("#ePublished");
+                screengroup_item.querySelector("#ePublished")
               entu_pub_date_E.textContent =
-                "Entu: " + toDateTimeString(entu_pub_date);
+                "Entu: " + toDateTimeString(entu_pub_date)
             }
 
             // Publication date from SWPublisher
@@ -218,10 +218,10 @@
               if (!localStorage.getItem(`swpublisher_${screengroup_id}`)) {
                 // loop through screen elements under this group
                 const screen_items =
-                  screengroup_item.querySelector("ul").children;
-                for (let i = 0; i < screen_items.length; i++) {
-                  const screen_item = screen_items[i];
-                  screen_item.classList.add("on-hover");
+                  screengroup_item.querySelector("ul").children
+                for (let i = 0 i < screen_items.length i++) {
+                  const screen_item = screen_items[i]
+                  screen_item.classList.add("on-hover")
                   screen_item.addEventListener("click", () => {
                     localStorage.setItem(
                       "selected_screen",
@@ -229,34 +229,34 @@
                         screen_id: screen_item.id,
                         configuration_id: configuration_id,
                       })
-                    );
-                    window.location.href = "/?screen_id=" + screen_item.id;
-                  });
+                    )
+                    window.location.href = "/?screen_id=" + screen_item.id
+                  })
                 }
               }
               // unset screen ID from swpublisher
-              delete next_group.swpublisher.screenEid;
-              delete next_group.swpublisher.configurationEid;
-              delete next_group.swpublisher.screenGroupEid;
+              delete next_group.swpublisher.screenEid
+              delete next_group.swpublisher.configurationEid
+              delete next_group.swpublisher.screenGroupEid
               localStorage.setItem(
                 `swConfiguration_${configuration_id}`,
                 JSON.stringify(next_group.swpublisher)
-              );
-              const swpublisher_pub_date = next_group.swpublisher.publishedAt;
+              )
+              const swpublisher_pub_date = next_group.swpublisher.publishedAt
               const swpublisher_pub_date_E =
-                screengroup_item.querySelector("#swPublished");
+                screengroup_item.querySelector("#swPublished")
               swpublisher_pub_date_E.textContent =
-                "SWPublisher: " + toDateTimeString(swpublisher_pub_date);
+                "SWPublisher: " + toDateTimeString(swpublisher_pub_date)
               const local_published_E =
-                screengroup_item.querySelector("#lPublished");
+                screengroup_item.querySelector("#lPublished")
               local_published_E.textContent =
-                "Local: " + toDateTimeString(swpublisher_pub_date);
+                "Local: " + toDateTimeString(swpublisher_pub_date)
             }
           } else {
-            null;
+            null
           }
         }
-      };
+      }
     </script>
   </head>
   <body>

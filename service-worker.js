@@ -1,11 +1,13 @@
-const CACHE_NAME = 'media-cache-v1';
+// Disclaimer: no semicolons, if unnecessary, are used in this project
+
+const CACHE_NAME = 'media-cache-v1'
 const MEDIA_URL_RE = new RegExp('[0-9a-f]{24}/[0-9a-f]{24}')
 
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
         .then(cache => {
-            console.log('Opened cache');
+            console.log('Opened cache')
         })
     );
 });

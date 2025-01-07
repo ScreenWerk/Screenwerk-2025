@@ -1,3 +1,5 @@
+// Disclaimer: no semicolons, if unnecessary, are used in this project
+
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10
 }
