@@ -127,3 +127,29 @@ window.onload = async () => {
     const player = new EntuScreenWerkPlayer(player_element, configuration)
     player.play()
 }
+
+async function updateServiceWorker() {
+    const registration = await navigator.serviceWorker.register('service-worker.js')
+    
+    if (registration.waiting) {
+        // If there's a waiting worker, activate it immediately
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    
+    registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && registration.active) {
+                // If there's a new worker waiting, activate it
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+            if (newWorker.state === 'activated') {
+                console.log('New service worker activated');
+                window.location.reload();
+            }
+        });
+    });
+}
+
+window.addEventListener('load', updateServiceWorker)
