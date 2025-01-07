@@ -14,7 +14,7 @@ class SwLayout {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('rendering layout', configuration)
+        // console.log('rendering layout', configuration)
         this.dom_element.id = configuration.layoutEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.layoutEid}`)
@@ -47,7 +47,7 @@ class SwPlaylist {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('rendering playlist', configuration)
+        // console.log('rendering playlist', configuration)
         this.dom_element.id = configuration.playlistEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.playlistEid}`)
@@ -107,7 +107,7 @@ class SwMedia {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('rendering media', configuration)
+        // console.log('rendering media', configuration)
         this.dom_element.id = configuration.playlistMediaEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.mediaEid}`)
@@ -139,7 +139,7 @@ class SwMedia {
             // Set up the ended event listener during initialization
             video.addEventListener('ended', () => {
                 const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
-                console.log(`Video ${this.dom_element.id} ended after ${elapsed_ms} ms`)
+                // console.log(`Video ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.dom_element.style.display = 'none'
                 this.next_media.play()
             })
@@ -157,9 +157,9 @@ class SwMedia {
             const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
-                    console.log(`Autoplay started for ${this.dom_element.id}`)
+                    // console.log(`Autoplay started for ${this.dom_element.id}`)
                 }).catch(error => {
-                    console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
+                    // console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
                 })
             }
         } else if (this.type === 'Image') {
@@ -167,7 +167,7 @@ class SwMedia {
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
                 const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
-                console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
+                // console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.next_media.play()
             }, this.duration * 1e3)
         }
@@ -185,7 +185,7 @@ class EntuScreenWerkPlayer {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('rendering player', configuration)
+        // console.log('rendering player', configuration)
         configuration.schedules.forEach(schedule => {
             const layout_div = document.createElement('div')
             const sw_layout = new SwLayout(this, layout_div, schedule)

@@ -19,17 +19,17 @@ self.addEventListener('fetch', event => {
         return
     }
     const mediaId = event.request.url.match(MEDIA_URL_RE)[0].split('/')[1];
-    console.log(`Fetching ${event.request.url} as ${mediaId}`)
+    // console.log(`Fetching ${event.request.url} as ${mediaId}`)
     event.respondWith(
         caches.match(mediaId)
         .then(response => {
             // Cache hit - return the response from the cache
             if (response) {
-                console.log(`Cache hit for ${mediaId}`)
+                // console.log(`Cache hit for ${mediaId}`)
                 return response
             }
             // Cache miss - fetch from the network
-            console.log(`Cache miss for ${mediaId}`)
+            // console.log(`Cache miss for ${mediaId}`)
             return fetch(event.request).then(
                 response => {
                     // Check if we received a valid response
