@@ -1,3 +1,5 @@
+// Disclaimer: no semicolons, if unnecessary, are used in this project
+
 const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
 
 function toDateTimeString(ISODate) {
