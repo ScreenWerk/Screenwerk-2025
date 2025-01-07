@@ -104,7 +104,7 @@ window.onload = async () => {
         .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
         .map((playlistMedia) => playlistMedia.fileDO)
 
-    console.log('Media to cache:', mediaToCache)
+    // console.log('Media to cache:', mediaToCache)
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')

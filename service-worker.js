@@ -54,8 +54,8 @@ self.addEventListener('message', event => {
         // test against the regex
         const urlsToCache = event.data.urls.filter(url => MEDIA_URL_RE.test(url))
         const mediaIdsToCache = urlsToCache.map(url => url.match(MEDIA_URL_RE)[0].split('/')[1])
-        console.log(`Caching ${mediaIdsToCache.length} URLs`)
-        console.log(mediaIdsToCache)
+        // console.log(`Caching ${mediaIdsToCache.length} URLs`)
+        // console.log(mediaIdsToCache)
         caches.open(CACHE_NAME)
         .then(cache => {
             return Promise.all(mediaIdsToCache.map(mediaId => fetch(urlsToCache.find(url => url.includes(mediaId)))
