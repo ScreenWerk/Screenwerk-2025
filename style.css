@@ -1,34 +1,47 @@
+/* Base styles */
 body {
     font-family: Arial, sans-serif;
     font-size: 1em;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     background-color: lightgray;
 }
+
+/* #player styles */
 #player {
     position: absolute;
     top: 0;
-    height: 100vh;  /* Changed from fixed height to 50% of viewport height */
+    left: 0;
+    height: 100vh;
     width: 100vw;
     background: antiquewhite;
-    border: 0px solid black;
-    margin: 0px;
-    padding: 0px;
-    overflow: hidden; /* Hide scrollbars */
-    
+    border: 0 solid black;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
     .layout {
         position: relative;
-        background-color: aliceblue;
+        display: flex; /* Use flexbox for alignment */
         align-items: center;
         justify-content: center;
-        border: 0px black solid;
-        padding: 0px;
-        margin: 0px;
+        background-color: aliceblue;
+        border: 0 black solid;
+        padding: 0;
+        margin: 0;
         width: 100%;
         height: 100%;
 
+        .title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0em;
+        }
+
         .playlist {
             position: absolute;
+            top: 0;
+            left: 0;
             border: none;
             padding: 0;
             margin: 0;
@@ -60,6 +73,7 @@ body {
     }
 }
 
+/* #fullscreenButton styles */
 #fullscreenButton {
     position: absolute;
     top: 50%;
@@ -79,84 +93,85 @@ body {
     background-color: #0056b3;
 }
 
-#player .layout .title {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin: 0em;
-}
-
+/* Styles for elements with class 'screen-group' */
 li.screen-group {
     clear: both;
     min-height: 4em;
     margin-top: 0.5em;
     border-top: black solid 1px;
     padding-top: 0.3em;
+
+    > #dates {
+        float: right;
+        margin: 0em;
+        padding: 0.2em;
+        background: linear-gradient(-45deg, linen, transparent);
+    }
+
+    #lPublished {
+        color: darkgoldenrod;
+        text-align: end;
+        font-size: smaller;
+        margin: 0em;
+    }
+
+    #swPublished {
+        color: darkslateblue;
+        text-align: end;
+        font-size: smaller;
+        margin: 0em;
+    }
+
+    #ePublished {
+        color: darkgreen;
+        text-align: end;
+        font-size: smaller;
+        margin: 0em;
+    }
+
+    /* Styles for elements with class 'screen-item' */
+    &.screen-item {
+        > #status {
+            color: orange;
+            float: right;
+        }
+
+        &.completed {
+            color: green;
+        }
+
+        &.errored {
+            color: red;
+        }
+
+        &.active {
+            background-color: darkolivegreen;
+            color: white;
+            font-weight: bolder;
+            font-size: larger;
+            list-style: disc;
+
+            &::marker {
+                color: darkolivegreen;
+            }
+        }
+    }
+
+    /* Styles for elements with class 'on-hover' */
+    &.on-hover {
+        cursor: pointer;
+
+        &:hover {
+            font-weight: bolder;
+        }
+
+        &:visited {
+            color: purple;
+        }
+    }
 }
 
-li.screen-group>#dates {
-    float: right;
-    margin: 0em;
-    padding: 0.2em;
-    background: linear-gradient(-45deg, linen, transparent);
-}
-
-li.screen-group #lPublished,
-li.screen-group #swPublished,
-li.screen-group #ePublished {
-    color: darkgreen;
-    text-align: end;
-    font-size: smaller;
-    margin: 0em;
-}
-li.screen-group #lPublished {
-    color: darkgoldenrod;
-}
-li.screen-group #swPublished {
-    color: darkslateblue;
-}
-li.screen-group #ePublished {
-    color: darkgreen;
-}
-
-li.screen-item>#status {
-    color: orange;
-    float: right;
-}
-
-li.screen-item.completed {
-    color: green;
-}
-
-li.screen-item.errored {
-    color: red;
-}
-
-li.on-hover {
-    cursor: pointer;
-}
-
-li.on-hover:hover {
-    font-weight: bolder;
-}
-
-li.screen-item.active {
-    background-color: darkolivegreen;
-    color: white;
-    font-weight: bolder;
-    font-size: larger;
-    list-style: disc;
-}
-li.screen-item.active::marker {
-    /* content: "-> "; */
-    color: darkolivegreen;
-}
-
-
-li.on-hover:visited {
-    color: purple;
-}
-
-
+/* #error styles */
 #error {
     color: red;
     font-weight: bold;
