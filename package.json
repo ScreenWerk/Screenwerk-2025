@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "later": "^1.2.0"
   },
   "scripts": {
     "test": "jest"
