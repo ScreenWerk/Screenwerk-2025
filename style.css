@@ -87,10 +87,10 @@ body {
     border-radius: 5px;
     cursor: pointer;
     z-index: 1000; /* Ensure it stays on top */
-}
 
-#fullscreenButton:hover {
-    background-color: #0056b3;
+    &:hover {
+        background-color: #0056b3;
+    }
 }
 
 /* Styles for elements with class 'screen-group' */
@@ -106,31 +106,31 @@ li.screen-group {
         margin: 0em;
         padding: 0.2em;
         background: linear-gradient(-45deg, linen, transparent);
-    }
-
-    #lPublished {
-        color: darkgoldenrod;
-        text-align: end;
-        font-size: smaller;
-        margin: 0em;
-    }
-
-    #swPublished {
-        color: darkslateblue;
-        text-align: end;
-        font-size: smaller;
-        margin: 0em;
-    }
-
-    #ePublished {
-        color: darkgreen;
-        text-align: end;
-        font-size: smaller;
-        margin: 0em;
-    }
+        
+        #lPublished {
+            color: darkgoldenrod;
+            text-align: end;
+            font-size: smaller;
+            margin: 0em;
+        }
+    
+        #swPublished {
+            color: darkslateblue;
+            text-align: end;
+            font-size: smaller;
+            margin: 0em;
+        }
+    
+        #ePublished {
+            color: darkgreen;
+            text-align: end;
+            font-size: smaller;
+            margin: 0em;
+        }
+    }        
 
     /* Styles for elements with class 'screen-item' */
-    &.screen-item {
+    .screen-item {
         > #status {
             color: orange;
             float: right;
@@ -155,20 +155,20 @@ li.screen-group {
                 color: darkolivegreen;
             }
         }
+        /* Styles for elements with class 'on-hover' */
+        &.on-hover {
+            cursor: pointer;
+    
+            &:hover {
+                font-weight: bolder;
+            }
+    
+            &:visited {
+                color: purple;
+            }
+        }
     }
 
-    /* Styles for elements with class 'on-hover' */
-    &.on-hover {
-        cursor: pointer;
-
-        &:hover {
-            font-weight: bolder;
-        }
-
-        &:visited {
-            color: purple;
-        }
-    }
 }
 
 /* #error styles */

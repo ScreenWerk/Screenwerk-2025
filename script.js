@@ -32,7 +32,7 @@ const closeDevTools = () => {
 window.onload = async () => {
     // Show fullscreen button and add click event listener
     const fullscreenButton = document.getElementById('fullscreenButton')
-    fullscreenButton.style.display = 'block'
+    // fullscreenButton.style.display = 'block'
     fullscreenButton.addEventListener('click', () => {
         requestFullscreen()
         fullscreenButton.style.display = 'none'
