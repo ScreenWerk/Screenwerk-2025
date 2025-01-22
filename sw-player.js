@@ -1,5 +1,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
+// import { LinkedList } from './linked-list.js'
+
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10
 }
@@ -36,8 +38,9 @@ class SwLayout {
     }
 }
 
-class SwPlaylist {
+class SwPlaylist extends LinkedList {
     constructor(parent, dom_element, configuration) {
+        super() // Call the super constructor
         this.parent = parent
         this.dom_element = dom_element
         this.medias = []
@@ -70,24 +73,13 @@ class SwPlaylist {
 
         configuration.playlistMedias.forEach(playlist_media => {
             const media_div = document.createElement('div')
+            media_div.style.display = 'none'
             const sw_media = new SwMedia(this, media_div, playlist_media)
-            this.medias.push(sw_media)
-            if (this.medias.length === 1) {
-                sw_media.next_media = sw_media
-                sw_media.prev_media = sw_media
-            } else {
-                this.medias[this.medias.length - 2].next_media = sw_media
-                this.medias[0].prev_media = sw_media
-                sw_media.prev_media = this.medias[this.medias.length - 2]
-                sw_media.next_media = this.medias[0]
-            }
+            this.add(sw_media)
         })
     }
     play() {
-        this.medias.forEach(media => {
-            media.dom_element.style.display = 'none'
-        })
-        this.medias[0].play()
+        this.current.play()
     }
 }
 
@@ -96,8 +88,6 @@ class SwMedia {
         this.parent = parent
         this.dom_element = dom_element
         this.type = configuration.type
-        this.prev_media = null
-        this.next_media = null
         if (this.type === 'Image') {
             this.duration = configuration.duration || DEFAULTS.IMAGE_PLAYBACK_DURATION
         }
@@ -141,7 +131,7 @@ class SwMedia {
                 const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
                 // console.log(`Video ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.dom_element.style.display = 'none'
-                this.next_media.play()
+                this.parent.next().play()
             })
             
             this.dom_element.appendChild(video)
@@ -167,8 +157,8 @@ class SwMedia {
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
                 const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
-                // console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
-                this.next_media.play()
+                console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
+                this.parent.next().play()
             }, this.duration * 1e3)
         }
     }
@@ -177,7 +167,7 @@ class SwMedia {
 class EntuScreenWerkPlayer {
     constructor(dom_element, configuration) {
         this.dom_element = dom_element
-        this.layouts = []
+        this.layout = {}
         // clear the player
         while (this.dom_element.firstChild) {
             this.dom_element.removeChild(this.dom_element.firstChild)
@@ -185,18 +175,24 @@ class EntuScreenWerkPlayer {
         this.render(configuration)
     }
     render(configuration) {
-        // console.log('rendering player', configuration)
-        configuration.schedules.forEach(schedule => {
-            const layout_div = document.createElement('div')
-            const sw_layout = new SwLayout(this, layout_div, schedule)
-            this.layouts.push(sw_layout)
+        const cron_schedules = configuration.schedules.map(schedule => {
+            return {
+                cron_expression: schedule.crontab,
+                schedule_id: schedule.eid
+            }
         })
+        // console.log('rendering player', configuration)
+        // [{ cron_expression, schedule_id }, ...]
+        const cron = new Cron(cron_schedules)
+        const current_schedule_id = cron.current().schedule_id
+        const current_schedule = configuration.schedules.find(schedule => schedule.eid === current_schedule_id)
+        const layout_div = document.createElement('div')
+        const sw_layout = new SwLayout(this, layout_div, current_schedule)
+        this.layout = sw_layout
     }
 
     play() {
-        this.layouts.forEach(layout => {
-            layout.play()
-        })
+        this.layout.play()
     }
 
     stop() {
