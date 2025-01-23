@@ -103,6 +103,7 @@ li.screen-group {
 
     > #dates {
         float: right;
+        clear: right;
         margin: 0em;
         padding: 0.2em;
         background: linear-gradient(-45deg, linen, transparent);
@@ -128,6 +129,17 @@ li.screen-group {
             margin: 0em;
         }
     }        
+
+    > #validation-errors {
+        float: right;
+        clear: right;
+        margin: 0em;
+        padding: 0.2em;
+        background: linear-gradient(-45deg, mistyrose, transparent);
+        color: darkred;
+        font-size: smaller;
+        text-align: end;
+    }
 
     /* Styles for elements with class 'screen-item' */
     .screen-item {
