@@ -15,6 +15,7 @@
     <link href="style.css" rel="stylesheet" />
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
+    <script src="config-validator.js"></script>
     <script>
       const HOSTNAME = "entu.app/api"
       const ACCOUNT = "piletilevi"
@@ -48,7 +49,13 @@
             next: async function () {
               async function fetchFromPublisher(screen_id) {
                 const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
-                return await fetchJSON(u)
+                const configuration = await fetchJSON(u)
+                const validator = new ConfigValidator(configuration)
+                const validation = validator.validate()
+                return {
+                  configuration: configuration,
+                  validation: validation
+                }
               }
 
               async function fetchFromEntu(screen_id) {
@@ -61,10 +68,17 @@
                 const item = items.shift()
                 const screen_id = item.screen_id
                 const screengroup_id = item.screengroup_id
+                const publisherData = await fetchFromPublisher(screen_id)
+                
+                // if (!publisherData.validation.isValid) {
+                //   console.error(`Configuration validation failed for screen ${screen_id}:`, 
+                //       publisherData.validation.errors)
+                // }
+
                 return {
                   value: {
                     screengroup_id: screengroup_id,
-                    swpublisher: await fetchFromPublisher(screen_id),
+                    swpublisher: publisherData,
                     entu_screengroup: await fetchFromEntu(screengroup_id),
                   },
                   done: false,
@@ -117,35 +131,24 @@
               new_group_item.id = group_id
               new_group_item.className = "screen-group"
 
-              new_group_item.textContent = group_name
+              new_group_item.innerHTML = `
+                <div id="validation-errors" style="display: none;"></div>
+                <div id="dates">
+                  <pre id="lPublished"></pre>
+                  <pre id="ePublished"></pre>
+                  <pre id="swPublished"></pre>
+                </div>
+                <ul></ul>
+              `
 
-              const published_element = document.createElement("div")
-              published_element.id = "dates"
-              new_group_item.appendChild(published_element)
-
-              const local_published_element = document.createElement("pre")
-              local_published_element.id = "lPublished"
-              published_element.appendChild(local_published_element)
               if (localStorage.getItem(`swpublisher_${group_id}`)) {
                 const local_published = JSON.parse(
                   localStorage.getItem(`swpublisher_${group_id}`)
                 )
-                local_published_element.textContent =
+                new_group_item.querySelector("#lPublished").textContent =
                   "Local: " + toDateTimeString(local_published.publishedAt)
               }
 
-              const entu_published_element = document.createElement("pre")
-              entu_published_element.id = "ePublished"
-              published_element.appendChild(entu_published_element)
-              // entuPublishedElement.textContent = 'Entu: ' + toDateTimeString(screen.published[0].string)
-
-              const sw_published_element = document.createElement("pre")
-              sw_published_element.id = "swPublished"
-              published_element.appendChild(sw_published_element)
-              // localPublishedElement.textContent = 'Local: '
-
-              const new_screen_items = document.createElement("ul")
-              new_group_item.appendChild(new_screen_items)
               screen_group_list_E.appendChild(new_group_item)
             }
             const group_item = document.getElementById(group_id)
@@ -199,6 +202,8 @@
           if (next.done) break
 
           const next_group = next.value
+          // console.log(`processing group ${next_group.screengroup_id}`)
+          // console.log(next_group)
 
           // Update dates
           const screengroup_id = next_group.screengroup_id
@@ -215,9 +220,25 @@
                 "Entu: " + toDateTimeString(entu_pub_date)
             }
 
+            if (!next_group.swpublisher.validation.isValid) {
+              // console.error(
+              //   `Configuration validation failed for screen ${screengroup_id}:`,
+              //   next_group.swpublisher.validation.errors
+              // )
+              const validation_errors = screengroup_item.querySelector("#validation-errors")
+              validation_errors.innerHTML = next_group.swpublisher.validation.errors
+                  .map(error => `<div>${error}</div>`)
+                  .join('')
+              validation_errors.style.display = 'block'
+            } else {
+              const validation_errors = screengroup_item.querySelector("#validation-errors")
+              validation_errors.style.display = 'none'
+            }
+             
             // Publication date from SWPublisher
+            const conf_from_publisher = next_group.swpublisher.configuration
             // Also create/overwrite the date from localstore
-            if (next_group.swpublisher) {
+            if (conf_from_publisher) {
               // if configuration was not stored before, make screens under it active now
               if (!localStorage.getItem(`swpublisher_${screengroup_id}`)) {
                 // loop through screen elements under this group
@@ -239,14 +260,14 @@
                 }
               }
               // unset screen ID from swpublisher
-              delete next_group.swpublisher.screenEid
-              delete next_group.swpublisher.configurationEid
-              delete next_group.swpublisher.screenGroupEid
+              delete conf_from_publisher.screenEid
+              delete conf_from_publisher.configurationEid
+              delete conf_from_publisher.screenGroupEid
               localStorage.setItem(
                 `swConfiguration_${configuration_id}`,
-                JSON.stringify(next_group.swpublisher)
+                JSON.stringify(conf_from_publisher)
               )
-              const swpublisher_pub_date = next_group.swpublisher.publishedAt
+              const swpublisher_pub_date = conf_from_publisher.publishedAt
               const swpublisher_pub_date_E =
                 screengroup_item.querySelector("#swPublished")
               swpublisher_pub_date_E.textContent =

@@ -1,27 +1,34 @@
-class ConfigurationValidator {
+class ConfigValidator {
     constructor(configuration) {
-        this.configuration = configuration
+        this.configuration = configuration || {}
         this.errors = []
         this.warnings = []
     }
 
     validate() {
+        // Basic structure validation first
+        if (!this.configuration || Object.keys(this.configuration).length === 0) {
+            this.errors.push('Configuration not published')
+            return this.getResult()
+        }
+
+        if (!this.configuration.schedules) {
+            this.errors.push('Schedules array is missing')
+            return this.getResult()
+        }
+
+        // Run all validations with null checks
         this.validateBasicStructure()
         this.validateSchedules()
         this.validateLayouts()
         this.validatePlaylists()
         this.validateMedia()
-        this.validateDates()
         
-        return {
-            isValid: this.errors.length === 0,
-            errors: this.errors,
-            warnings: this.warnings
-        }
+        return this.getResult()
     }
 
     validateBasicStructure() {
-        const required = ['configurationEid', 'publishedAt', 'updateInterval', 'schedules']
+        const required = ['configurationEid', 'publishedAt', 'schedules']
         required.forEach(field => {
             if (!this.configuration[field]) {
                 this.errors.push(`Missing required field: ${field}`)
@@ -52,52 +59,85 @@ class ConfigurationValidator {
     }
 
     validateLayouts() {
-        this.configuration.schedules.forEach((schedule, scheduleIndex) => {
-            if (!Array.isArray(schedule.layoutPlaylists)) {
-                this.errors.push(`Schedule ${scheduleIndex}: layoutPlaylists must be an array`)
+        // Safely check schedules array
+        const schedules = this.configuration.schedules || []
+        
+        schedules.forEach((schedule) => {
+            console.log(schedule.eid)
+            const schedule_eid = schedule.eid
+            // Check if layoutPlaylists exists
+            if (!schedule.layoutPlaylists) {
+                this.errors.push(`Schedule ${schedule_eid}: layoutPlaylists is missing`)
                 return
             }
 
-            const totalWidth = schedule.layoutPlaylists.reduce((sum, playlist) => {
-                return sum + (playlist.width || 0)
-            }, 0)
+            if (!Array.isArray(schedule.layoutPlaylists)) {
+                this.errors.push(`Schedule ${schedule_eid}: layoutPlaylists must be an array`)
+                return
+            }
 
-            const totalHeight = schedule.layoutPlaylists.reduce((sum, playlist) => {
-                return sum + (playlist.height || 0)
-            }, 0)
-
-            // Check for overlapping playlists
-            this.checkPlaylistOverlap(schedule.layoutPlaylists, scheduleIndex)
+            // Validate each layout playlist
+            schedule.layoutPlaylists.forEach((playlist) => {
+                const playlist_eid = playlist.eid
+                this.validateLayoutPlaylist(playlist, schedule_eid, playlist_eid)
+            })
         })
     }
 
+    validateLayoutPlaylist(playlist, schedule_eid, playlist_eid) {
+        if (!playlist) {
+            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid playlist`)
+            return
+        }
+
+        // Check required fields
+        const required = ['left', 'top', 'width', 'height']
+        required.forEach(field => {
+            if (typeof playlist[field] !== 'number') {
+                this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Missing or invalid ${field}`)
+            }
+        })
+
+        // Validate dimensions
+        if (playlist.width < 0 || playlist.width > 100) {
+            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Width must be between 0 and 100`)
+        }
+        if (playlist.height < 0 || playlist.height > 100) {
+            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Height must be between 0 and 100`)
+        }
+    }
+
     validatePlaylists() {
-        this.configuration.schedules.forEach((schedule, scheduleIndex) => {
-            schedule.layoutPlaylists.forEach((playlist, playlistIndex) => {
+        this.configuration.schedules.forEach((schedule) => {
+            const schedule_eid = schedule.eid
+            schedule.layoutPlaylists.forEach((playlist) => {
+                const playlist_eid = playlist.eid
                 // Check required playlist fields
                 const required = ['eid', 'name', 'left', 'top', 'width', 'height', 'playlistMedias']
                 required.forEach(field => {
-                    if (!playlist[field]) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}: Missing required field: ${field}`)
+                    if (!playlist[field] && playlist[field] !== 0) {
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Missing required field: ${field}`)
                     }
                 })
 
                 // Validate dimensions
                 if (playlist.width < 0 || playlist.width > 100) {
-                    this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}: Invalid width: ${playlist.width}`)
+                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid width: ${playlist.width}`)
                 }
                 if (playlist.height < 0 || playlist.height > 100) {
-                    this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}: Invalid height: ${playlist.height}`)
+                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid height: ${playlist.height}`)
                 }
             })
         })
     }
 
     validateMedia() {
-        this.configuration.schedules.forEach((schedule, scheduleIndex) => {
-            schedule.layoutPlaylists.forEach((playlist, playlistIndex) => {
+        this.configuration.schedules.forEach((schedule) => {
+            const schedule_eid = schedule.eid
+            schedule.layoutPlaylists.forEach((playlist) => {
+                const playlist_eid = playlist.eid
                 if (!Array.isArray(playlist.playlistMedias)) {
-                    this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}: playlistMedias must be an array`)
+                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: playlistMedias must be an array`)
                     return
                 }
 
@@ -106,18 +146,18 @@ class ConfigurationValidator {
                     const required = ['playlistMediaEid', 'mediaEid', 'file', 'type']
                     required.forEach(field => {
                         if (!media[field]) {
-                            this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: Missing required field: ${field}`)
+                            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Missing required field: ${field}`)
                         }
                     })
 
                     // Validate media type
                     if (!['Image', 'Video'].includes(media.type)) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: Invalid media type: ${media.type}`)
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid media type: ${media.type}`)
                     }
 
                     // Check file URL
                     if (media.file && !this.isValidUrl(media.file)) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: Invalid file URL: ${media.file}`)
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid file URL: ${media.file}`)
                     }
                 })
             })
@@ -125,17 +165,19 @@ class ConfigurationValidator {
     }
 
     validateDates() {
-        this.configuration.schedules.forEach((schedule, scheduleIndex) => {
-            schedule.layoutPlaylists.forEach((playlist, playlistIndex) => {
+        this.configuration.schedules.forEach((schedule) => {
+            const schedule_eid = schedule.eid
+            schedule.layoutPlaylists.forEach((playlist) => {
+                const playlist_eid = playlist.eid
                 playlist.playlistMedias.forEach((media, mediaIndex) => {
                     if (media.validFrom && !this.isValidDate(media.validFrom)) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: Invalid validFrom date: ${media.validFrom}`)
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid validFrom date: ${media.validFrom}`)
                     }
                     if (media.validTo && !this.isValidDate(media.validTo)) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: Invalid validTo date: ${media.validTo}`)
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid validTo date: ${media.validTo}`)
                     }
                     if (media.validFrom && media.validTo && new Date(media.validFrom) > new Date(media.validTo)) {
-                        this.errors.push(`Schedule ${scheduleIndex}, Playlist ${playlistIndex}, Media ${mediaIndex}: validFrom date is after validTo date`)
+                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: validFrom date is after validTo date`)
                     }
                 })
             })
@@ -162,14 +204,14 @@ class ConfigurationValidator {
         return date instanceof Date && !isNaN(date)
     }
 
-    checkPlaylistOverlap(playlists, scheduleIndex) {
+    checkPlaylistOverlap(playlists, schedule_eid) {
         for (let i = 0; i < playlists.length; i++) {
             for (let j = i + 1; j < playlists.length; j++) {
                 const p1 = playlists[i]
                 const p2 = playlists[j]
                 
                 if (this.doPlaylistsOverlap(p1, p2)) {
-                    this.warnings.push(`Schedule ${scheduleIndex}: Playlists ${p1.eid} and ${p2.eid} overlap`)
+                    this.warnings.push(`Schedule ${schedule_eid}: Playlists ${p1.eid} and ${p2.eid} overlap`)
                 }
             }
         }
@@ -180,5 +222,13 @@ class ConfigurationValidator {
                 p2.left >= p1.left + p1.width ||
                 p1.top >= p2.top + p2.height ||
                 p2.top >= p1.top + p1.height)
+    }
+
+    getResult() {
+        return {
+            isValid: this.errors.length === 0,
+            errors: this.errors,
+            warnings: this.warnings
+        }
     }
 }
