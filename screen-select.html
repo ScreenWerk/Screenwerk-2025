@@ -15,6 +15,7 @@
     <link href="style.css" rel="stylesheet" />
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
+    <script src="config-iterator.js"></script>
     <script src="config-validator.js"></script>
     <script src="entu-config-validator.js"></script>
     <script>
@@ -23,87 +24,8 @@
       const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
       const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
 
-      // TODO: move to config-iterator.js
-      var sgList, sgIter
-
-      class Iterable {
-        constructor(seed_array) {
-          //adding items to an array
-          this.items = [].concat(seed_array || [])
-        }
-        // pushing an item to the array
-        add(item) {
-          this.items.push(item)
-        }
-        // report count of items
-        get count() {
-          return this.items.length
-        }
-        // report, if there are items left
-        get hasItems() {
-          return this.items.length > 0
-        }
-
-        //implement iterator function
-        [Symbol.iterator]() {
-          let items = this.items
-          return {
-            next: async function () {
-              async function fetchFromPublisher(screen_id) {
-                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
-                const configuration = await fetchJSON(u)
-                const validator = new ConfigValidator(configuration)
-                const validation = validator.validate()
-                return {
-                  configuration: configuration,
-                  validation: validation
-                }
-              }
-
-              async function fetchFromEntu(screengroup_id) {
-                const u = `${ENTU_ENTITY_URL}/${screengroup_id}`
-                const configuration = await fetchJSON(u)
-                const validator = new EntuConfigValidator(configuration)
-                const validation = validator.validate()
-                return {
-                    configuration: configuration,
-                    validation: validation
-                }
-              }
-
-              //retrieving an item from the array
-              if (items.length) {
-                const item = items.shift()
-                const screen_id = item.screen_id
-                const screengroup_id = item.screengroup_id
-                const publisherData = await fetchFromPublisher(screen_id)
-                const entuData = await fetchFromEntu(screengroup_id)
-                
-                // if (!publisherData.validation.isValid) {
-                //   console.error(`Configuration validation failed for screen ${screen_id}:`, 
-                //       publisherData.validation.errors)
-                // }
-
-                return {
-                  value: {
-                    screengroup_id: screengroup_id,
-                    swpublisher: publisherData,
-                    entu_screengroup: entuData,
-                  },
-                  done: false,
-                }
-              }
-              //return true if all items are iterated
-              return { done: true }
-            },
-          }
-        }
-      }
-
-      // async function fetchScreenGroup(id) {}
-
       async function fetchScreenGroups() {
-        const sgList = new Iterable([])
+        const sgList = new ConfigIterator([])
 
         const screen_group_list_E =
           document.getElementById("screen-group-list")
@@ -200,6 +122,9 @@
         })
         return sgList
       }
+
+      // defined as globals, so that they can be accessed from the console
+      var sgList, sgIter
 
       window.onload = async function () {
         sgList = await fetchScreenGroups()
