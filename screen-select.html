@@ -15,86 +15,17 @@
     <link href="style.css" rel="stylesheet" />
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
+    <script src="config-iterator.js"></script>
     <script src="config-validator.js"></script>
+    <script src="entu-config-validator.js"></script>
     <script>
       const HOSTNAME = "entu.app/api"
       const ACCOUNT = "piletilevi"
       const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
       const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
 
-      var sgList, sgIter
-
-      class Iterable {
-        constructor(seed_array) {
-          //adding items to an array
-          this.items = [].concat(seed_array || [])
-        }
-        // pushing an item to the array
-        add(item) {
-          this.items.push(item)
-        }
-        // report count of items
-        get count() {
-          return this.items.length
-        }
-        // report, if there are items left
-        get hasItems() {
-          return this.items.length > 0
-        }
-
-        //implement iterator function
-        [Symbol.iterator]() {
-          let items = this.items
-          return {
-            next: async function () {
-              async function fetchFromPublisher(screen_id) {
-                const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
-                const configuration = await fetchJSON(u)
-                const validator = new ConfigValidator(configuration)
-                const validation = validator.validate()
-                return {
-                  configuration: configuration,
-                  validation: validation
-                }
-              }
-
-              async function fetchFromEntu(screen_id) {
-                const u = `${ENTU_ENTITY_URL}/${screen_id}`
-                return await fetchJSON(u)
-              }
-
-              //retrieving an item from the array
-              if (items.length) {
-                const item = items.shift()
-                const screen_id = item.screen_id
-                const screengroup_id = item.screengroup_id
-                const publisherData = await fetchFromPublisher(screen_id)
-                
-                // if (!publisherData.validation.isValid) {
-                //   console.error(`Configuration validation failed for screen ${screen_id}:`, 
-                //       publisherData.validation.errors)
-                // }
-
-                return {
-                  value: {
-                    screengroup_id: screengroup_id,
-                    swpublisher: publisherData,
-                    entu_screengroup: await fetchFromEntu(screengroup_id),
-                  },
-                  done: false,
-                }
-              }
-              //return true if all items are iterated
-              return { done: true }
-            },
-          }
-        }
-      }
-
-      // async function fetchScreenGroup(id) {}
-
       async function fetchScreenGroups() {
-        const sgList = new Iterable([])
+        const sgList = new ConfigIterator([])
 
         const screen_group_list_E =
           document.getElementById("screen-group-list")
@@ -131,7 +62,7 @@
               new_group_item.id = group_id
               new_group_item.className = "screen-group"
 
-              new_group_item.innerHTML = `
+              new_group_item.innerHTML = group_name + `
                 <div id="validation-errors" style="display: none;"></div>
                 <div id="dates">
                   <pre id="lPublished"></pre>
@@ -192,6 +123,9 @@
         return sgList
       }
 
+      // defined as globals, so that they can be accessed from the console
+      var sgList, sgIter
+
       window.onload = async function () {
         sgList = await fetchScreenGroups()
         sgIter = sgList[Symbol.iterator]()
@@ -207,12 +141,15 @@
 
           // Update dates
           const screengroup_id = next_group.screengroup_id
+          // TODO: read conf id from next_group
           const configuration_id = next_group.swpublisher.configurationEid
           const screengroup_item = document.getElementById(screengroup_id)
           if (screengroup_item) {
             // Publication date from Entu screen entity
-            const entu_pub_date =
-              next_group.entu_screengroup.entity.published[0].datetime
+
+            const entu_screengroup = next_group.entu_screengroup.configuration
+            const entu_errors = next_group.entu_screengroup.validation.errors
+            const entu_pub_date = entu_screengroup.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
                 screengroup_item.querySelector("#ePublished")
@@ -220,16 +157,18 @@
                 "Entu: " + toDateTimeString(entu_pub_date)
             }
 
-            if (!next_group.swpublisher.validation.isValid) {
-              // console.error(
-              //   `Configuration validation failed for screen ${screengroup_id}:`,
-              //   next_group.swpublisher.validation.errors
-              // )
-              const validation_errors = screengroup_item.querySelector("#validation-errors")
-              validation_errors.innerHTML = next_group.swpublisher.validation.errors
+            // Merge prefixed validation errors from Entu and SWPublisher
+            const merged_validation_errors = [
+              ...entu_errors.map(error => `Entu: ${error}`),
+              ...next_group.swpublisher.validation.errors.map(error => `SWPublisher: ${error}`),
+            ]
+
+            if (merged_validation_errors.length > 0) {
+              const validation_errors_element = screengroup_item.querySelector("#validation-errors")
+              validation_errors_element.innerHTML = merged_validation_errors
                   .map(error => `<div>${error}</div>`)
                   .join('')
-              validation_errors.style.display = 'block'
+              validation_errors_element.style.display = 'block'
             } else {
               const validation_errors = screengroup_item.querySelector("#validation-errors")
               validation_errors.style.display = 'none'

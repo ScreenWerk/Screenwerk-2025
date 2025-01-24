@@ -63,7 +63,7 @@ class ConfigValidator {
         const schedules = this.configuration.schedules || []
         
         schedules.forEach((schedule) => {
-            console.log(schedule.eid)
+            // console.log(schedule.eid)
             const schedule_eid = schedule.eid
             // Check if layoutPlaylists exists
             if (!schedule.layoutPlaylists) {
