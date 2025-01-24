@@ -16,12 +16,14 @@
     <!-- read common functions from common.js -->
     <script src="common.js"></script>
     <script src="config-validator.js"></script>
+    <script src="entu-config-validator.js"></script>
     <script>
       const HOSTNAME = "entu.app/api"
       const ACCOUNT = "piletilevi"
       const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
       const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
 
+      // TODO: move to config-iterator.js
       var sgList, sgIter
 
       class Iterable {
@@ -60,7 +62,13 @@
 
               async function fetchFromEntu(screengroup_id) {
                 const u = `${ENTU_ENTITY_URL}/${screengroup_id}`
-                return await fetchJSON(u)
+                const configuration = await fetchJSON(u)
+                const validator = new EntuConfigValidator(configuration)
+                const validation = validator.validate()
+                return {
+                    configuration: configuration,
+                    validation: validation
+                }
               }
 
               //retrieving an item from the array
@@ -69,6 +77,7 @@
                 const screen_id = item.screen_id
                 const screengroup_id = item.screengroup_id
                 const publisherData = await fetchFromPublisher(screen_id)
+                const entuData = await fetchFromEntu(screengroup_id)
                 
                 // if (!publisherData.validation.isValid) {
                 //   console.error(`Configuration validation failed for screen ${screen_id}:`, 
@@ -79,7 +88,7 @@
                   value: {
                     screengroup_id: screengroup_id,
                     swpublisher: publisherData,
-                    entu_screengroup: await fetchFromEntu(screengroup_id),
+                    entu_screengroup: entuData,
                   },
                   done: false,
                 }
@@ -207,12 +216,14 @@
 
           // Update dates
           const screengroup_id = next_group.screengroup_id
+          // TODO: read conf id from next_group
           const configuration_id = next_group.swpublisher.configurationEid
           const screengroup_item = document.getElementById(screengroup_id)
           if (screengroup_item) {
             // Publication date from Entu screen entity
-            const entu_pub_date =
-              next_group.entu_screengroup.entity.published[0].datetime
+            const entu_screengroup = next_group.entu_screengroup.configuration
+            const entu_errors = next_group.entu_screengroup.validation.errors
+            const entu_pub_date = entu_screengroup.entity.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
                 screengroup_item.querySelector("#ePublished")
