@@ -148,7 +148,7 @@
             // Publication date from Entu screen entity
             const entu_screengroup = next_group.entu_screengroup.configuration
             const entu_errors = next_group.entu_screengroup.validation.errors
-            const entu_pub_date = entu_screengroup.entity.published[0].datetime
+            const entu_pub_date = entu_screengroup.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
                 screengroup_item.querySelector("#ePublished")
@@ -156,16 +156,18 @@
                 "Entu: " + toDateTimeString(entu_pub_date)
             }
 
-            if (!next_group.swpublisher.validation.isValid) {
-              // console.error(
-              //   `Configuration validation failed for screen ${screengroup_id}:`,
-              //   next_group.swpublisher.validation.errors
-              // )
-              const validation_errors = screengroup_item.querySelector("#validation-errors")
-              validation_errors.innerHTML = next_group.swpublisher.validation.errors
+            // Merge prefixed validation errors from Entu and SWPublisher
+            const merged_validation_errors = [
+              ...entu_errors.map(error => `Entu: ${error}`),
+              ...next_group.swpublisher.validation.errors.map(error => `SWPublisher: ${error}`),
+            ]
+
+            if (merged_validation_errors.length > 0) {
+              const validation_errors_element = screengroup_item.querySelector("#validation-errors")
+              validation_errors_element.innerHTML = merged_validation_errors
                   .map(error => `<div>${error}</div>`)
                   .join('')
-              validation_errors.style.display = 'block'
+              validation_errors_element.style.display = 'block'
             } else {
               const validation_errors = screengroup_item.querySelector("#validation-errors")
               validation_errors.style.display = 'none'

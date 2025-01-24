@@ -10,6 +10,7 @@ class EntuConfigValidator {
             this.errors.push('Configuration is empty')
             return this.getResult()
         }
+        // console.log(JSON.stringify(this.configuration, null, 2))
 
         this.validateBasicStructure()
         this.validateProperties()
@@ -19,14 +20,14 @@ class EntuConfigValidator {
     }
 
     validateBasicStructure() {
-        const required = ['_id', '_type', 'properties']
+        const required = ['_id', 'name']
         required.forEach(field => {
             if (!this.configuration[field]) {
                 this.errors.push(`Missing required field: ${field}`)
             }
         })
 
-        if (this.configuration._type?.string !== 'sw_screen_group') {
+        if (this.configuration._type[0]?.string !== 'sw_screen_group') {
             this.errors.push('Invalid entity type: Must be sw_screen_group')
         }
     }
