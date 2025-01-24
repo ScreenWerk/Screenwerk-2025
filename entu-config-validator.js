@@ -20,7 +20,7 @@ class EntuConfigValidator {
     }
 
     validateBasicStructure() {
-        const required = ['_id', 'name']
+        const required = ['_id']
         required.forEach(field => {
             if (!this.configuration[field]) {
                 this.errors.push(`Missing required field: ${field}`)
@@ -33,7 +33,7 @@ class EntuConfigValidator {
     }
 
     validateProperties() {
-        const properties = this.configuration.properties || {}
+        const properties = this.configuration || {}
         const required = ['name']
 
         required.forEach(prop => {
@@ -44,11 +44,11 @@ class EntuConfigValidator {
     }
 
     validateRelations() {
-        const relations = this.configuration._relationships || {}
-        const required = ['screens', 'configuration']
+        const relations = this.configuration || {}
+        const required = ['configuration']
 
         required.forEach(rel => {
-            if (!relations[rel] || !relations[rel].length) {
+            if (!relations[rel] || !relations[rel].length || !relations[rel][0].reference) {
                 this.errors.push(`Missing required relation: ${rel}`)
             }
         })
@@ -60,5 +60,11 @@ class EntuConfigValidator {
             errors: this.errors,
             warnings: this.warnings
         }
+    }
+}
+
+class EntuDeepConfigValidator extends EntuConfigValidator {
+    constructor(configuration) {
+        super(configuration)
     }
 }
