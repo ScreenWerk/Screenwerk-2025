@@ -39,7 +39,7 @@ class EntuValidator {
 
     validateProperties() {
         const properties = this.entu_object || {}
-        const required = this.entu_model.properties
+        const required = this.entu_model.properties || []
 
         required.forEach(prop => {
             if (!properties[prop] || !properties[prop].length) {
@@ -50,7 +50,7 @@ class EntuValidator {
 
     validateRelations() {
         const relations = this.entu_object || {}
-        const required = this.entu_model.relations
+        const required = this.entu_model.relations || []
 
         required.forEach(rel => {
             if (!relations[rel] || !relations[rel].length || !relations[rel][0].reference) {
@@ -122,7 +122,7 @@ class EntuDeepValidator {
                 relations: ['media']
             },
             sw_media: {
-                fields: ['_id'], 
+                fields: ['_ids'], 
                 properties: ['name', 'file', 'type']
             }
         }
@@ -134,22 +134,25 @@ class EntuDeepValidator {
         const entity = await fetchFromEntu(eid)
         const entity_type = entity._type[0].string
         const model = this.model[entity_type]
-
+        
         if (!model) {
             return {
                 isValid: false,
                 errors: [`Unknown entity type: ${entity_type}`]
             }
         }
-
+        
+        // console.log(`Validating entity: ${eid}`, model)
         if (model.childs) {
             model.childs.forEach(async child_type => {
                 const childs = await fetchChildsOf(eid, child_type)
-                childs.forEach(async child => {
-                    const child_validation = await this.validate(child._id)
-                    this.errors.push(...child_validation.errors)
-                    this.warnings.push(...child_validation.warnings)
-                })
+                childs.forEach(async child => await this.validate(child._id))
+            })
+        }
+        if (model.relations) {
+            model.relations.forEach(async rel => {
+                const rel_id = entity[rel][0].reference
+                await this.validate(rel_id)
             })
         }
 
