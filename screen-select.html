@@ -10,7 +10,7 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Screen Select @ Entu ScreenWerk Player</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="https://entu.app/logo.png" type="image/png">
     <!-- style -->
     <link href="style.css" rel="stylesheet" />
     <!-- read common functions from common.js -->
@@ -63,7 +63,9 @@
               new_group_item.id = group_id
               new_group_item.className = "screen-group"
 
-              new_group_item.innerHTML = group_name + `
+              new_group_item.innerHTML = `
+                <img src="https://entu.app/logo.png" class="group-logo" onclick="showModal('${group_id}', '${group_name}')">
+                ${group_name}
                 <div id="validation-errors" style="display: none;"></div>
                 <div id="dates">
                   <pre id="lPublished"></pre>
@@ -150,6 +152,7 @@
 
             const entu_screengroup = next_group.entu_screengroup.configuration
             const entu_errors = next_group.entu_screengroup.validation.errors
+            const swpublisher_errors = next_group.swpublisher.validation.errors
             const entu_pub_date = entu_screengroup.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
@@ -161,7 +164,7 @@
             // Merge prefixed validation errors from Entu and SWPublisher
             const merged_validation_errors = [
               ...entu_errors.map(error => `Entu: ${error}`),
-              ...next_group.swpublisher.validation.errors.map(error => `SWPublisher: ${error}`),
+              ...swpublisher_errors.map(error => `SWPublisher: ${error}`),
             ]
 
             if (merged_validation_errors.length > 0) {
@@ -222,10 +225,52 @@
           }
         }
       }
+
+      // Add modal functionality
+      function showModal(groupId, groupName) {
+        const modal = document.getElementById('groupInfoModal')
+        const modalTitle = document.getElementById('modalTitle')
+        const modalContent = document.getElementById('modalContent')
+        
+        modalTitle.textContent = groupName
+        modalContent.innerHTML = `
+          <p>Screen Group ID: ${groupId}</p>
+          <p>Configuration Status:</p>
+          <div id="modal-dates-${groupId}"></div>
+        `
+        
+        // Copy dates from the main view
+        const originalDates = document.getElementById(groupId).querySelector('#dates')
+        const modalDates = document.getElementById(`modal-dates-${groupId}`)
+        modalDates.innerHTML = originalDates.innerHTML
+        
+        modal.style.display = 'block'
+      }
+
+      // Close modal functionality
+      document.querySelector('.close-modal').onclick = function() {
+        document.getElementById('groupInfoModal').style.display = 'none'
+      }
+
+      window.onclick = function(event) {
+        const modal = document.getElementById('groupInfoModal')
+        if (event.target == modal) {
+          modal.style.display = 'none'
+        }
+      }
     </script>
   </head>
   <body>
     <h1>Select Screen</h1>
     <ul id="screen-group-list"></ul>
+
+    <!-- Add modal structure -->
+    <div id="groupInfoModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <div id="modalContent"></div>
+      </div>
+    </div>
   </body>
 </html>

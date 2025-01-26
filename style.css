@@ -191,3 +191,41 @@ li.screen-group {
     text-align: center;
     margin: 0.5em;
 }
+
+/* Styles for the logo and modal */
+.group-logo {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 20px;
+  width: 70%;
+  max-width: 500px;
+  border-radius: 5px;
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
