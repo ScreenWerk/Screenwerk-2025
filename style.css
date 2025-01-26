@@ -260,3 +260,10 @@ li.screen-group {
     background-color: #ffebee;
     color: #c62828;
 }
+
+/* Styles for the published marker */
+.published-marker {
+  color: #4CAF50;
+  font-weight: bold;
+  margin-left: 5px;
+}
