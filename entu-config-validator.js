@@ -28,7 +28,7 @@ class EntuValidator {
         const required = [...new Set(this.entu_model.fields.concat(default_fields))]
         required.forEach(field => {
             if (!this.entu_object[field]) {
-                this.errors.push(`Missing required field: ${field}`)
+                this.errors.push(`Missing required field: ${field} for ${this.entity_type}`)
             }
         })
 
@@ -39,22 +39,22 @@ class EntuValidator {
 
     validateProperties() {
         const properties = this.entu_object || {}
-        const required = this.entu_model.properties
+        const required = this.entu_model.properties || []
 
         required.forEach(prop => {
             if (!properties[prop] || !properties[prop].length) {
-                this.errors.push(`Missing required property: ${prop}`)
+                this.errors.push(`Missing required property: ${prop} for <a href="${ENTU_ENTITY_URL}/${this.entu_object._id}" target="_blank">${this.entity_type}</a>/<a href="${ENTU_FRONTEND_URL}/${this.entu_object._id}" target="_blank">@entu</a>`)
             }
         })
     }
 
     validateRelations() {
         const relations = this.entu_object || {}
-        const required = this.entu_model.relations
+        const required = this.entu_model.relations || []
 
         required.forEach(rel => {
             if (!relations[rel] || !relations[rel].length || !relations[rel][0].reference) {
-                this.errors.push(`Missing required relation: ${rel}`)
+                this.errors.push(`Missing required relation: ${rel} for <a href="${ENTU_ENTITY_URL}/${this.entu_object._id}" target="_blank">${this.entity_type}</a>/<a href="${ENTU_FRONTEND_URL}/${this.entu_object._id}" target="_blank">@entu</a>`)
             }
         })
     }
@@ -87,42 +87,42 @@ class EntuDeepValidator {
     constructor() {
         this.model = {
             sw_screen_group: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name'], 
                 relations: ['configuration']
             },
             sw_configuration: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name'], 
                 childs: ['sw_schedule']
             },
             sw_schedule: {
-                fields: ['_id'], 
-                properties: ['name','crontab', 'cleanup'], 
+                fields: [], 
+                properties: ['crontab'], 
                 relations: ['layout']
             },
             sw_layout: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name'], 
                 childs: ['sw_layout_playlist']
             },
             sw_layout_playlist: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name','left','top','width','height'], 
                 relations: ['playlist']
             },
             sw_playlist: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name'], 
                 childs: ['sw_playlist_media']
             },
             sw_playlist_media: {
-                fields: ['_id'], 
-                properties: ['name'], 
+                fields: [], 
+                properties: [], 
                 relations: ['media']
             },
             sw_media: {
-                fields: ['_id'], 
+                fields: [], 
                 properties: ['name', 'file', 'type']
             }
         }
@@ -131,33 +131,66 @@ class EntuDeepValidator {
     }
 
     async validate(eid) {
-        const entity = await fetchFromEntu(eid)
-        const entity_type = entity._type[0].string
-        const model = this.model[entity_type]
-
-        if (!model) {
-            return {
-                isValid: false,
-                errors: [`Unknown entity type: ${entity_type}`]
+        try {
+            const entity = await fetchFromEntu(eid)
+            if (!entity) {
+                return {
+                    isValid: false,
+                    errors: [`Failed to fetch entity: ${eid}`],
+                    warnings: []
+                }
             }
-        }
 
-        if (model.childs) {
-            model.childs.forEach(async child_type => {
-                const childs = await fetchChildsOf(eid, child_type)
-                childs.forEach(async child => {
-                    const child_validation = await this.validate(child._id)
-                    this.errors.push(...child_validation.errors)
-                    this.warnings.push(...child_validation.warnings)
-                })
-            })
-        }
+            if (!entity._type?.[0]?.string) {
+                return {
+                    isValid: false,
+                    errors: [`Entity ${eid} has invalid or missing type`],
+                    warnings: []
+                }
+            }
 
-        const validator = new EntuValidator(entity, entity_type, model)
-        const result = await validator.validate()
-        // console.log(result)
-        this.errors.push(...result.errors)
-        this.warnings.push(...result.warnings)
+            const entity_type = entity._type[0].string
+            const model = this.model[entity_type]
+            
+            if (!model) {
+                return {
+                    isValid: false,
+                    errors: [`Unknown entity type: ${entity_type}`],
+                    warnings: []
+                }
+            }
+            
+            // Process child entities
+            if (model.childs) {
+                for (const child_type of model.childs) {
+                    const childs = await fetchChildsOf(eid, child_type) || []
+                    for (const child of childs) {
+                        await this.validate(child._id)
+                    }
+                }
+            }
+
+            // Process relations
+            if (model.relations) {
+                for (const rel of model.relations) {
+                    const relation = entity[rel]?.[0]?.reference
+                    if (relation) {
+                        await this.validate(relation)
+                    } else {
+                        this.errors.push(`Missing required relation: ${rel}`)
+                    }
+                }
+            }
+
+            const validator = new EntuValidator(entity, entity_type, model)
+            const result = await validator.validate()
+            this.errors.push(...(result.errors || []))
+            this.warnings.push(...(result.warnings || []))
+            
+        } catch (error) {
+            console.error(`Error validating entity ${eid}:`, error)
+            this.errors.push(`Validation error for ${eid}: ${error.message}`)
+        }
         
         return this.getResult()
     }

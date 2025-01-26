@@ -101,6 +101,15 @@ li.screen-group {
     border-top: black solid 1px;
     padding-top: 0.3em;
 
+    > a {
+        text-decoration: none;
+        color: inherit;
+        
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
     > #dates {
         float: right;
         clear: right;
@@ -190,4 +199,64 @@ li.screen-group {
     font-size: 1.5em;
     text-align: center;
     margin: 0.5em;
+}
+
+/* Styles for the logo and modal */
+.group-logo {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 20px;
+  width: 70%;
+  max-width: 500px;
+  border-radius: 5px;
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+.validation-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.validation-result.valid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.validation-result.invalid {
+    background-color: #ffebee;
+    color: #c62828;
 }

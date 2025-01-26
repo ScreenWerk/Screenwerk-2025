@@ -29,14 +29,12 @@ class ConfigIterator {
     async fetchFromEntu(screengroup_id) {
         const u = `${ENTU_ENTITY_URL}/${screengroup_id}`
         const configuration = (await fetchJSON(u)).entity
-        const validator = new EntuDeepValidator()
-        // const validator = new EntuValidator(configuration, 
-        //     {
-        //         type: 'sw_screen_group',
-        //         fields: ['_id'], 
-        //         properties: ['name'], 
-        //         relations: ['configuration']
-        //     })
+        // const validator = new EntuDeepValidator()
+        const validator = new EntuValidator(configuration, 'sw_screen_group', {
+            fields: [], 
+            properties: ['name'], 
+            relations: ['configuration']
+        })
         const validation = await validator.validate(screengroup_id)
         return {
             configuration: configuration,
