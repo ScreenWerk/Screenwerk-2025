@@ -19,10 +19,11 @@
     <script src="config-validator.js"></script>
     <script src="entu-config-validator.js"></script>
     <script>
-      const HOSTNAME = "entu.app/api"
+      const HOSTNAME = "entu.app"
       const ACCOUNT = "piletilevi"
-      const ENTU_SCREENS_URL = `https://${HOSTNAME}/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
-      const ENTU_ENTITY_URL = `https://${HOSTNAME}/${ACCOUNT}/entity`
+      const ENTU_SCREENS_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity?_type.string=sw_screen&props=name.string,screen_group,published.string&sort=name.string&limit=10000`
+      const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
+      const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
       async function fetchScreenGroups() {
         const sgList = new ConfigIterator([])
