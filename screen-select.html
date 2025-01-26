@@ -10,7 +10,7 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Screen Select @ Entu ScreenWerk Player</title>
-    <link rel="icon" href="https://entu.app/logo.png" type="image/png">
+    <link rel="icon" href="entu-logo.svg" type="image/svg+xml">
     <!-- style -->
     <link href="style.css" rel="stylesheet" />
     <!-- read common functions from common.js -->
@@ -64,7 +64,7 @@
               new_group_item.className = "screen-group"
 
               new_group_item.innerHTML = `
-                <img src="https://entu.app/logo.png" class="group-logo" onclick="showModal('${group_id}', '${group_name}')">
+                <img src="entu-logo.svg" class="group-logo" onclick="showModal('${group_id}', '${group_name}')">
                 <a href="https://${HOSTNAME}/${ACCOUNT}/${group_id}" target="_blank">${group_name}</a>
                 <div id="validation-errors" style="display: none;"></div>
                 <div id="dates">
