@@ -65,7 +65,7 @@
 
               new_group_item.innerHTML = `
                 <img src="https://entu.app/logo.png" class="group-logo" onclick="showModal('${group_id}', '${group_name}')">
-                ${group_name}
+                <a href="https://${HOSTNAME}/${ACCOUNT}/${group_id}" target="_blank">${group_name}</a>
                 <div id="validation-errors" style="display: none;"></div>
                 <div id="dates">
                   <pre id="lPublished"></pre>

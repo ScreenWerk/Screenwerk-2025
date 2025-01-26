@@ -9,6 +9,8 @@ class ConfigValidator {
         // Basic structure validation first
         if (!this.configuration || Object.keys(this.configuration).length === 0) {
             this.errors.push('Configuration not published')
+            console.log('Configuration not published', this.configuration)
+            this.errors.push(`Configuration ID: ${this.configuration.configurationEid || 'unknown'}`)
             return this.getResult()
         }
 
