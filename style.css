@@ -229,3 +229,25 @@ li.screen-group {
   font-size: 24px;
   cursor: pointer;
 }
+
+.loading-spinner {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+.validation-result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.validation-result.valid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.validation-result.invalid {
+    background-color: #ffebee;
+    color: #c62828;
+}

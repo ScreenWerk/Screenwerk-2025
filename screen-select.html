@@ -239,7 +239,7 @@
       }
 
       // Add modal functionality
-      function showModal(groupId, groupName) {
+      async function showModal(groupId, groupName) {
         const modal = document.getElementById('groupInfoModal')
         const modalTitle = document.getElementById('modalTitle')
         const modalContent = document.getElementById('modalContent')
@@ -249,6 +249,8 @@
           <p>Screen Group ID: ${groupId}</p>
           <p>Configuration Status:</p>
           <div id="modal-dates-${groupId}"></div>
+          <div class="loading-spinner">Validating configuration...</div>
+          <div id="validation-result"></div>
         `
         
         // Copy dates from the main view
@@ -257,6 +259,30 @@
         modalDates.innerHTML = originalDates.innerHTML
         
         modal.style.display = 'block'
+
+        // Perform deep validation
+        try {
+          const validator = new EntuDeepValidator()
+          const result = await validator.validate(groupId)
+          
+          const validationDiv = modalContent.querySelector('#validation-result')
+          validationDiv.className = `validation-result ${result.isValid ? 'valid' : 'invalid'}`
+          
+          if (result.isValid) {
+            validationDiv.innerHTML = '<p>✓ Configuration is valid</p>'
+          } else {
+            validationDiv.innerHTML = `
+              <p>⚠ Configuration has issues:</p>
+              <ul>${result.errors.map(error => `<li>${error}</li>`).join('')}</ul>
+            `
+          }
+        } catch (error) {
+          const validationDiv = modalContent.querySelector('#validation-result')
+          validationDiv.className = 'validation-result invalid'
+          validationDiv.innerHTML = `<p>Error during validation: ${error.message}</p>`
+        }
+
+        modalContent.querySelector('.loading-spinner').style.display = 'none'
       }
     </script>
   </head>
