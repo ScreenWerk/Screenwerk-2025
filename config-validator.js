@@ -5,12 +5,17 @@ class ConfigValidator {
         this.warnings = []
     }
 
+    formatEntityLink(id, message) {
+        return `<a href="${ENTU_ENTITY_URL}/${id}" target="_blank">${message}</a>/<a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">@entu</a>`
+    }
+
     validate() {
         // Basic structure validation first
         if (!this.configuration || Object.keys(this.configuration).length === 0) {
             this.errors.push('Configuration not published')
             console.log('Configuration not published', this.configuration)
-            this.errors.push(`Configuration ID: ${this.configuration.configurationEid || 'unknown'}`)
+            const confId = this.configuration?.configurationEid || 'unknown'
+            this.errors.push(`Configuration: ${this.formatEntityLink(confId, confId)}`)
             return this.getResult()
         }
 
@@ -49,13 +54,13 @@ class ConfigValidator {
             const required = ['eid', 'crontab', 'layoutEid', 'layoutPlaylists']
             required.forEach(field => {
                 if (!schedule[field]) {
-                    this.errors.push(`Schedule ${index}: Missing required field: ${field}`)
+                    this.errors.push(`Schedule ${this.formatEntityLink(schedule.eid, schedule.eid)}: Missing required field: ${field}`)
                 }
             })
 
             // Validate crontab format
             if (schedule.crontab && !this.isValidCrontab(schedule.crontab)) {
-                this.errors.push(`Schedule ${index}: Invalid crontab expression: ${schedule.crontab}`)
+                this.errors.push(`Schedule ${this.formatEntityLink(schedule.eid, schedule.eid)}: Invalid crontab expression: ${schedule.crontab}`)
             }
         })
     }
@@ -69,12 +74,12 @@ class ConfigValidator {
             const schedule_eid = schedule.eid
             // Check if layoutPlaylists exists
             if (!schedule.layoutPlaylists) {
-                this.errors.push(`Schedule ${schedule_eid}: layoutPlaylists is missing`)
+                this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}: layoutPlaylists is missing`)
                 return
             }
 
             if (!Array.isArray(schedule.layoutPlaylists)) {
-                this.errors.push(`Schedule ${schedule_eid}: layoutPlaylists must be an array`)
+                this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}: layoutPlaylists must be an array`)
                 return
             }
 
@@ -88,7 +93,7 @@ class ConfigValidator {
 
     validateLayoutPlaylist(playlist, schedule_eid, playlist_eid) {
         if (!playlist) {
-            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid playlist`)
+            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid playlist`)
             return
         }
 
@@ -96,16 +101,16 @@ class ConfigValidator {
         const required = ['left', 'top', 'width', 'height']
         required.forEach(field => {
             if (typeof playlist[field] !== 'number') {
-                this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Missing or invalid ${field}`)
+                this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Missing or invalid ${field}`)
             }
         })
 
         // Validate dimensions
         if (playlist.width < 0 || playlist.width > 100) {
-            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Width must be between 0 and 100`)
+            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Width must be between 0 and 100`)
         }
         if (playlist.height < 0 || playlist.height > 100) {
-            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Height must be between 0 and 100`)
+            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Height must be between 0 and 100`)
         }
     }
 
@@ -118,16 +123,16 @@ class ConfigValidator {
                 const required = ['eid', 'name', 'left', 'top', 'width', 'height', 'playlistMedias']
                 required.forEach(field => {
                     if (!playlist[field] && playlist[field] !== 0) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Missing required field: ${field}`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Missing required field: ${field}`)
                     }
                 })
 
                 // Validate dimensions
                 if (playlist.width < 0 || playlist.width > 100) {
-                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid width: ${playlist.width}`)
+                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid width: ${playlist.width}`)
                 }
                 if (playlist.height < 0 || playlist.height > 100) {
-                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Invalid height: ${playlist.height}`)
+                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid height: ${playlist.height}`)
                 }
             })
         })
@@ -139,7 +144,7 @@ class ConfigValidator {
             schedule.layoutPlaylists.forEach((playlist) => {
                 const playlist_eid = playlist.eid
                 if (!Array.isArray(playlist.playlistMedias)) {
-                    this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: playlistMedias must be an array`)
+                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: playlistMedias must be an array`)
                     return
                 }
 
@@ -148,18 +153,18 @@ class ConfigValidator {
                     const required = ['playlistMediaEid', 'mediaEid', 'file', 'type']
                     required.forEach(field => {
                         if (!media[field]) {
-                            this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Missing required field: ${field}`)
+                            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Missing required field: ${field}`)
                         }
                     })
 
                     // Validate media type
                     if (!['Image', 'Video'].includes(media.type)) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid media type: ${media.type}`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Invalid media type: ${media.type}`)
                     }
 
                     // Check file URL
                     if (media.file && !this.isValidUrl(media.file)) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid file URL: ${media.file}`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Invalid file URL: ${media.file}`)
                     }
                 })
             })
@@ -173,13 +178,13 @@ class ConfigValidator {
                 const playlist_eid = playlist.eid
                 playlist.playlistMedias.forEach((media, mediaIndex) => {
                     if (media.validFrom && !this.isValidDate(media.validFrom)) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid validFrom date: ${media.validFrom}`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Invalid validFrom date: ${media.validFrom}`)
                     }
                     if (media.validTo && !this.isValidDate(media.validTo)) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: Invalid validTo date: ${media.validTo}`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Invalid validTo date: ${media.validTo}`)
                     }
                     if (media.validFrom && media.validTo && new Date(media.validFrom) > new Date(media.validTo)) {
-                        this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}, Media ${mediaIndex}: validFrom date is after validTo date`)
+                        this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: validFrom date is after validTo date`)
                     }
                 })
             })

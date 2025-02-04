@@ -66,6 +66,7 @@
               new_group_item.innerHTML = `
                 <img src="entu-logo.svg" class="group-logo" onclick="showModal('${group_id}', '${group_name}')">
                 <a href="https://${HOSTNAME}/${ACCOUNT}/${group_id}" target="_blank">${group_name}</a>
+                <span class="published-marker" style="display:none">[+]</span>
                 <div id="validation-errors" style="display: none;"></div>
                 <div id="dates">
                   <pre id="lPublished"></pre>
@@ -165,6 +166,7 @@
             const entu_screengroup = next_group.entu_screengroup.configuration
             const entu_errors = next_group.entu_screengroup.validation.errors
             const swpublisher_errors = next_group.swpublisher.validation.errors
+            const entu_is_published = entu_screengroup.ispublished && entu_screengroup.ispublished[0].boolean
             const entu_pub_date = entu_screengroup.published[0].datetime
             if (entu_pub_date) {
               const entu_pub_date_E =
@@ -231,6 +233,9 @@
                 screengroup_item.querySelector("#lPublished")
               local_published_E.textContent =
                 "Local: " + toDateTimeString(swpublisher_pub_date)
+            }
+            if (entu_is_published) {
+              screengroup_item.querySelector(".published-marker").style.display = "inline"
             }
           } else {
             null

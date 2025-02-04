@@ -1,17 +1,21 @@
 @hostname=entu.app/api
 @account=piletilevi
-###
-# only requesting publicly available data
+###########################################
+# only requesting publicly available data #
+# no authorization needed                 #
+###########################################
 
 ###
 # account
 GET {{hostname}}/{{account}} HTTP/1.1
 Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
 
 ###
 # GET list of sw_screen's
 GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,published.string HTTP/1.1
 Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
 
 ###
 # GET sw_screen
@@ -42,16 +46,3 @@ Accept-Encoding: deflate
 # GET sw_playlist_medias
 GET {{hostname}}/{{account}}/entity?_type.string=sw_playlist_media&_parent.reference=5476deae4ecca5c17a598d9a HTTP/1.1
 Accept-Encoding: deflate
-
-
-###
-# auth
-GET {{hostname}}/auth?account={{account}} HTTP/1.1
-Accept-Encoding: deflate
-Authorization: Bearer {{pl_key}}
-
-###
-# GET list of entities's
-GET {{hostname}}/{{account}}/entity?props=_id,_type.string&limit=50000 HTTP/1.1
-Accept-Encoding: deflate
-Authorization: Bearer {{pl_token}}
