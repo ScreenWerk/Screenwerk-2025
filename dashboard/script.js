@@ -182,14 +182,6 @@ async function displayConfigurations() {
             `
             configSection.appendChild(configTitle)
 
-            // Add miniature screenwerk player
-            const playerElement = document.createElement("div")
-            playerElement.className = "mini-player"
-            configSection.appendChild(playerElement)
-            const configuration = groupedCustomers[customerId].configurations[configId].screenGroups[Object.keys(groupedCustomers[customerId].configurations[configId].screenGroups)[0]].configuration
-            const player = new EntuScreenWerkPlayer(playerElement, configuration)
-            player.play()
-
             const screenGroupList = document.createElement("div")
             screenGroupList.className = "panel"
 
@@ -207,6 +199,17 @@ async function displayConfigurations() {
                     ${toolbarSnippet(screenGroupId, screenGroup.published)}
                 `
                 screenGroupSection.appendChild(screenGroupTitle)
+
+                // Add miniature screenwerk player
+                const playerElement = document.createElement("div")
+                playerElement.className = "mini-player"
+                const playerPanel = document.createElement("div")
+                playerPanel.className = "panel"
+                playerPanel.appendChild(playerElement)
+                screenGroupSection.appendChild(playerPanel)
+                const configuration = screenGroup.configuration
+                const player = new EntuScreenWerkPlayer(playerElement, configuration)
+                player.play()
 
                 const screenList = document.createElement("div")
                 screenList.className = "panel"
@@ -238,11 +241,14 @@ async function displayConfigurations() {
     for (let i = 0; i < accordions.length; i++) {
         accordions[i].addEventListener("click", function() {
             this.classList.toggle("active")
-            const panel = this.nextElementSibling
+            let panel = this.nextElementSibling
+            while (panel && panel.classList.contains("panel")) {
             if (panel.style.display === "block") {
                 panel.style.display = "none"
             } else {
                 panel.style.display = "block"
+            }
+            panel = panel.nextElementSibling
             }
         })
     }
