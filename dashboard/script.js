@@ -127,22 +127,34 @@ async function groupEntities() {
     return grouped_customers
 }
 
+// Scroll through the grouped data and enrich the screen groups with published date
+async function fetchPublishedScreenGroups(groupedCustomers) {
+    for (const customerId in groupedCustomers) {
+        for (const configId in groupedCustomers[customerId].configurations) {
+            for (const screenGroupId in groupedCustomers[customerId].configurations[configId].screenGroups) {
+                const screenGroup = groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]
+                // Files at swpublisher are named after screen IDs
+                const publisher_id = screenGroup.screens[0]._id
+                const screenGroupData = await fetchFromPublisher(publisher_id)
+                if (screenGroupData) {
+                    screenGroup.configuration = screenGroupData
+                    console.log("Screen group data:", screenGroupData)
+                }
+            }
+        }
+    }
+}
+
 /**
  * Fetches configurations, screen groups, and screens.
  * Builds the structure from bottom up, grouping screens under screen groups,
  * screen groups under configurations, and configurations under customers.
  */
-async function fetchPublishedScreenGroups(groupedCustomers) {
-    // Implement the logic to fetch published screen groups
-    // This is a placeholder implementation
-    console.log("Fetching published screen groups for:", groupedCustomers)
-}
-
 async function displayConfigurations() {
     const groupedCustomers = await groupEntities()
-    console.log("Grouped customers:", groupedCustomers)
-
+    
     await fetchPublishedScreenGroups(groupedCustomers)
+    console.log("Grouped customers:", groupedCustomers)
 
     const accordion = document.getElementById("accordion")
     for (const customerId in groupedCustomers) {
