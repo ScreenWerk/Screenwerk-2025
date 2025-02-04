@@ -1,0 +1,29 @@
+@hostname=entu.app/api
+@account=piletilevi
+
+#######################
+# Authorized requests #
+#######################
+
+###
+# auth
+GET {{hostname}}/auth?account={{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_key}}
+
+###
+# GET list of customers
+GET {{hostname}}/{{account}}/entity?_type.string=customer&props=name.string HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
+
+###
+# Set public to false for all customers
+PUT {{hostname}}/{{account}}/entity?_type.string=customer HTTP/1.1
+Accept-Encoding: deflate
+Content-Type: application/json
+Authorization: Bearer {{pl_token}}
+
+{
+  "public": false
+}
