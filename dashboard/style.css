@@ -95,3 +95,11 @@ li {
     color: #a1fffd;
     margin-left: 10px;
 }
+
+.mini-player {
+    width: 100%;
+    height: 200px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    position: relative;
+}
