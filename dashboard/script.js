@@ -5,6 +5,14 @@ const ACCOUNT = "piletilevi"
 const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
+const entuLogoSnippet = (id) => `
+    <div class="toolbar">
+        <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
+            <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
+        </a>
+    </div>
+`
+
 async function fetchConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
     try {
@@ -119,7 +127,11 @@ async function displayConfigurations() {
 
             const configTitle = document.createElement("button")
             configTitle.className = "accordion"
-            configTitle.innerHTML = `${groupedCustomers[customerId].configurations[configId].configName} (${Object.keys(groupedCustomers[customerId].configurations[configId].screenGroups).length}) <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${configId}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+            configTitle.innerHTML = `
+                ${groupedCustomers[customerId].configurations[configId].configName} 
+                (${Object.keys(groupedCustomers[customerId].configurations[configId].screenGroups).length}) 
+                ${entuLogoSnippet(configId)}
+            `
             configSection.appendChild(configTitle)
 
             const screenGroupList = document.createElement("div")
@@ -131,7 +143,11 @@ async function displayConfigurations() {
 
                 const screenGroupTitle = document.createElement("button")
                 screenGroupTitle.className = "accordion"
-                screenGroupTitle.innerHTML = `${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screenGroupName} (${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.length}) <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroupId}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+                screenGroupTitle.innerHTML = `
+                    ${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screenGroupName} 
+                    (${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.length}) 
+                    ${entuLogoSnippet(screenGroupId)}
+                `
                 screenGroupSection.appendChild(screenGroupTitle)
 
                 const screenList = document.createElement("div")
@@ -140,7 +156,10 @@ async function displayConfigurations() {
                 groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.forEach(screen => {
                     const screenSection = document.createElement("section")
                     screenSection.className = "screen-section"
-                    screenSection.innerHTML = `${screen.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screen._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+                    screenSection.innerHTML = `
+                        ${screen.name[0].string} 
+                        ${entuLogoSnippet(screen._id)}
+                    `
                     screenList.appendChild(screenSection)
                 })
 
