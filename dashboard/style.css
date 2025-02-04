@@ -89,3 +89,9 @@ li {
 .screen-group-item .panel {
     padding-left: 2em;
 }
+
+.published-timestamp {
+    font-size: 0.8em;
+    color: #a1fffd;
+    margin-left: 10px;
+}

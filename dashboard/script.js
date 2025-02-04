@@ -5,13 +5,16 @@ const ACCOUNT = "piletilevi"
 const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
-const entuLogoSnippet = (id) => `
-    <div class="toolbar">
-        <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
-            <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
-        </a>
-    </div>
-`
+const toolbarSnippet = (id, publishedAt = '') => {
+    return `
+        <div class="toolbar">
+            <span class="published-timestamp" title="${publishedAt}">${publishedAt ? new Date(publishedAt).toLocaleString() : ''}</span>
+            <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
+                <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
+            </a>
+        </div>
+    `
+}
 
 async function fetchConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
@@ -130,7 +133,7 @@ async function displayConfigurations() {
             configTitle.innerHTML = `
                 ${groupedCustomers[customerId].configurations[configId].configName} 
                 (${Object.keys(groupedCustomers[customerId].configurations[configId].screenGroups).length}) 
-                ${entuLogoSnippet(configId)}
+                ${toolbarSnippet(configId)}
             `
             configSection.appendChild(configTitle)
 
@@ -143,22 +146,24 @@ async function displayConfigurations() {
 
                 const screenGroupTitle = document.createElement("button")
                 screenGroupTitle.className = "accordion"
+                const screenGroup = groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]
+                const publishedAt = screenGroup.screens[0].published[0].string // Assuming all screens have the same published timestamp
                 screenGroupTitle.innerHTML = `
-                    ${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screenGroupName} 
-                    (${groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.length}) 
-                    ${entuLogoSnippet(screenGroupId)}
+                    ${screenGroup.screenGroupName} 
+                    (${screenGroup.screens.length}) 
+                    ${toolbarSnippet(screenGroupId, publishedAt)}
                 `
                 screenGroupSection.appendChild(screenGroupTitle)
 
                 const screenList = document.createElement("div")
                 screenList.className = "panel"
 
-                groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.forEach(screen => {
+                screenGroup.screens.forEach(screen => {
                     const screenSection = document.createElement("section")
                     screenSection.className = "screen-section"
                     screenSection.innerHTML = `
                         ${screen.name[0].string} 
-                        ${entuLogoSnippet(screen._id)}
+                        ${toolbarSnippet(screen._id)}
                     `
                     screenList.appendChild(screenSection)
                 })
