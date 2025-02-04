@@ -25,6 +25,9 @@ h1 {
     font-size: 15px;
     transition: 0.4s;
     border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .accordion.active, .accordion:hover {
@@ -51,4 +54,19 @@ li {
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.entu-logo {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
 }

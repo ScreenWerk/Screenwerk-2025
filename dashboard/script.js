@@ -3,6 +3,7 @@
 const HOSTNAME = "entu.app"
 const ACCOUNT = "piletilevi"
 const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
+const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
 async function fetchConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
@@ -78,7 +79,7 @@ async function displayConfigurations() {
 
             const configTitle = document.createElement("button")
             configTitle.className = "accordion"
-            configTitle.textContent = config.name[0].string
+            configTitle.innerHTML = `${config.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${config._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
             configSection.appendChild(configTitle)
 
             const screenGroupList = document.createElement("div")
@@ -88,7 +89,7 @@ async function displayConfigurations() {
             const relatedScreenGroups = screenGroups.filter(screenGroup => screenGroup.configuration[0].reference === config._id)
             relatedScreenGroups.forEach(screenGroup => {
                 const screenGroupItem = document.createElement("li")
-                screenGroupItem.textContent = screenGroup.name[0].string
+                screenGroupItem.innerHTML = `${screenGroup.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroup._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
                 ul.appendChild(screenGroupItem)
             })
 
