@@ -16,6 +16,26 @@ const toolbarSnippet = (id, publishedAt = '') => {
     `
 }
 
+const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
+
+async function fetchJSON(url) {
+    console.log(`Fetching ${url}`)
+    const r = await fetch(url)
+    try {
+        if (r.status !== 200) {
+            return false
+        }
+        return await r.json()
+    } catch (e) {
+        console.error(`Error fetching ${url}: ${e}`)
+        return false
+    }
+}
+
+async function fetchFromPublisher(id) {
+  return await fetchJSON(`${SCREENWERK_PUBLISHER_API}${id}.json`)
+}
+
 async function fetchConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
     try {
@@ -29,7 +49,7 @@ async function fetchConfigurations() {
 }
 
 async function fetchScreenGroups() {
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen_group&props=name.string,configuration.reference`
+    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen_group&props=name.string,configuration.reference,published.datetime`
     try {
         const response = await fetch(url)
         const data = await response.json()
@@ -60,46 +80,51 @@ async function fetchScreens() {
  */
 async function groupEntities() {
     const configurations = await fetchConfigurations()
-    const screenGroups = await fetchScreenGroups()
+    const screen_groups = await fetchScreenGroups()
     const screens = await fetchScreens()
-    const groupedCustomers = {}
+    const grouped_customers = {}
 
-    screens.forEach(screen => {
-        const screenGroupId = screen.screen_group[0].reference
-        const screenGroupName = screen.screen_group[0].string
-        const screenGroup = screenGroups.find(sg => sg._id === screenGroupId)
-        if (!screenGroup) return
+    for (const screen of screens) {
+        const screen_id = screen._id
+        const screen_group_id = screen.screen_group[0].reference
+        const screen_group = screen_groups.find(sg => sg._id === screen_group_id)
+        const screen_group_name = screen_group.name[0].string
+        const screen_group_published_at = screen_group.published[0].datetime
+        if (!screen_group) return
 
-        const configId = screenGroup.configuration[0].reference
-        const configName = configurations.find(c => c._id === configId).name[0].string
-        const customerId = configurations.find(c => c._id === configId)._parent[0].reference
-        const customerName = configurations.find(c => c._id === configId)._parent[0].string
+        const configuration_id = screen_group.configuration[0].reference
+        const configuration = configurations.find(c => c._id === configuration_id)
+        const configuration_name = configuration.name[0].string
 
-        if (!groupedCustomers[customerId]) {
-            groupedCustomers[customerId] = {
-                customerName: customerName,
+        const customer_id = configuration._parent[0].reference
+        const customer_name = configuration._parent[0].string
+
+        if (!grouped_customers[customer_id]) {
+            grouped_customers[customer_id] = {
+                customerName: customer_name,
                 configurations: {}
             }
         }
 
-        if (!groupedCustomers[customerId].configurations[configId]) {
-            groupedCustomers[customerId].configurations[configId] = {
-                configName: configName,
+        if (!grouped_customers[customer_id].configurations[configuration_id]) {
+            grouped_customers[customer_id].configurations[configuration_id] = {
+                configName: configuration_name,
                 screenGroups: {}
             }
         }
 
-        if (!groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]) {
-            groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId] = {
-                screenGroupName: screenGroupName,
+        if (!grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id]) {
+            grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id] = {
+                screenGroupName: screen_group_name,
+                published: screen_group_published_at,
                 screens: []
             }
         }
 
-        groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.push(screen)
-    })
+        grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id].screens.push(screen)
+    }
 
-    return groupedCustomers
+    return grouped_customers
 }
 
 /**
@@ -107,9 +132,17 @@ async function groupEntities() {
  * Builds the structure from bottom up, grouping screens under screen groups,
  * screen groups under configurations, and configurations under customers.
  */
+async function fetchPublishedScreenGroups(groupedCustomers) {
+    // Implement the logic to fetch published screen groups
+    // This is a placeholder implementation
+    console.log("Fetching published screen groups for:", groupedCustomers)
+}
+
 async function displayConfigurations() {
     const groupedCustomers = await groupEntities()
     console.log("Grouped customers:", groupedCustomers)
+
+    await fetchPublishedScreenGroups(groupedCustomers)
 
     const accordion = document.getElementById("accordion")
     for (const customerId in groupedCustomers) {
@@ -147,11 +180,11 @@ async function displayConfigurations() {
                 const screenGroupTitle = document.createElement("button")
                 screenGroupTitle.className = "accordion"
                 const screenGroup = groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]
-                const publishedAt = screenGroup.screens[0].published[0].string // Assuming all screens have the same published timestamp
+                // console.log("Screen group:", screenGroup)
                 screenGroupTitle.innerHTML = `
                     ${screenGroup.screenGroupName} 
                     (${screenGroup.screens.length}) 
-                    ${toolbarSnippet(screenGroupId, publishedAt)}
+                    ${toolbarSnippet(screenGroupId, screenGroup.published)}
                 `
                 screenGroupSection.appendChild(screenGroupTitle)
 
