@@ -44,20 +44,15 @@ async function fetchScreens() {
 }
 
 /**
- * Fetches configurations, screen groups, and screens.
- * Builds the structure from bottom up, grouping screens under screen groups,
- * screen groups under configurations, and configurations under customers.
+ * Groups screens under screen groups, screen groups under configurations,
+ * and configurations under customers.
  */
-async function displayConfigurations() {
+async function groupEntities() {
     const configurations = await fetchConfigurations()
     const screenGroups = await fetchScreenGroups()
     const screens = await fetchScreens()
-    console.log("Configurations:", configurations)
-    console.log("Screen groups:", screenGroups)
-    console.log("Screens:", screens)
     const groupedCustomers = {}
 
-    // Iterate over screens and group them under screen groups
     screens.forEach(screen => {
         const screenGroupId = screen.screen_group[0].reference
         const screenGroupName = screen.screen_group[0].string
@@ -93,6 +88,16 @@ async function displayConfigurations() {
         groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId].screens.push(screen)
     })
 
+    return groupedCustomers
+}
+
+/**
+ * Fetches configurations, screen groups, and screens.
+ * Builds the structure from bottom up, grouping screens under screen groups,
+ * screen groups under configurations, and configurations under customers.
+ */
+async function displayConfigurations() {
+    const groupedCustomers = await groupEntities()
     console.log("Grouped customers:", groupedCustomers)
 
     const accordion = document.getElementById("accordion")
