@@ -17,6 +17,14 @@ h1 {
     margin: 1em 0;
 }
 
+.screen-group-section {
+    margin: 1em 0;
+}
+
+.screen-section {
+    margin: 1em 0;
+}
+
 .accordion {
     background-color: #007bff;
     color: white;
@@ -73,4 +81,8 @@ li {
 .toolbar {
     display: flex;
     align-items: center;
+}
+
+.screen-group-item .panel {
+    padding-left: 2em;
 }

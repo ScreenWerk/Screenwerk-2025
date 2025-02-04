@@ -29,14 +29,31 @@ async function fetchScreenGroups() {
     }
 }
 
+async function fetchScreens() {
+    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,published.string`
+    try {
+        const response = await fetch(url)
+        const data = await response.json()
+        return data.entities
+    } catch (error) {
+        console.error("Failed to fetch screens:", error)
+        return []
+    }
+}
+
 /**
  * Fetches configurations and groups them by their parent customer.
  * Creates an accordion UI where each customer is a collapsible section containing their configurations.
  * Each configuration is also an accordion containing screen groups that refer to it.
+ * Each screen group is also an accordion containing screens that refer to it.
  */
 async function displayConfigurations() {
     const configurations = await fetchConfigurations()
     const screenGroups = await fetchScreenGroups()
+    const screens = await fetchScreens()
+    console.log("Configurations:", configurations)
+    console.log("Screen groups:", screenGroups)
+    console.log("Screens:", screens)
     const groupedConfigurations = {}
 
     for (const config of configurations) {
@@ -62,7 +79,7 @@ async function displayConfigurations() {
             continue
         }
 
-        const customerSection = document.createElement("div")
+        const customerSection = document.createElement("section")
         customerSection.className = "customer-section"
 
         const customerTitle = document.createElement("button")
@@ -74,7 +91,7 @@ async function displayConfigurations() {
         configList.className = "panel"
 
         customerConfigurations.forEach((config) => {
-            const configSection = document.createElement("div")
+            const configSection = document.createElement("section")
             configSection.className = "config-section"
 
             const configTitle = document.createElement("button")
@@ -84,16 +101,37 @@ async function displayConfigurations() {
 
             const screenGroupList = document.createElement("div")
             screenGroupList.className = "panel"
-            const ul = document.createElement("ul")
 
             const relatedScreenGroups = screenGroups.filter(screenGroup => screenGroup.configuration[0].reference === config._id)
             relatedScreenGroups.forEach(screenGroup => {
-                const screenGroupItem = document.createElement("li")
-                screenGroupItem.innerHTML = `${screenGroup.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroup._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
-                ul.appendChild(screenGroupItem)
+                const screenGroupSection = document.createElement("section")
+                screenGroupSection.className = "screen-group-section"
+
+                const screenGroupTitle = document.createElement("button")
+                screenGroupTitle.className = "accordion"
+                screenGroupTitle.innerHTML = `${screenGroup.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroup._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+                screenGroupSection.appendChild(screenGroupTitle)
+
+                const screenList = document.createElement("div")
+                screenList.className = "panel"
+
+                const relatedScreens = screens
+                    // Filter out screens, that are not related to any screen group
+                    .filter(screen => screen.screen_group && screen.screen_group.length > 0)
+                    // Filter out screens, that are not related to the current screen group
+                    .filter(screen => screen.screen_group[0].reference === screenGroup._id)
+                    
+                relatedScreens.forEach(screen => {
+                    const screenSection = document.createElement("section")
+                    screenSection.className = "screen-section"
+                    screenSection.innerHTML = `${screen.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screen._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+                    screenList.appendChild(screenSection)
+                })
+
+                screenGroupSection.appendChild(screenList)
+                screenGroupList.appendChild(screenGroupSection)
             })
 
-            screenGroupList.appendChild(ul)
             configSection.appendChild(screenGroupList)
             configList.appendChild(configSection)
         })

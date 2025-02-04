@@ -21,7 +21,7 @@ GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group HTTP/1.1
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,published.string HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string HTTP/1.1
 Accept-Encoding: deflate
 Authorization: Bearer {{pl_token}}
 
