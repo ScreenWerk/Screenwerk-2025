@@ -84,7 +84,7 @@ async function displayConfigurations() {
 
         const customerTitle = document.createElement("button")
         customerTitle.className = "accordion"
-        customerTitle.textContent = groupedConfigurations[customerId].customerName
+        customerTitle.textContent = `${groupedConfigurations[customerId].customerName} (${customerConfigurations.length})`
         customerSection.appendChild(customerTitle)
 
         const configList = document.createElement("div")
@@ -94,33 +94,33 @@ async function displayConfigurations() {
             const configSection = document.createElement("section")
             configSection.className = "config-section"
 
+            const relatedScreenGroups = screenGroups.filter(screenGroup => screenGroup.configuration[0].reference === config._id)
             const configTitle = document.createElement("button")
             configTitle.className = "accordion"
-            configTitle.innerHTML = `${config.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${config._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+            configTitle.innerHTML = `${config.name[0].string} (${relatedScreenGroups.length}) <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${config._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
             configSection.appendChild(configTitle)
 
             const screenGroupList = document.createElement("div")
             screenGroupList.className = "panel"
 
-            const relatedScreenGroups = screenGroups.filter(screenGroup => screenGroup.configuration[0].reference === config._id)
             relatedScreenGroups.forEach(screenGroup => {
                 const screenGroupSection = document.createElement("section")
                 screenGroupSection.className = "screen-group-section"
-
-                const screenGroupTitle = document.createElement("button")
-                screenGroupTitle.className = "accordion"
-                screenGroupTitle.innerHTML = `${screenGroup.name[0].string} <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroup._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
-                screenGroupSection.appendChild(screenGroupTitle)
-
-                const screenList = document.createElement("div")
-                screenList.className = "panel"
 
                 const relatedScreens = screens
                     // Filter out screens, that are not related to any screen group
                     .filter(screen => screen.screen_group && screen.screen_group.length > 0)
                     // Filter out screens, that are not related to the current screen group
                     .filter(screen => screen.screen_group[0].reference === screenGroup._id)
-                    
+
+                const screenGroupTitle = document.createElement("button")
+                screenGroupTitle.className = "accordion"
+                screenGroupTitle.innerHTML = `${screenGroup.name[0].string} (${relatedScreens.length}) <div class="toolbar"><a href="${ENTU_FRONTEND_URL}/${screenGroup._id}" target="_blank"><img src="/images/entulogo.png" class="entu-logo" alt="Entu"></a></div>`
+                screenGroupSection.appendChild(screenGroupTitle)
+
+                const screenList = document.createElement("div")
+                screenList.className = "panel"
+
                 relatedScreens.forEach(screen => {
                     const screenSection = document.createElement("section")
                     screenSection.className = "screen-section"
