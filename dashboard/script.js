@@ -5,10 +5,13 @@ const ACCOUNT = "piletilevi"
 const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
-const toolbarSnippet = (id, publishedAt = '') => {
+const toolbarSnippet = (id, publishedAt = '', screenId = '') => {
     return `
         <div class="toolbar">
             <span class="published-timestamp" title="${publishedAt}">${publishedAt ? new Date(publishedAt).toLocaleString() : ''}</span>
+            ${screenId ? `<a href="/?screen_id=${screenId}" target="_blank">
+                <img src="/images/monitor.png" class="screen-link-icon" alt="Screen Link">
+            </a>` : ''}
             <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
                 <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
             </a>
@@ -219,7 +222,7 @@ async function displayConfigurations() {
                     screenSection.className = "screen-section"
                     screenSection.innerHTML = `
                         ${screen.name[0].string} 
-                        ${toolbarSnippet(screen._id)}
+                        ${toolbarSnippet(screen._id, '', screen._id)}
                     `
                     screenList.appendChild(screenSection)
                 })
