@@ -6,6 +6,12 @@
 ###########################################
 
 ###
+# auth
+GET {{hostname}}/auth?account={{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_key}}
+
+###
 # account
 GET {{hostname}}/{{account}} HTTP/1.1
 Accept-Encoding: deflate
@@ -21,7 +27,13 @@ GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.stri
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=100 HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
+
+###
+# GET list of sw_screen's
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,_parent.reference,_parent.string&q=bil HTTP/1.1
 Accept-Encoding: deflate
 Authorization: Bearer {{pl_token}}
 

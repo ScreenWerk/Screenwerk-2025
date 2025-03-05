@@ -1,9 +1,9 @@
-// Disclaimer: no semicolons, if unnecessary, are used in this project
+import { validateConfiguration } from '../validator.js'
+import { HOSTNAME, ACCOUNT, ENTU_ENTITY_URL, ENTU_FRONTEND_URL, SCREENWERK_PUBLISHER_API } from './constants.js'
+import { fetchJSON } from './utils.js'
+import { EntuScreenWerkPlayer } from '../sw-player.js'
 
-const HOSTNAME = "entu.app"
-const ACCOUNT = "piletilevi"
-const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
-const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
+// Disclaimer: no semicolons, if unnecessary, are used in this project
 
 const toolbarSnippet = (id, publishedAt = '', screenId = '') => {
     return `
@@ -19,22 +19,6 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '') => {
     `
 }
 
-const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/' // append screen ID (.json) to load configuration
-
-async function fetchJSON(url) {
-    console.log(`Fetching ${url}`)
-    const r = await fetch(url)
-    try {
-        if (r.status !== 200) {
-            return false
-        }
-        return await r.json()
-    } catch (e) {
-        console.error(`Error fetching ${url}: ${e}`)
-        return false
-    }
-}
-
 async function fetchFromPublisher(id) {
   return await fetchJSON(`${SCREENWERK_PUBLISHER_API}${id}.json`)
 }
@@ -44,6 +28,7 @@ async function fetchConfigurations() {
     try {
         const response = await fetch(url)
         const data = await response.json()
+        validateConfiguration(data) // Validate configuration data, throw error if invalid
         return data.entities
     } catch (error) {
         console.error("Failed to fetch configurations:", error)
@@ -64,7 +49,7 @@ async function fetchScreenGroups() {
 }
 
 async function fetchScreens() {
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,screen_group.string,published.string`
+    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,screen_group.string,published.string&limit=10000`
     try {
         const response = await fetch(url)
         const data = await response.json()
@@ -91,31 +76,31 @@ async function groupEntities() {
         const screen_id = screen._id
         const screen_group_id = screen.screen_group[0].reference
         const screen_group = screen_groups.find(sg => sg._id === screen_group_id)
+        if (!screen_group) return
         const screen_group_name = screen_group.name[0].string
         const screen_group_published_at = screen_group.published[0].datetime
-        if (!screen_group) return
 
         const configuration_id = screen_group.configuration[0].reference
         const configuration = configurations.find(c => c._id === configuration_id)
+        if (!configuration) return
         const configuration_name = configuration.name[0].string
 
         const customer_id = configuration._parent[0].reference
         const customer_name = configuration._parent[0].string
 
+        // Group screens under screen groups, screen groups under configurations, and configurations under customers
         if (!grouped_customers[customer_id]) {
             grouped_customers[customer_id] = {
                 customerName: customer_name,
                 configurations: {}
             }
         }
-
         if (!grouped_customers[customer_id].configurations[configuration_id]) {
             grouped_customers[customer_id].configurations[configuration_id] = {
                 configName: configuration_name,
                 screenGroups: {}
             }
         }
-
         if (!grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id]) {
             grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id] = {
                 screenGroupName: screen_group_name,
@@ -211,8 +196,14 @@ async function displayConfigurations() {
                 playerPanel.appendChild(playerElement)
                 screenGroupSection.appendChild(playerPanel)
                 const configuration = screenGroup.configuration
-                const player = new EntuScreenWerkPlayer(playerElement, configuration)
-                player.play()
+                // console.log('Creating player with configuration:', configuration)
+                if (configuration) {
+                    const player = new EntuScreenWerkPlayer(playerElement, configuration)
+                    player.play()
+                } else {
+                    console.error('No configuration available for screen group:', screenGroupId)
+                    playerPanel.innerHTML = '<div class="error">Configuration not available</div>'
+                }
 
                 const screenList = document.createElement("div")
                 screenList.className = "panel"

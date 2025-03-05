@@ -116,8 +116,8 @@ li {
     /* position: absolute; */
     top: 0;
     left: 0;
-    height: 10vh;
-    width: 18vh;
+    height: 16em;
+    width: 30em;
     background: darkblue;
     border: 0 solid black;
     margin: 0.5em;

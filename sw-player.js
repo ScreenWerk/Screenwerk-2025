@@ -1,6 +1,7 @@
-// Disclaimer: no semicolons, if unnecessary, are used in this project
+import { validateConfiguration } from './validator.js'
+import { LinkedList } from './linked-list.js'
 
-// import { LinkedList } from './linked-list.js'
+// Disclaimer: no semicolons, if unnecessary, are used in this project
 
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10
@@ -153,11 +154,11 @@ class SwMedia {
                 })
             }
         } else if (this.type === 'Image') {
-            console.log(`Image ${this.dom_element.id} started for ${this.duration} s`)
+            // console.log(`Image ${this.dom_element.id} started for ${this.duration} s`)
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
                 const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
-                console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
+                // console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.parent.next().play()
             }, this.duration * 1e3)
         }
@@ -166,15 +167,28 @@ class SwMedia {
 
 class EntuScreenWerkPlayer {
     constructor(dom_element, configuration) {
-        this.dom_element = dom_element
-        this.layout = {}
-        // clear the player
-        while (this.dom_element.firstChild) {
-            this.dom_element.removeChild(this.dom_element.firstChild)
+        try {
+            validateConfiguration(configuration)
+            
+            this.dom_element = dom_element
+            this.layout = {}
+            // clear the player
+            while (this.dom_element.firstChild) {
+                this.dom_element.removeChild(this.dom_element.firstChild)
+            }
+            this.render(configuration)
+        } catch (error) {
+            console.error('Configuration validation failed:', error.message)
+            this.dom_element.innerHTML = `<div class="error">Configuration error: ${error.message}</div>`
+            return
         }
-        this.render(configuration)
     }
     render(configuration) {
+        if (!configuration || !configuration.schedules) {
+            console.error('Invalid configuration in render:', configuration)
+            return
+        }
+        
         const cron_schedules = configuration.schedules.map(schedule => {
             return {
                 cron_expression: schedule.crontab,
@@ -198,6 +212,8 @@ class EntuScreenWerkPlayer {
     stop() {
     }
 }
+
+export { EntuScreenWerkPlayer }
 
 /* Sample data:
 {

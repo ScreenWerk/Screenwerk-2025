@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Available Configurations</title>
     <link rel="stylesheet" href="/dashboard/style.css">
-    <script src="/later.min.js" type="text/javascript"></script>
-    <script src="/cron.js" type="text/javascript"></script>
-    <script src='/config.js'></script>
-    <script src='/linked-list.js'></script>
-    <script src='/sw-player.js'></script>
-    <script defer src="/dashboard/script.js"></script>
+    <!-- Load non-module scripts first -->
+    <script src="/later.min.js"></script>
+    <script src="/cron.js"></script>
+    <script src="/config.js"></script>
+    <!-- Load module scripts after -->
+    <script src="/linked-list.js" type="module"></script>
+    <script src="/validator.js" type="module"></script>
+    <script src="/sw-player.js" type="module"></script>
+    <script defer src="/dashboard/script.js" type="module"></script>
 </head>
 <body>
     <h1>Available Configurations</h1>
