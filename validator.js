@@ -35,7 +35,7 @@ function validateConfiguration(configuration) {
     if (!configuration) {
         throw new Error('Configuration is undefined')
     }
-
+    console.log('Configuration:', configuration)
     const requiredFields = ['schedules']
     for (const field of requiredFields) {
         if (!configuration[field]) {

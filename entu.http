@@ -27,13 +27,7 @@ GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.stri
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=100 HTTP/1.1
-Accept-Encoding: deflate
-Authorization: Bearer {{pl_token}}
-
-###
-# GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,_parent.reference,_parent.string&q=bil HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=1000 HTTP/1.1
 Accept-Encoding: deflate
 Authorization: Bearer {{pl_token}}
 
@@ -53,7 +47,7 @@ GET {{hostname}}/{{account}}/entity/5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 
 ###
-# GET sw_schedules
+# GET sw_schedules for configuration
 GET {{hostname}}/{{account}}/entity?_type.string=sw_schedule&_parent.reference=5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 

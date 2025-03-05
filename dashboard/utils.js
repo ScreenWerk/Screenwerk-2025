@@ -1,5 +1,5 @@
 export async function fetchJSON(url) {
-    console.log(`Fetching ${url}`)
+    // console.log(`Fetching ${url}`)
     const r = await fetch(url)
     try {
         if (r.status !== 200) {
