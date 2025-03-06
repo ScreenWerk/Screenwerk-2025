@@ -1,11 +1,14 @@
 import { validateConfiguration } from '../validator.js'
-import { HOSTNAME, ACCOUNT, ENTU_ENTITY_URL, ENTU_FRONTEND_URL, SCREENWERK_PUBLISHER_API } from './constants.js'
+import { HOSTNAME, ACCOUNT, ENTU_ENTITY_URL, ENTU_FRONTEND_URL, SCREENWERK_PUBLISHER_API, UNICODE_ICONS } from './constants.js'
 import { fetchJSON } from './utils.js'
 import { EntuScreenWerkPlayer } from '../sw-player.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
-const toolbarSnippet = (id, publishedAt = '', screenId = '') => {
+const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = []) => {
+    const errorIcon = validation_errors.length > 0 ? `
+        <span class="error-icon" title="Validation Errors" onclick="showErrors('${id}')">${UNICODE_ICONS.warning}</span>
+    ` : ''
     return `
         <div class="toolbar">
             <span class="published-timestamp" title="${publishedAt}">${publishedAt ? new Date(publishedAt).toLocaleString() : ''}</span>
@@ -15,8 +18,29 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '') => {
             <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
                 <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
             </a>
+            ${errorIcon}
         </div>
     `
+}
+
+function showErrors(id) {
+    const configuration = configurations.find(config => config._id === id)
+    if (!configuration || !configuration.validation_errors) return
+
+    const errorMessages = configuration.validation_errors.map(error => `
+        <li>${error.error}: ${JSON.stringify(error.object)}</li>
+    `).join('')
+
+    const errorPopup = document.createElement('div')
+    errorPopup.className = 'error-popup'
+    errorPopup.innerHTML = `
+        <div class="error-popup-content">
+            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <h2>Validation Errors</h2>
+            <ul>${errorMessages}</ul>
+        </div>
+    `
+    document.body.appendChild(errorPopup)
 }
 
 async function fetchFromPublisher(id) {
@@ -293,7 +317,7 @@ async function groupEntities() {
         }
         if (!grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id]) {
             grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id] = {
-                screenGroupName: screen_group_name,
+                screen_group_name: screen_group_name,
                 published: screen_group_published_at,
                 screens: []
             }
@@ -306,17 +330,18 @@ async function groupEntities() {
 }
 
 // Scroll through the grouped data and enrich the screen groups with published date
-async function fetchPublishedScreenGroups(groupedCustomers) {
-    for (const customerId in groupedCustomers) {
-        for (const configId in groupedCustomers[customerId].configurations) {
-            for (const screenGroupId in groupedCustomers[customerId].configurations[configId].screenGroups) {
-                const screenGroup = groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]
+async function fetchPublishedScreenGroups(grouped_customers) {
+    for (const customerId in grouped_customers) {
+        for (const configId in grouped_customers[customerId].configurations) {
+            const configuration = grouped_customers[customerId].configurations[configId]
+            for (const screenGroupId in configuration.screenGroups) {
+                const screenGroup = configuration.screenGroups[screenGroupId]
                 // Files at swpublisher are named after screen IDs
                 const publisher_id = screenGroup.screens[0]._id
                 const screenGroupData = await fetchFromPublisher(publisher_id)
                 if (screenGroupData) {
                     screenGroup.configuration = screenGroupData
-                    console.info("Screen group data:", screenGroupData)
+                    screenGroup.published = screenGroupData.published
                 }
             }
         }
@@ -329,76 +354,75 @@ async function fetchPublishedScreenGroups(groupedCustomers) {
  * screen groups under configurations, and configurations under customers.
  */
 async function displayConfigurations() {
-    const groupedCustomers = await groupEntities()
+    const grouped_customers = await groupEntities()
     
-    await fetchPublishedScreenGroups(groupedCustomers)
-    console.log("Grouped customers:", groupedCustomers)
+    await fetchPublishedScreenGroups(grouped_customers)
+    console.log("Grouped customers:", grouped_customers)
 
     const accordion = document.getElementById("accordion")
-    for (const customerId in groupedCustomers) {
-        const customerSection = document.createElement("section")
-        customerSection.className = "customer-section"
+    for (const customer_id in grouped_customers) {
+        const customerSectionE = document.createElement("section")
+        customerSectionE.className = "customer-section"
 
-        const customerTitle = document.createElement("button")
-        customerTitle.className = "accordion"
-        customerTitle.textContent = `${groupedCustomers[customerId].customerName} (${Object.keys(groupedCustomers[customerId].configurations).length})`
-        customerSection.appendChild(customerTitle)
+        const customerTitleE = document.createElement("button")
+        customerTitleE.className = "accordion"
+        customerTitleE.textContent = `${grouped_customers[customer_id].customerName} (${Object.keys(grouped_customers[customer_id].configurations).length})`
+        customerSectionE.appendChild(customerTitleE)
 
-        const configList = document.createElement("div")
-        configList.className = "panel"
+        const configListE = document.createElement("div")
+        configListE.className = "panel"
 
-        for (const configId in groupedCustomers[customerId].configurations) {
-            const configSection = document.createElement("section")
-            configSection.className = "config-section"
+        for (const config_id in grouped_customers[customer_id].configurations) {
+            const configSectionE = document.createElement("section")
+            configSectionE.className = "config-section"
 
-            const configTitle = document.createElement("button")
-            configTitle.className = "accordion"
-            configTitle.innerHTML = `
-                ${groupedCustomers[customerId].configurations[configId].configName} 
-                (${Object.keys(groupedCustomers[customerId].configurations[configId].screenGroups).length}) 
-                ${toolbarSnippet(configId)}
+            const configTitleE = document.createElement("button")
+            configTitleE.className = "accordion"
+            const config = grouped_customers[customer_id].configurations[config_id]
+            configTitleE.innerHTML = `
+                ${config.configName} 
+                (${Object.keys(config.screenGroups).length}) 
+                ${toolbarSnippet(config_id, '', '', config.validation_errors)}
             `
-            configSection.appendChild(configTitle)
+            configSectionE.appendChild(configTitleE)
 
-            const screenGroupList = document.createElement("div")
-            screenGroupList.className = "panel"
+            const screenGroupListE = document.createElement("div")
+            screenGroupListE.className = "panel"
 
-            for (const screenGroupId in groupedCustomers[customerId].configurations[configId].screenGroups) {
-                const screenGroupSection = document.createElement("section")
-                screenGroupSection.className = "screen-group-section"
+            for (const screen_group_id in config.screenGroups) {
+                const screenGroupSectionE = document.createElement("section")
+                screenGroupSectionE.className = "screen-group-section"
 
-                const screenGroupTitle = document.createElement("button")
-                screenGroupTitle.className = "accordion"
-                const screenGroup = groupedCustomers[customerId].configurations[configId].screenGroups[screenGroupId]
-                // console.log("Screen group:", screenGroup)
-                screenGroupTitle.innerHTML = `
-                    ${screenGroup.screenGroupName} 
-                    (${screenGroup.screens.length}) 
-                    ${toolbarSnippet(screenGroupId, screenGroup.published)}
+                const screenGroupTitleE = document.createElement("button")
+                screenGroupTitleE.className = "accordion"
+                const screen_group = config.screenGroups[screen_group_id]
+                screenGroupTitleE.innerHTML = `
+                    ${screen_group.screen_group_name} 
+                    (${screen_group.screens.length}) 
+                    ${toolbarSnippet(screen_group_id, screen_group.published)}
                 `
-                screenGroupSection.appendChild(screenGroupTitle)
+                screenGroupSectionE.appendChild(screenGroupTitleE)
 
                 // Add miniature screenwerk player
-                const playerElement = document.createElement("div")
-                playerElement.className = "mini-player"
-                const playerPanel = document.createElement("div")
-                playerPanel.className = "panel"
-                playerPanel.appendChild(playerElement)
-                screenGroupSection.appendChild(playerPanel)
-                const configuration = screenGroup.configuration
-                // console.log('Creating player with configuration:', configuration)
-                if (configuration) {
-                    const player = new EntuScreenWerkPlayer(playerElement, configuration)
+                const playerElementE = document.createElement("div")
+                playerElementE.className = "mini-player"
+                const playerPanelE = document.createElement("div")
+                playerPanelE.className = "panel"
+                playerPanelE.appendChild(playerElementE)
+                screenGroupSectionE.appendChild(playerPanelE)
+                const screen_group_config = screen_group.configuration
+                if (screen_group_config) {
+                    const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
                     player.play()
                 } else {
-                    console.error('No configuration available for screen group:', screenGroupId)
-                    playerPanel.innerHTML = '<div class="error">Configuration not available</div>'
+                    // console.warning('No configuration available for screen group:', screenGroupId)
+                    playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
                 }
 
                 const screenList = document.createElement("div")
                 screenList.className = "panel"
 
-                screenGroup.screens.forEach(screen => {
+                screen_group.screens.forEach(screen => {
                     const screenSection = document.createElement("section")
                     screenSection.className = "screen-section"
                     screenSection.innerHTML = `
@@ -408,16 +432,16 @@ async function displayConfigurations() {
                     screenList.appendChild(screenSection)
                 })
 
-                screenGroupSection.appendChild(screenList)
-                screenGroupList.appendChild(screenGroupSection)
+                screenGroupSectionE.appendChild(screenList)
+                screenGroupListE.appendChild(screenGroupSectionE)
             }
 
-            configSection.appendChild(screenGroupList)
-            configList.appendChild(configSection)
+            configSectionE.appendChild(screenGroupListE)
+            configListE.appendChild(configSectionE)
         }
 
-        customerSection.appendChild(configList)
-        accordion.appendChild(customerSection)
+        customerSectionE.appendChild(configListE)
+        accordion.appendChild(customerSectionE)
     }
 
     // Add accordion functionality
