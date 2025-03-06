@@ -121,63 +121,82 @@ async function fillConfiguration(configuration_eid) {
 
 // Flatten the configuration structure to comply with the format from swPublisher API
 function flattenConfiguration(configuration) {
-    configuration.schedules.map(schedule => {
+    if (!configuration || !configuration.schedules) {
+        console.warn('Invalid configuration structure:', configuration)
+        return null
+    }
 
-        // rename id's
-        schedule.eid = schedule._id
-        delete schedule._id
-        schedule.layout.layoutEid = schedule.layout._id
-        delete schedule.layout._id
-        
-        // camelCase
-        schedule.layout.layoutPlaylists = schedule.layout.layout_playlists
-        delete schedule.layout.layout_playlists
-
-        // bring all properties from layout to schedule
-        for (const key in schedule.layout) {
-            schedule[key] = schedule.layout[key]
-        }
-        delete schedule.layout
-
-        schedule.layout_playlists.map(layoutPlaylist => {
+    try {
+        configuration.schedules.forEach(schedule => {
+            if (!schedule || !schedule.layout || !schedule.layout.layout_playlists) {
+                console.warn('Invalid schedule structure:', schedule)
+                return
+            }
 
             // rename id's
-            layoutPlaylist.eid = layoutPlaylist._id
-            delete layoutPlaylist._id
-            layoutPlaylist.playlist.playlistEid = layoutPlaylist.playlist._id
-            delete layoutPlaylist.playlist._id
-
+            schedule.eid = schedule._id
+            delete schedule._id
+            schedule.layout.layoutEid = schedule.layout._id
+            delete schedule.layout._id
+            
             // camelCase
-            layoutPlaylist.playlist.playlistMedias = layoutPlaylist.playlist.playlist_medias
-            delete layoutPlaylist.playlist.playlist_medias
+            schedule.layout.layoutPlaylists = schedule.layout.layout_playlists
+            delete schedule.layout.layout_playlists
 
-            // bring all properties from playlist to layoutPlaylist
-            for (const key in layoutPlaylist.playlist) {
-                layoutPlaylist[key] = layoutPlaylist.playlist[key]
-            }
-            delete layoutPlaylist.playlist
+            // bring all properties from layout to schedule
+            Object.assign(schedule, schedule.layout)
+            delete schedule.layout
 
-            layoutPlaylist.playlist_medias.map(playlistMedia => {
+            schedule.layoutPlaylists.forEach(layoutPlaylist => {
+                if (!layoutPlaylist || !layoutPlaylist.playlist) {
+                    console.warn('Invalid layout playlist:', layoutPlaylist)
+                    return
+                }
 
                 // rename id's
-                playlistMedia.eid = playlistMedia._id
-                delete playlistMedia._id
-                playlistMedia.media.mediaEid = playlistMedia.media._id
-                delete playlistMedia.media._id
+                layoutPlaylist.eid = layoutPlaylist._id
+                delete layoutPlaylist._id
+                layoutPlaylist.playlist.playlistEid = layoutPlaylist.playlist._id
+                delete layoutPlaylist.playlist._id
 
                 // camelCase
-                playlistMedia.media.mediaType = playlistMedia.media.type
-                delete playlistMedia.media.type
+                layoutPlaylist.playlist.playlistMedias = layoutPlaylist.playlist.playlist_medias
+                delete layoutPlaylist.playlist.playlist_medias
 
-                // bring all properties from media to playlistMedia
-                for (const key in playlistMedia.media) {
-                    playlistMedia[key] = playlistMedia.media[key]
+                // bring all properties from playlist to layoutPlaylist
+                Object.assign(layoutPlaylist, layoutPlaylist.playlist)
+                delete layoutPlaylist.playlist
+
+                if (Array.isArray(layoutPlaylist.playlist_medias)) {
+                    layoutPlaylist.playlist_medias.forEach(playlistMedia => {
+                        if (!playlistMedia || !playlistMedia.media) {
+                            console.warn('Invalid playlist media:', playlistMedia)
+                            return
+                        }
+
+                        // rename id's
+                        playlistMedia.eid = playlistMedia._id
+                        playlistMedia.playlistMediaEid = playlistMedia._id // for some reason, this is the naming in API
+                        delete playlistMedia._id
+                        playlistMedia.media.mediaEid = playlistMedia.media._id
+                        delete playlistMedia.media._id
+
+                        // camelCase
+                        playlistMedia.media.mediaType = playlistMedia.media.type
+                        delete playlistMedia.media.type
+
+                        // bring all properties from media to playlistMedia
+                        Object.assign(playlistMedia, playlistMedia.media)
+                        delete playlistMedia.media
+                    })
                 }
-                delete playlistMedia.media
             })
         })
-    })
-    return configuration
+        return configuration
+    } catch (error) {
+        console.error('Error flattening configuration:', error)
+        return null
+    }
 }
 
 async function fetchConfigurations() {

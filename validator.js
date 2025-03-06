@@ -21,26 +21,15 @@ function validateLayoutPlaylist(layoutPlaylist) {
 }
 
 function validatePlaylistMedia(playlistMedia) {
-    const requiredFields = ['_id', 'media']
+    const requiredFields = ['playlistMediaEid', 'mediaEid', 'name', 'fileName', 'file', 'fileDO', 'type']
     validateFields(playlistMedia, requiredFields)
-    validateMedia(playlistMedia.media)
-}
-
-function validateMedia(media) {
-    const requiredFields = ['_id', 'media']
-    validateFields(media, requiredFields)
-    // if (media.type === 'Video' && !media.duration) {
-    //     throw new Error('Video media missing duration')
-    // }
-    // if (media.type === 'Image' && !media.duration) {
-    //     throw new Error('Image media missing duration')
-    // }
 }
 
 function validateConfiguration(configuration) {
     if (!configuration) {
         throw new Error('Configuration is undefined')
     }
+    configuration.validation_errors = []
     console.debug('Configuration:', configuration)
     const requiredFields = ['schedules']
     for (const field of requiredFields) {
@@ -58,6 +47,8 @@ function validateConfiguration(configuration) {
     }
 
     configuration.schedules.forEach(validateSchedule)
+
+    configuration.is_valid = true
 
     return true
 }
