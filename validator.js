@@ -2,7 +2,7 @@ function validateFields(obj, fields, errors) {
     for (const field of fields) {
         if (!obj[field]) {
             console.error(obj)
-            errors.push(`Missing required field: ${field}`)
+            errors.push({'error':`Missing required field: ${field}`, 'object': obj})
         }
     }
 }

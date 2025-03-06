@@ -316,7 +316,7 @@ async function fetchPublishedScreenGroups(groupedCustomers) {
                 const screenGroupData = await fetchFromPublisher(publisher_id)
                 if (screenGroupData) {
                     screenGroup.configuration = screenGroupData
-                    console.log("Screen group data:", screenGroupData)
+                    console.info("Screen group data:", screenGroupData)
                 }
             }
         }
