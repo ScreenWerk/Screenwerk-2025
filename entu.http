@@ -60,3 +60,7 @@ Accept-Encoding: deflate
 # GET sw_playlist_medias
 GET {{hostname}}/{{account}}/entity?_type.string=sw_playlist_media&_parent.reference=5476deae4ecca5c17a598d9a HTTP/1.1
 Accept-Encoding: deflate
+
+###
+# GET test
+GET {{hostname}}/{{account}}/entity/549173934ecca5c17a598f20

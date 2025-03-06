@@ -1,7 +1,7 @@
 export async function fetchJSON(url) {
-    // console.log(`Fetching ${url}`)
-    const r = await fetch(url)
+    // TODO: Solve the issue with the fetch error bubbling up to the top level
     try {
+        const r = await fetch(url)
         if (r.status !== 200) {
             return false
         }

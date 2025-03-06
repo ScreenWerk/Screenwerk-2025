@@ -1,34 +1,47 @@
 
-function validateSchedule(schedule) {
-    const requiredFields = ['eid', 'crontab', 'layoutEid', 'name', 'layoutPlaylists']
-    for (const field of requiredFields) {
-        if (!schedule[field]) {
-            throw new Error(`Schedule missing required field: ${field}`)
+function validateFields(obj, fields) {
+    for (const field of fields) {
+        if (!obj[field]) {
+            console.error(obj)
+            throw new Error(`Missing required field: ${field}`)
         }
     }
-    schedule.layoutPlaylists.forEach(validatePlaylist)
+}
+
+function validateSchedule(schedule) {
+    const requiredFields = ['_id', 'layout']
+    validateFields(schedule, requiredFields)
+    schedule.layout.layout_playlists.forEach(validateLayoutPlaylist)
+}
+
+function validateLayoutPlaylist(layoutPlaylist) {
+    const requiredFields = ['_id', 'playlist']
+    validateFields(layoutPlaylist, requiredFields)
+    validatePlaylist(layoutPlaylist.playlist)
 }
 
 function validatePlaylist(playlist) {
-    const requiredFields = ['playlistEid', 'name', 'left', 'top', 'width', 'height', 'playlistMedias']
-    for (const field of requiredFields) {
-        if (!playlist[field]) {
-            throw new Error(`Playlist missing required field: ${field}`)
-        }
-    }
-    playlist.playlistMedias.forEach(validateMedia)
+    // console.log('Playlist:', playlist)
+    const arrayFields = ['_id', 'playlist_medias']
+    validateFields(playlist, arrayFields)
+    playlist.playlist_medias.forEach(validatePlaylistMedia)
+}
+
+function validatePlaylistMedia(playlistMedia) {
+    const requiredFields = ['_id', 'media']
+    validateFields(playlistMedia, requiredFields)
+    validateMedia(playlistMedia.media)
 }
 
 function validateMedia(media) {
-    const requiredFields = ['playlistMediaEid', 'mediaEid', 'name', 'type', 'fileDO']
-    for (const field of requiredFields) {
-        if (!media[field]) {
-            throw new Error(`Media missing required field: ${field}`)
-        }
-    }
-    if (media.type === 'Image' && !media.duration) {
-        throw new Error('Image media missing duration')
-    }
+    const requiredFields = ['_id', 'media']
+    validateFields(media, requiredFields)
+    // if (media.type === 'Video' && !media.duration) {
+    //     throw new Error('Video media missing duration')
+    // }
+    // if (media.type === 'Image' && !media.duration) {
+    //     throw new Error('Image media missing duration')
+    // }
 }
 
 function validateConfiguration(configuration) {
