@@ -1,28 +1,27 @@
-
-function validateFields(obj, fields) {
+function validateFields(obj, fields, errors) {
     for (const field of fields) {
         if (!obj[field]) {
             console.error(obj)
-            throw new Error(`Missing required field: ${field}`)
+            errors.push(`Missing required field: ${field}`)
         }
     }
 }
 
-function validateSchedule(schedule) {
+function validateSchedule(schedule, errors) {
     const requiredFields = ['eid', 'layoutEid', 'name', 'crontab', 'layoutPlaylists']
-    validateFields(schedule, requiredFields)
-    schedule.layoutPlaylists.forEach(validateLayoutPlaylist)
+    validateFields(schedule, requiredFields, errors)
+    schedule.layoutPlaylists.forEach(layoutPlaylist => validateLayoutPlaylist(layoutPlaylist, errors))
 }
 
-function validateLayoutPlaylist(layoutPlaylist) {
+function validateLayoutPlaylist(layoutPlaylist, errors) {
     const requiredFields = ['eid', 'playlistEid', 'name', 'playlistMedias']
-    validateFields(layoutPlaylist, requiredFields)
-    layoutPlaylist.playlistMedias.forEach(validatePlaylistMedia)
+    validateFields(layoutPlaylist, requiredFields, errors)
+    layoutPlaylist.playlistMedias.forEach(playlistMedia => validatePlaylistMedia(playlistMedia, errors))
 }
 
-function validatePlaylistMedia(playlistMedia) {
+function validatePlaylistMedia(playlistMedia, errors) {
     const requiredFields = ['playlistMediaEid', 'mediaEid', 'name', 'fileName', 'file', 'fileDO', 'type']
-    validateFields(playlistMedia, requiredFields)
+    validateFields(playlistMedia, requiredFields, errors)
 }
 
 function validateConfiguration(configuration) {
@@ -34,23 +33,25 @@ function validateConfiguration(configuration) {
     const requiredFields = ['schedules']
     for (const field of requiredFields) {
         if (!configuration[field]) {
-            throw new Error(`Configuration missing required field: ${field}`)
+            configuration.validation_errors.push(`Configuration missing required field: ${field}`)
         }
     }
 
     if (!Array.isArray(configuration.schedules)) {
-        throw new Error('Configuration schedules must be an array')
+        configuration.validation_errors.push('Configuration schedules must be an array')
     }
 
     if (configuration.schedules.length === 0) {
-        throw new Error('Configuration schedules array is empty')
+        configuration.validation_errors.push('Configuration schedules array is empty')
     }
 
-    configuration.schedules.forEach(validateSchedule)
+    configuration.schedules.forEach(schedule => {
+        validateSchedule(schedule, configuration.validation_errors)
+    })
 
-    configuration.is_valid = true
+    configuration.is_valid = configuration.validation_errors.length === 0
 
-    return true
+    return configuration.is_valid
 }
 
 export { validateConfiguration }
