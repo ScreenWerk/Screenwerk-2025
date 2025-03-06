@@ -36,7 +36,8 @@ async function fillConfiguration(configuration_eid) {
     // console.log("Configuration entity:", configuration_entity)
     const configuration = configuration_entity.entity
     // Harvest schedules referencing the configuration
-    const schedule_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_schedule&_parent.reference=${configuration_eid}&props=layout.reference,`)
+    const schedule_props = '' // '&props=layout.reference,crontab.string'
+    const schedule_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_schedule&_parent.reference=${configuration_eid}${schedule_props}`)
     if (!schedule_entities) {
         console.error(`Failed to fetch schedules for configuration: ${configuration_eid}`)
         return false
@@ -57,7 +58,8 @@ async function fillConfiguration(configuration_eid) {
         schedule.layout = layout_entity.entity
         // console.debug("Layout:", schedule.layout)
         // Harvest layout-playlists referencing the layout
-        let layout_playlists_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_layout_playlist&_parent.reference=${layout_eid}&props=playlist.reference`)
+        const layout_playlist_props = '' // '&props=playlist.reference'
+        let layout_playlists_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_layout_playlist&_parent.reference=${layout_eid}${layout_playlist_props}`)
         if (!layout_playlists_entities) {
             console.warn(`Failed to fetch layout-playlists for layout: ${layout_eid}`)
             continue
@@ -82,7 +84,8 @@ async function fillConfiguration(configuration_eid) {
             }
             layout_playlist.playlist = playlist_entity.entity
             // Harvest playlist-medias referencing the playlist
-            const playlist_medias_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_playlist_media&_parent.reference=${playlist_eid}&props=media.reference`)
+            const playlist_media_props = '' // '&props=media.reference'
+            const playlist_medias_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_playlist_media&_parent.reference=${playlist_eid}${playlist_media_props}`)
             if (!playlist_medias_entities) {
                 console.warn(`Failed to fetch playlist-medias for playlist: ${playlist_eid}`)
                 continue
@@ -112,25 +115,88 @@ async function fillConfiguration(configuration_eid) {
         console.warn(`No valid schedules found for configuration: ${configuration_eid}`, configuration)
         return false
     }
-    console.log("Configuration:", configuration)
+    console.debug("Configuration:", configuration)
     return configuration
 }
 
+// Flatten the configuration structure to comply with the format from swPublisher API
+function flattenConfiguration(configuration) {
+    configuration.schedules.map(schedule => {
+
+        // rename id's
+        schedule.eid = schedule._id
+        delete schedule._id
+        schedule.layout.layoutEid = schedule.layout._id
+        delete schedule.layout._id
+        
+        // camelCase
+        schedule.layout.layoutPlaylists = schedule.layout.layout_playlists
+        delete schedule.layout.layout_playlists
+
+        // bring all properties from layout to schedule
+        for (const key in schedule.layout) {
+            schedule[key] = schedule.layout[key]
+        }
+        delete schedule.layout
+
+        schedule.layout_playlists.map(layoutPlaylist => {
+
+            // rename id's
+            layoutPlaylist.eid = layoutPlaylist._id
+            delete layoutPlaylist._id
+            layoutPlaylist.playlist.playlistEid = layoutPlaylist.playlist._id
+            delete layoutPlaylist.playlist._id
+
+            // camelCase
+            layoutPlaylist.playlist.playlistMedias = layoutPlaylist.playlist.playlist_medias
+            delete layoutPlaylist.playlist.playlist_medias
+
+            // bring all properties from playlist to layoutPlaylist
+            for (const key in layoutPlaylist.playlist) {
+                layoutPlaylist[key] = layoutPlaylist.playlist[key]
+            }
+            delete layoutPlaylist.playlist
+
+            layoutPlaylist.playlist_medias.map(playlistMedia => {
+
+                // rename id's
+                playlistMedia.eid = playlistMedia._id
+                delete playlistMedia._id
+                playlistMedia.media.mediaEid = playlistMedia.media._id
+                delete playlistMedia.media._id
+
+                // camelCase
+                playlistMedia.media.mediaType = playlistMedia.media.type
+                delete playlistMedia.media.type
+
+                // bring all properties from media to playlistMedia
+                for (const key in playlistMedia.media) {
+                    playlistMedia[key] = playlistMedia.media[key]
+                }
+                delete playlistMedia.media
+            })
+        })
+    })
+    return configuration
+}
 
 async function fetchConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
     try {
         const response = await fetch(url)
         const data = await response.json()
-        console.log("Configurations pre-fill:", data.entities)
+        console.debug("Configurations pre-fill:", data.entities)
         const fullConfigurations = await Promise.all(
             data.entities.map(config => fillConfiguration(config._id))
         )
         // console.log("Full configurations:", fullConfigurations)
 
-        const validConfigurations = fullConfigurations
-        .filter(config => config)
-        .filter(validateConfiguration)
+        const flattenedConfigurations = fullConfigurations
+            .filter(config => config)
+            .map(flattenConfiguration)
+
+        const validConfigurations = flattenedConfigurations
+            .filter(validateConfiguration)
         if (validConfigurations.length === 0) {
             throw new Error("All configurations are invalid")
         }

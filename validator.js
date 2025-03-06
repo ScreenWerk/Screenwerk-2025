@@ -9,22 +9,15 @@ function validateFields(obj, fields) {
 }
 
 function validateSchedule(schedule) {
-    const requiredFields = ['_id', 'layout']
+    const requiredFields = ['eid', 'layoutEid', 'name', 'crontab', 'layoutPlaylists']
     validateFields(schedule, requiredFields)
-    schedule.layout.layout_playlists.forEach(validateLayoutPlaylist)
+    schedule.layoutPlaylists.forEach(validateLayoutPlaylist)
 }
 
 function validateLayoutPlaylist(layoutPlaylist) {
-    const requiredFields = ['_id', 'playlist']
+    const requiredFields = ['eid', 'playlistEid', 'name', 'playlistMedias']
     validateFields(layoutPlaylist, requiredFields)
-    validatePlaylist(layoutPlaylist.playlist)
-}
-
-function validatePlaylist(playlist) {
-    // console.log('Playlist:', playlist)
-    const arrayFields = ['_id', 'playlist_medias']
-    validateFields(playlist, arrayFields)
-    playlist.playlist_medias.forEach(validatePlaylistMedia)
+    layoutPlaylist.playlistMedias.forEach(validatePlaylistMedia)
 }
 
 function validatePlaylistMedia(playlistMedia) {
@@ -48,7 +41,7 @@ function validateConfiguration(configuration) {
     if (!configuration) {
         throw new Error('Configuration is undefined')
     }
-    console.log('Configuration:', configuration)
+    console.debug('Configuration:', configuration)
     const requiredFields = ['schedules']
     for (const field of requiredFields) {
         if (!configuration[field]) {
