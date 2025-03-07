@@ -67,9 +67,27 @@ export function showErrors(id, configurations) {
     `
     document.body.appendChild(errorPopup)
 
-    document.querySelector('.error-popup .close').addEventListener('click', function() {
+    const closeErrorPopup = () => {
         document.querySelector('.error-popup').remove()
-    })
+        document.removeEventListener('keydown', handleEscKey)
+        document.removeEventListener('click', handleClickOutside)
+    }
+
+    const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+            closeErrorPopup()
+        }
+    }
+
+    const handleClickOutside = (e) => {
+        if (e.target.classList.contains('error-popup')) {
+            closeErrorPopup()
+        }
+    }
+
+    document.querySelector('.error-popup .close').addEventListener('click', closeErrorPopup)
+    document.addEventListener('keydown', handleEscKey)
+    document.addEventListener('click', handleClickOutside)
 }
 
 export function showConfigInfo(id, configurations) {
@@ -99,9 +117,27 @@ export function showConfigInfo(id, configurations) {
     `
     document.body.appendChild(infoPopup)
 
-    document.querySelector('.info-popup .close').addEventListener('click', function() {
+    const closeInfoPopup = () => {
         document.querySelector('.info-popup').remove()
-    })
+        document.removeEventListener('keydown', handleEscKey)
+        document.removeEventListener('click', handleClickOutside)
+    }
+
+    const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+            closeInfoPopup()
+        }
+    }
+
+    const handleClickOutside = (e) => {
+        if (e.target.classList.contains('info-popup')) {
+            closeInfoPopup()
+        }
+    }
+
+    document.querySelector('.info-popup .close').addEventListener('click', closeInfoPopup)
+    document.addEventListener('keydown', handleEscKey)
+    document.addEventListener('click', handleClickOutside)
 }
 
 window.showErrors = showErrors
