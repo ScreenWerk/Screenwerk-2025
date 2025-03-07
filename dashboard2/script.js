@@ -266,8 +266,7 @@ function flattenEntuConfiguration(configuration) {
 async function fetchEntuConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
     try {
-        const response = await fetch(url)
-        const data = await response.json()
+        const data = await fetchJSON(url)
         console.debug("Configurations pre-fill:", data.entities)
         const fullConfigurations = await Promise.all(
             data.entities.map(config => fillEntuConfiguration(config._id))
@@ -293,8 +292,7 @@ async function fetchEntuConfigurations() {
 async function fetchEntuScreenGroups() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen_group&props=name.string,configuration.reference,published.datetime`
     try {
-        const response = await fetch(url)
-        const data = await response.json()
+        const data = await fetchJSON(url)
         return data.entities
     } catch (error) {
         console.error("Failed to fetch screen groups:", error)
@@ -305,8 +303,7 @@ async function fetchEntuScreenGroups() {
 async function fetchEntuScreens() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,screen_group.string,published.string&limit=10000`
     try {
-        const response = await fetch(url)
-        const data = await response.json()
+        const data = await fetchJSON(url)
         return data.entities
             // Filter out screens, that are not related to any screen group
             .filter(screen => screen.screen_group && screen.screen_group.length > 0)

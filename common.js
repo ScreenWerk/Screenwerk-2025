@@ -7,6 +7,7 @@ function toDateTimeString(ISODate) {
 }
 
 async function fetchJSON(url) {
+  console.log(`Fetching ${url} in redundant code`)
   const r = await fetch(url)
   try {
     if (r.status !== 200) {

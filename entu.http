@@ -19,7 +19,7 @@ Authorization: Bearer {{pl_token}}
 
 ###
 # GET list of configurations
-GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string&name.string=Vaba Lava Narva 4E Conf 01 HTTP/1.1
 
 ###
 # GET list of screen groups
@@ -27,7 +27,7 @@ GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.stri
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=1000 HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=10&skip=2 HTTP/1.1
 Accept-Encoding: deflate
 Authorization: Bearer {{pl_token}}
 
