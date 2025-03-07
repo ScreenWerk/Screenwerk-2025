@@ -19,7 +19,7 @@ Authorization: Bearer {{pl_token}}
 
 ###
 # GET list of configurations
-GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string&name.string=Vaba Lava Narva 4E Conf 01 HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string HTTP/1.1
 
 ###
 # GET list of screen groups

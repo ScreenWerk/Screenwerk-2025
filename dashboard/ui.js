@@ -60,7 +60,7 @@ export function showErrors(id, configurations) {
     errorPopup.className = 'error-popup'
     errorPopup.innerHTML = `
         <div class="error-popup-content">
-            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <span class="close">&times;</span>
             <h2>Validation Errors</h2>
             <ul>${errorMessages}</ul>
         </div>
@@ -88,7 +88,7 @@ export function showConfigInfo(id, configurations) {
     infoPopup.className = 'info-popup'
     infoPopup.innerHTML = `
         <div class="info-popup-content">
-            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <span class="close">&times;</span>
             <h2>Configuration Info</h2>
             <pre>${configInfo}</pre>
         </div>

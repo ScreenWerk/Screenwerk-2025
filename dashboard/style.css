@@ -213,6 +213,9 @@ li {
     width: 80%;
     max-width: 600px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    border: 1px solid #ccc;
+    margin: 20px auto;
 }
 
 .error-popup-content h2 {
@@ -271,6 +274,9 @@ li {
     width: 80%;
     max-width: 600px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    border: 1px solid #ccc;
+    margin: 20px auto;
 }
 
 .info-popup-content h2 {
@@ -282,6 +288,8 @@ li {
     padding: 10px;
     border-radius: 5px;
     overflow: auto;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .info-popup-content .close {
