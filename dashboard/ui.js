@@ -5,7 +5,7 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
     const errorIcon = validation_errors && validation_errors.length > 0 ? `
         <span class="error-icon" 
               title="Validation Errors" 
-              onclick='showErrors("${id}", "${configurationsJSON}")'>
+              onclick='event.stopPropagation(); showErrors("${id}", "${configurationsJSON}")'>
             ${UNICODE_ICONS.warning}
         </span>
     ` : ''
@@ -13,7 +13,7 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
     const infoIcon = `
         <span class="info-icon" 
               title="Configuration Info" 
-              onclick='showConfigInfo("${id}", "${configurationsJSON}")'>
+              onclick='event.stopPropagation(); showConfigInfo("${id}", "${configurationsJSON}")'>
             ${UNICODE_ICONS.info}
         </span>
     `
