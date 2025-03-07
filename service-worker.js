@@ -28,7 +28,7 @@ self.addEventListener('fetch', event => {
                 return response
             }
             // Cache miss - fetch from the network
-            // console.log(`Cache miss for ${mediaId}`)
+            console.log(`Cache miss for ${mediaId}`)
             return fetch(event.request).then(
                 response => {
                     // Check if we received a valid response

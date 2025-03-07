@@ -6,6 +6,12 @@
 ###########################################
 
 ###
+# auth
+GET {{hostname}}/auth?account={{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_key}}
+
+###
 # account
 GET {{hostname}}/{{account}} HTTP/1.1
 Accept-Encoding: deflate
@@ -13,7 +19,7 @@ Authorization: Bearer {{pl_token}}
 
 ###
 # GET list of configurations
-GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string HTTP/1.1
 
 ###
 # GET list of screen groups
@@ -21,7 +27,7 @@ GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.stri
 
 ###
 # GET list of sw_screen's
-GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string HTTP/1.1
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=10&skip=2 HTTP/1.1
 Accept-Encoding: deflate
 Authorization: Bearer {{pl_token}}
 
@@ -41,7 +47,7 @@ GET {{hostname}}/{{account}}/entity/5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 
 ###
-# GET sw_schedules
+# GET sw_schedules for configuration
 GET {{hostname}}/{{account}}/entity?_type.string=sw_schedule&_parent.reference=5425570e4ecca5c17a598bbe HTTP/1.1
 Accept-Encoding: deflate
 
@@ -54,3 +60,7 @@ Accept-Encoding: deflate
 # GET sw_playlist_medias
 GET {{hostname}}/{{account}}/entity?_type.string=sw_playlist_media&_parent.reference=5476deae4ecca5c17a598d9a HTTP/1.1
 Accept-Encoding: deflate
+
+###
+# GET test
+GET {{hostname}}/{{account}}/entity/549173934ecca5c17a598f20

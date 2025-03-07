@@ -5,7 +5,7 @@ class Node {
   }
 }
 
-class LinkedList {
+export class LinkedList {
   constructor() {
     this.head = null
     this.current = null
@@ -73,4 +73,7 @@ class LinkedList {
   }
 }
 
-// export { LinkedList }
+// For backward compatibility with non-module scripts
+if (typeof window !== 'undefined') {
+    window.LinkedList = LinkedList
+}
