@@ -9,7 +9,7 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     const errorIcon = validation_errors && validation_errors.length > 0 ? `
         <span class="error-icon" 
               title="Validation Errors" 
-              data-id="${id}">
+              onclick="showErrors('${id}', configurations)">
             ${UNICODE_ICONS.warning}
         </span>
     ` : ''
@@ -17,7 +17,7 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     const infoIcon = `
         <span class="info-icon" 
               title="Configuration Info" 
-              data-id="${id}">
+              onclick="showConfigInfo('${id}', configurations)">
             ${UNICODE_ICONS.info}
         </span>
     `
@@ -42,17 +42,13 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     `
 }
 
-function showErrors(event) {
-    const id = event.target.dataset.id
-    const configSection = document.querySelector(`section[data-config]`)
-    if (!configSection) return
-    
-    const configuration = JSON.parse(configSection.dataset.config)
+function showErrors(id, configurations) {
+    const configuration = configurations.find(config => config._id === id)
     if (!configuration || !configuration.validation_errors) return
 
-    const errorMessages = configuration.validation_errors
-        .map(error => `<li>${error.error}: ${JSON.stringify(error.object)}</li>`)
-        .join('')
+    const errorMessages = configuration.validation_errors.map(error => `
+        <li>${error.error}: ${JSON.stringify(error.object)}</li>
+    `).join('')
 
     const errorPopup = document.createElement('div')
     errorPopup.className = 'error-popup'
@@ -66,16 +62,12 @@ function showErrors(event) {
     document.body.appendChild(errorPopup)
 }
 
-function showConfigInfo(event) {
-    const id = event.target.dataset.id
-    const configSection = document.querySelector(`section[data-config]`)
-    if (!configSection) return
-
-    const configuration = JSON.parse(configSection.dataset.config)
+function showConfigInfo(id, configurations) {
+    const configuration = configurations.find(config => config._id === id)
     if (!configuration) return
 
     const configInfo = JSON.stringify(configuration, null, 2)
-    
+
     const infoPopup = document.createElement('div')
     infoPopup.className = 'info-popup'
     infoPopup.innerHTML = `
@@ -96,19 +88,14 @@ async function fetchFromPublisher(id) {
 }
 
 // Fetch schedules, layouts, playlists, and media for a configuration from Entu
-async function fillEntuConfiguration(configuration_eid) {
-    // if (configuration_eid !== '52d62fa84ecca5c17a5988e2') {
-    //     return false
-    // }
+async function fillEntuConfiguration(configuration_eid, updateProgress) {
     const url = `${ENTU_ENTITY_URL}/${configuration_eid}`
     const configuration_entity = await fetchJSON(url)
     if (!configuration_entity) {
         throw new Error(`Failed to fetch configuration: ${configuration_eid}`)
     }
-    // console.log("Configuration entity:", configuration_entity)
     const configuration = configuration_entity.entity
-    // Harvest schedules referencing the configuration
-    const schedule_props = '' // '&props=layout.reference,crontab.string'
+    const schedule_props = ''
     const schedule_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_schedule&_parent.reference=${configuration_eid}${schedule_props}`)
     if (!schedule_entities) {
         console.error(`Failed to fetch schedules for configuration: ${configuration_eid}`)
@@ -119,7 +106,6 @@ async function fillEntuConfiguration(configuration_eid) {
         console.debug(`No schedules found for configuration: ${configuration_eid}`)
         return false
     }
-    // Fetch the layout in every schedule
     for (let schedule of configuration.schedules) {
         const layout_eid = schedule.layout[0].reference
         let layout_entity = await fetchJSON(`${ENTU_ENTITY_URL}/${layout_eid}`)
@@ -128,25 +114,18 @@ async function fillEntuConfiguration(configuration_eid) {
             continue
         }
         schedule.layout = layout_entity.entity
-        // console.debug("Layout:", schedule.layout)
-        // Harvest layout-playlists referencing the layout
-        const layout_playlist_props = '' // '&props=playlist.reference'
+        const layout_playlist_props = ''
         let layout_playlists_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_layout_playlist&_parent.reference=${layout_eid}${layout_playlist_props}`)
         if (!layout_playlists_entities) {
             console.warn(`Failed to fetch layout-playlists for layout: ${layout_eid}`)
             continue
         }
-        console.debug("Layout playlists:", layout_playlists_entities)
         let filled_layout_playlists = layout_playlists_entities.entities.filter(lp => lp.playlist)
-        console.debug("Filled layout playlists:", filled_layout_playlists)
         schedule.layout.layout_playlists = filled_layout_playlists
-        console.debug("Layout-pl:", schedule.layout.layout_playlists)
-        console.debug("Layout:", schedule.layout)
         if (schedule.layout.layout_playlists.length === 0) {
             console.debug(`No valid layout-playlists found for layout: ${layout_eid}`)
             continue
         }
-        // Fetch the playlist in every layout-playlist
         for (const layout_playlist of schedule.layout.layout_playlists) {
             const playlist_eid = layout_playlist.playlist[0].reference
             const playlist_entity = await fetchJSON(`${ENTU_ENTITY_URL}/${playlist_eid}`)
@@ -155,8 +134,7 @@ async function fillEntuConfiguration(configuration_eid) {
                 continue
             }
             layout_playlist.playlist = playlist_entity.entity
-            // Harvest playlist-medias referencing the playlist
-            const playlist_media_props = '' // '&props=media.reference'
+            const playlist_media_props = ''
             const playlist_medias_entities = await fetchJSON(`${ENTU_ENTITY_URL}?_type.string=sw_playlist_media&_parent.reference=${playlist_eid}${playlist_media_props}`)
             if (!playlist_medias_entities) {
                 console.warn(`Failed to fetch playlist-medias for playlist: ${playlist_eid}`)
@@ -167,7 +145,6 @@ async function fillEntuConfiguration(configuration_eid) {
                 console.debug(`No playlist-medias found for playlist: ${playlist_eid}`)
                 continue
             }
-            // Fetch the media in every playlist-media
             for (const playlist_media of layout_playlist.playlist.playlist_medias) {
                 const media_eid = playlist_media.media[0].reference
                 const media_entity = await fetchJSON(`${ENTU_ENTITY_URL}/${media_eid}`)
@@ -181,13 +158,12 @@ async function fillEntuConfiguration(configuration_eid) {
         }
         schedule.layout.layout_playlists = schedule.layout.layout_playlists.filter(lp => lp.playlist)
     }
-    // console.log("Configuration filled:", configuration, schedule_entities)
     configuration.schedules = configuration.schedules.filter(s => s.layout)
     if (configuration.schedules.length === 0) {
         console.warn(`No valid schedules found for configuration: ${configuration_eid}`, configuration)
         return false
     }
-    console.debug("Configuration:", configuration)
+    updateProgress()
     return configuration
 }
 
@@ -276,11 +252,17 @@ async function fetchEntuConfigurations() {
     try {
         const response = await fetch(url)
         const data = await response.json()
-        console.debug("Configurations pre-fill:", data.entities)
+        const totalConfigurations = data.entities.length
+        let loadedConfigurations = 0
+
+        const updateProgress = () => {
+            loadedConfigurations++
+            updateProgressBar(Math.round((loadedConfigurations / totalConfigurations) * 100))
+        }
+
         const fullConfigurations = await Promise.all(
-            data.entities.map(config => fillEntuConfiguration(config._id))
+            data.entities.map(config => fillEntuConfiguration(config._id, updateProgress))
         )
-        // console.log("Full configurations:", fullConfigurations)
 
         const flattenedConfigurations = fullConfigurations
             .filter(config => config)
@@ -397,18 +379,42 @@ async function fetchPublishedScreenGroups(grouped_customers) {
     }
 }
 
+function updateProgressBar(progress) {
+    const progressBar = document.getElementById('progress-bar')
+    progressBar.style.width = `${progress}%`
+    progressBar.textContent = `${progress}%`
+}
+
+function showProgressBar() {
+    const progressBarContainer = document.createElement('div')
+    progressBarContainer.className = 'progress-bar-container'
+    progressBarContainer.innerHTML = '<div id="progress-bar" class="progress-bar"></div>'
+    document.body.insertBefore(progressBarContainer, document.getElementById('accordion'))
+}
+
 /**
  * Fetches configurations, screen groups, and screens.
  * Builds the structure from bottom up, grouping screens under screen groups,
  * screen groups under configurations, and configurations under customers.
  */
 async function displayConfigurations() {
+    showProgressBar()
     const grouped_customers = await groupEntities()
     
     await fetchPublishedScreenGroups(grouped_customers)
     console.log("Grouped customers:", grouped_customers)
 
     const accordion = document.getElementById("accordion")
+    let totalScreens = 0
+    for (const customer_id in grouped_customers) {
+        for (const config_id in grouped_customers[customer_id].configurations) {
+            for (const screen_group_id in grouped_customers[customer_id].configurations[config_id].screenGroups) {
+                totalScreens += grouped_customers[customer_id].configurations[config_id].screenGroups[screen_group_id].screens.length
+            }
+        }
+    }
+
+    let loadedScreens = 0
     for (const customer_id in grouped_customers) {
         const customerSectionE = document.createElement("section")
         customerSectionE.className = "customer-section"
@@ -424,9 +430,7 @@ async function displayConfigurations() {
         for (const config_id in grouped_customers[customer_id].configurations) {
             const configuration = grouped_customers[customer_id].configurations[config_id]
             const configSectionE = document.createElement("section")
-            // add configuration to data attribute
             configSectionE.dataset.config = JSON.stringify(configuration)
-            console.log("Creating data attribute for configuration:", configuration)
             configSectionE.className = "config-section"
 
             const configTitleE = document.createElement("button")
@@ -456,7 +460,6 @@ async function displayConfigurations() {
                 `
                 screenGroupSectionE.appendChild(screenGroupTitleE)
 
-                // Add miniature screenwerk player
                 const playerElementE = document.createElement("div")
                 playerElementE.className = "mini-player"
                 const playerPanelE = document.createElement("div")
@@ -468,7 +471,6 @@ async function displayConfigurations() {
                     const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
                     player.play()
                 } else {
-                    // console.warning('No configuration available for screen group:', screenGroupId)
                     playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
                 }
 
@@ -483,6 +485,8 @@ async function displayConfigurations() {
                         ${toolbarSnippet(screen._id, '', screen._id)}
                     `
                     screenList.appendChild(screenSection)
+                    loadedScreens++
+                    updateProgressBar(Math.round((loadedScreens / totalScreens) * 100))
                 })
 
                 screenGroupSectionE.appendChild(screenList)
@@ -497,19 +501,23 @@ async function displayConfigurations() {
         accordion.appendChild(customerSectionE)
     }
 
-    // Add accordion functionality
+    const progressBarContainer = document.querySelector('.progress-bar-container')
+    if (progressBarContainer) {
+        progressBarContainer.remove()
+    }
+
     const accordions = document.getElementsByClassName("accordion")
     for (let i = 0; i < accordions.length; i++) {
         accordions[i].addEventListener("click", function() {
             this.classList.toggle("active")
             let panel = this.nextElementSibling
             while (panel && panel.classList.contains("panel")) {
-            if (panel.style.display === "block") {
-                panel.style.display = "none"
-            } else {
-                panel.style.display = "block"
-            }
-            panel = panel.nextElementSibling
+                if (panel.style.display === "block") {
+                    panel.style.display = "none"
+                } else {
+                    panel.style.display = "block"
+                }
+                panel = panel.nextElementSibling
             }
         })
     }
