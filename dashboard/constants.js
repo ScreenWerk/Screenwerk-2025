@@ -5,10 +5,9 @@ export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 export const SCREENWERK_PUBLISHER_API = 'https://swpublisher.entu.eu/screen/'
 
 export const UNICODE_ICONS = {
-    'check': '\u2713',
-    'cross': '\u2717',
-    'warning': '\u26A0',
-    'info': '\u2139',
-    'error': '\u274C',
-    'success': '\u2705'
+    warning: '⚠️',
+    info: 'ℹ️',
+    play: '▶️',
+    pause: '⏸️',
+    stop: '⏹️'
 }

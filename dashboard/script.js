@@ -1,29 +1,48 @@
 import { validateConfiguration } from '../validator.js'
 import { HOSTNAME, ACCOUNT, ENTU_ENTITY_URL, ENTU_FRONTEND_URL, SCREENWERK_PUBLISHER_API, UNICODE_ICONS } from './constants.js'
-import { fetchJSON } from './utils.js'
+import { fetchJSON } from './utils/utils.js'
 import { EntuScreenWerkPlayer } from '../sw-player.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
-const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = []) => {
-    const errorIcon = validation_errors.length > 0 ? `
-        <span class="error-icon" title="Validation Errors" onclick="showErrors('${id}')">${UNICODE_ICONS.warning}</span>
+const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
+    const errorIcon = validation_errors && validation_errors.length > 0 ? `
+        <span class="error-icon" 
+              title="Validation Errors" 
+              onclick="showErrors('${id}', configurations)">
+            ${UNICODE_ICONS.warning}
+        </span>
     ` : ''
+    
+    const infoIcon = `
+        <span class="info-icon" 
+              title="Configuration Info" 
+              onclick="showConfigInfo('${id}', configurations)">
+            ${UNICODE_ICONS.info}
+        </span>
+    `
+
     return `
         <div class="toolbar">
-            <span class="published-timestamp" title="${publishedAt}">${publishedAt ? new Date(publishedAt).toLocaleString() : ''}</span>
-            ${screenId ? `<a href="/?screen_id=${screenId}" target="_blank">
-                <img src="/images/monitor.png" class="screen-link-icon" alt="Screen Link">
-            </a>` : ''}
+            <span class="published-timestamp" 
+                  title="${publishedAt}">
+                ${publishedAt ? new Date(publishedAt).toLocaleString() : ''}
+            </span>
+            ${screenId ? `
+                <a href="/?screen_id=${screenId}" target="_blank">
+                    <img src="/images/monitor.png" class="screen-link-icon" alt="Screen Link">
+                </a>
+            ` : ''}
             <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
                 <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
             </a>
             ${errorIcon}
+            ${infoIcon}
         </div>
     `
 }
 
-function showErrors(id) {
+function showErrors(id, configurations) {
     const configuration = configurations.find(config => config._id === id)
     if (!configuration || !configuration.validation_errors) return
 
@@ -43,12 +62,33 @@ function showErrors(id) {
     document.body.appendChild(errorPopup)
 }
 
+function showConfigInfo(id, configurations) {
+    const configuration = configurations.find(config => config._id === id)
+    if (!configuration) return
+
+    const configInfo = JSON.stringify(configuration, null, 2)
+
+    const infoPopup = document.createElement('div')
+    infoPopup.className = 'info-popup'
+    infoPopup.innerHTML = `
+        <div class="info-popup-content">
+            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <h2>Configuration Info</h2>
+            <pre>${configInfo}</pre>
+        </div>
+    `
+    document.body.appendChild(infoPopup)
+}
+
+window.showErrors = showErrors
+window.showConfigInfo = showConfigInfo
+
 async function fetchFromPublisher(id) {
   return await fetchJSON(`${SCREENWERK_PUBLISHER_API}${id}.json`)
 }
 
 // Fetch schedules, layouts, playlists, and media for a configuration from Entu
-async function fillConfiguration(configuration_eid) {
+async function fillEntuConfiguration(configuration_eid) {
     // if (configuration_eid !== '52d62fa84ecca5c17a5988e2') {
     //     return false
     // }
@@ -144,7 +184,7 @@ async function fillConfiguration(configuration_eid) {
 }
 
 // Flatten the configuration structure to comply with the format from swPublisher API
-function flattenConfiguration(configuration) {
+function flattenEntuConfiguration(configuration) {
     if (!configuration || !configuration.schedules) {
         console.warn('Invalid configuration structure:', configuration)
         return null
@@ -223,34 +263,34 @@ function flattenConfiguration(configuration) {
     }
 }
 
-async function fetchConfigurations() {
+async function fetchEntuConfigurations() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
     try {
         const response = await fetch(url)
         const data = await response.json()
         console.debug("Configurations pre-fill:", data.entities)
         const fullConfigurations = await Promise.all(
-            data.entities.map(config => fillConfiguration(config._id))
+            data.entities.map(config => fillEntuConfiguration(config._id))
         )
         // console.log("Full configurations:", fullConfigurations)
 
         const flattenedConfigurations = fullConfigurations
             .filter(config => config)
-            .map(flattenConfiguration)
+            .map(flattenEntuConfiguration)
 
-        const validConfigurations = flattenedConfigurations
+        const valid_entu_configurations = flattenedConfigurations
             .filter(validateConfiguration)
-        if (validConfigurations.length === 0) {
+        if (valid_entu_configurations.length === 0) {
             throw new Error("All configurations are invalid")
         }
-        return validConfigurations
+        return valid_entu_configurations
     } catch (error) {
-        console.error("Failed to fetch configurations:", error)
+        console.error("Failed to fetch configurations from entu:", error)
         return []
     }
 }
 
-async function fetchScreenGroups() {
+async function fetchEntuScreenGroups() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen_group&props=name.string,configuration.reference,published.datetime`
     try {
         const response = await fetch(url)
@@ -262,7 +302,7 @@ async function fetchScreenGroups() {
     }
 }
 
-async function fetchScreens() {
+async function fetchEntuScreens() {
     const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,screen_group.string,published.string&limit=10000`
     try {
         const response = await fetch(url)
@@ -281,9 +321,9 @@ async function fetchScreens() {
  * and configurations under customers.
  */
 async function groupEntities() {
-    const configurations = await fetchConfigurations()
-    const screen_groups = await fetchScreenGroups()
-    const screens = await fetchScreens()
+    const configurations = await fetchEntuConfigurations()
+    const screen_groups = await fetchEntuScreenGroups()
+    const screens = await fetchEntuScreens()
     const grouped_customers = {}
 
     for (const screen of screens) {
@@ -312,7 +352,8 @@ async function groupEntities() {
         if (!grouped_customers[customer_id].configurations[configuration_id]) {
             grouped_customers[customer_id].configurations[configuration_id] = {
                 configName: configuration_name,
-                screenGroups: {}
+                screenGroups: {},
+                ...configuration
             }
         }
         if (!grouped_customers[customer_id].configurations[configuration_id].screenGroups[screen_group_id]) {
@@ -373,7 +414,11 @@ async function displayConfigurations() {
         configListE.className = "panel"
 
         for (const config_id in grouped_customers[customer_id].configurations) {
+            const configuration = grouped_customers[customer_id].configurations[config_id]
             const configSectionE = document.createElement("section")
+            // add configuration to data attribute
+            configSectionE.dataset.config = JSON.stringify(configuration)
+            console.log("Creating data attribute for configuration:", configuration)
             configSectionE.className = "config-section"
 
             const configTitleE = document.createElement("button")
@@ -382,7 +427,7 @@ async function displayConfigurations() {
             configTitleE.innerHTML = `
                 ${config.configName} 
                 (${Object.keys(config.screenGroups).length}) 
-                ${toolbarSnippet(config_id, '', '', config.validation_errors)}
+                ${toolbarSnippet(config_id, '', '', config.validation_errors, Object.values(grouped_customers[customer_id].configurations))}
             `
             configSectionE.appendChild(configTitleE)
 
