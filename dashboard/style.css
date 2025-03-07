@@ -43,7 +43,8 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
+    max-width: 600px;
+    margin: 0 auto;}
 
 .accordion.active, .accordion:hover {
     background-color: #0056b3;
