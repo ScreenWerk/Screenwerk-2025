@@ -66,6 +66,10 @@ export function showErrors(id, configurations) {
         </div>
     `
     document.body.appendChild(errorPopup)
+
+    document.querySelector('.error-popup .close').addEventListener('click', function() {
+        document.querySelector('.error-popup').remove()
+    })
 }
 
 export function showConfigInfo(id, configurations) {
@@ -94,6 +98,10 @@ export function showConfigInfo(id, configurations) {
         </div>
     `
     document.body.appendChild(infoPopup)
+
+    document.querySelector('.info-popup .close').addEventListener('click', function() {
+        document.querySelector('.info-popup').remove()
+    })
 }
 
 window.showErrors = showErrors
