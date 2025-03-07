@@ -9,7 +9,7 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     const errorIcon = validation_errors && validation_errors.length > 0 ? `
         <span class="error-icon" 
               title="Validation Errors" 
-              onclick="showErrors('${id}', configurations)">
+              data-id="${id}">
             ${UNICODE_ICONS.warning}
         </span>
     ` : ''
@@ -17,7 +17,7 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     const infoIcon = `
         <span class="info-icon" 
               title="Configuration Info" 
-              onclick="showConfigInfo('${id}', configurations)">
+              data-id="${id}">
             ${UNICODE_ICONS.info}
         </span>
     `
@@ -42,13 +42,17 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     `
 }
 
-function showErrors(id, configurations) {
-    const configuration = configurations.find(config => config._id === id)
+function showErrors(event) {
+    const id = event.target.dataset.id
+    const configSection = document.querySelector(`section[data-config]`)
+    if (!configSection) return
+    
+    const configuration = JSON.parse(configSection.dataset.config)
     if (!configuration || !configuration.validation_errors) return
 
-    const errorMessages = configuration.validation_errors.map(error => `
-        <li>${error.error}: ${JSON.stringify(error.object)}</li>
-    `).join('')
+    const errorMessages = configuration.validation_errors
+        .map(error => `<li>${error.error}: ${JSON.stringify(error.object)}</li>`)
+        .join('')
 
     const errorPopup = document.createElement('div')
     errorPopup.className = 'error-popup'
@@ -62,12 +66,16 @@ function showErrors(id, configurations) {
     document.body.appendChild(errorPopup)
 }
 
-function showConfigInfo(id, configurations) {
-    const configuration = configurations.find(config => config._id === id)
+function showConfigInfo(event) {
+    const id = event.target.dataset.id
+    const configSection = document.querySelector(`section[data-config]`)
+    if (!configSection) return
+
+    const configuration = JSON.parse(configSection.dataset.config)
     if (!configuration) return
 
     const configInfo = JSON.stringify(configuration, null, 2)
-
+    
     const infoPopup = document.createElement('div')
     infoPopup.className = 'info-popup'
     infoPopup.innerHTML = `
@@ -506,5 +514,15 @@ async function displayConfigurations() {
         })
     }
 }
+
+// Add event listeners
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.error-icon')) {
+        showErrors(e)
+    }
+    if (e.target.matches('.info-icon')) {
+        showConfigInfo(e)
+    }
+})
 
 window.onload = displayConfigurations
