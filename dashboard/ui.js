@@ -1,4 +1,4 @@
-import { UNICODE_ICONS, ENTU_FRONTEND_URL } from './constants.js'
+import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../config/constants.js'
 
 export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
     const configurationsJSON = configurations ? JSON.stringify(configurations).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"') : '[]'

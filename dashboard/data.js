@@ -1,5 +1,5 @@
 import { fetchJSON } from '/utils/utils.js'
-import { ENTU_ENTITY_URL, SCREENWERK_PUBLISHER_API } from './constants.js'
+import { ENTU_ENTITY_URL, SCREENWERK_PUBLISHER_API } from '../config/constants.js'
 import { validateConfiguration } from '/validator.js'
 import { updateProgressBar } from './display.js'
 
