@@ -6,10 +6,11 @@ import { EntuScreenWerkPlayer } from '/sw-player.js'
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
+    const configurationsJSON = configurations ? JSON.stringify(configurations).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"') : '[]'
     const errorIcon = validation_errors && validation_errors.length > 0 ? `
         <span class="error-icon" 
               title="Validation Errors" 
-              onclick="showErrors('${id}', configurations)">
+              onclick='showErrors("${id}", "${configurationsJSON}")'>
             ${UNICODE_ICONS.warning}
         </span>
     ` : ''
@@ -17,7 +18,7 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
     const infoIcon = `
         <span class="info-icon" 
               title="Configuration Info" 
-              onclick="showConfigInfo('${id}', configurations)">
+              onclick='showConfigInfo("${id}", "${configurationsJSON}")'>
             ${UNICODE_ICONS.info}
         </span>
     `
@@ -43,6 +44,16 @@ const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors =
 }
 
 function showErrors(id, configurations) {
+    if (!configurations) {
+        console.error("Configurations parameter is undefined")
+        return
+    }
+    try {
+        configurations = JSON.parse(configurations)
+    } catch (e) {
+        console.error("Failed to parse configurations JSON:", e)
+        return
+    }
     const configuration = configurations.find(config => config._id === id)
     if (!configuration || !configuration.validation_errors) return
 
@@ -63,6 +74,16 @@ function showErrors(id, configurations) {
 }
 
 function showConfigInfo(id, configurations) {
+    if (!configurations) {
+        console.error("Configurations parameter is undefined")
+        return
+    }
+    try {
+        configurations = JSON.parse(configurations)
+    } catch (e) {
+        console.error("Failed to parse configurations JSON:", e)
+        return
+    }
     const configuration = configurations.find(config => config._id === id)
     if (!configuration) return
 
