@@ -5,7 +5,8 @@
   },
   "scripts": {
     "test": "jest",
-    "generate-git-info": "node scripts/generate-git-info.js"
+    "generate-git-info": "node scripts/generate-git-info.js",
+    "build": "echo \"No build step required - static site ready to deploy\""
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
