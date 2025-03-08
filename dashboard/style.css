@@ -318,3 +318,28 @@ li {
     color: white;
     border-radius: 5px;
 }
+
+.git-info {
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+}
+
+footer.git-info {
+    border-top: 1px solid #ddd;
+    border-bottom: none;
+    margin-top: 20px;
+    text-align: center;
+}
+
+#git-info-container, #git-info-container-footer {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+#git-info-container span, #git-info-container-footer span {
+    display: inline-block;
+}
