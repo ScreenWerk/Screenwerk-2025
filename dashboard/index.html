@@ -10,6 +10,7 @@
     <script src="/later.min.js"></script>
     <script src="/cron.js"></script>
     <script src="/config.js"></script>
+    <script src="/git-info.js"></script>
     <!-- Load module scripts after -->
     <script src="/linked-list.js" type="module"></script>
     <script src="/validator.js" type="module"></script>
@@ -18,8 +19,24 @@
     <script type="module" src="script.js"></script>
 </head>
 <body>
+    <header class="git-info">
+        <div id="git-info-container">
+            <span id="branch-info">Branch: loading...</span>
+            <span id="commit-info">Commit: loading...</span>
+            <span id="build-time">Build: loading...</span>
+        </div>
+    </header>
+
     <h1>Available Configurations</h1>
     <div id="accordion"></div>
     <div id="progress-bar-placeholder"></div>
+    
+    <footer class="git-info">
+        <div id="git-info-container-footer">
+            <span>Branch: <span id="branch-info-footer"></span></span>
+            <span>Commit: <span id="commit-info-footer"></span></span>
+            <span>Build: <span id="build-time-footer"></span></span>
+        </div>
+    </footer>
 </body>
 </html>
