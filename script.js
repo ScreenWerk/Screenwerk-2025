@@ -80,7 +80,7 @@ window.onload = async () => {
     const screen_json = localStorage.getItem('selected_screen')
     // if there is no screen selected, redirect to screen selection page
     if (!screen_json) {
-        window.location.href = 'screen-select.html'
+        window.location.href = '/dashboard/'
     }
     const {screen_id, configuration_id} = JSON.parse(screen_json)
     const configuration_json = localStorage.getItem(`swConfiguration_${configuration_id}`)
