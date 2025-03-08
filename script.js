@@ -1,3 +1,8 @@
+import { SCREENWERK_PUBLISHER_API } from './config/constants.js'
+import { fetchJSON } from './utils/utils.js'
+import { toDateTimeString } from './common.js'
+import { EntuScreenWerkPlayer } from './sw-player.js'
+
 const reportProblem = (message, with_link = false) => {
     console.error(message)
     document.getElementById('error').textContent = message
@@ -57,7 +62,7 @@ window.onload = async () => {
         const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
         const sw_configuration = await fetchJSON(u)
         const configuration_id = sw_configuration.configurationEid
-        unset = ['screenEid', 'configurationEid', 'screenGroupEid']
+        const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
         unset.forEach((key) => delete sw_configuration[key])
 
         // save selected screen to local storage
