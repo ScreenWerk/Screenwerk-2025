@@ -92,7 +92,6 @@ The standalone player application.
 
 - **`/js`**: Player-specific JavaScript
   - `script.js`: Main player application logic
-  - `screen-select.js`: Screen selection functionality
   - `config-iterator.js`: Handles configuration iteration
 
 - **`/css`**: Player-specific styles
@@ -100,7 +99,6 @@ The standalone player application.
 
 - **HTML files**:
   - `index.html`: Main player entry point
-  - `screen-select.html`: Screen selection interface
 
 ### `/dashboard`
 
