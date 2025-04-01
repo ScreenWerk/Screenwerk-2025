@@ -32,8 +32,7 @@ The restructuring recognizes that the project contains two equal applications - 
 │   │   └── config-iterator.js    # Configuration iterator
 │   ├── /css                      # Player styles
 │   │   └── style.css             # Player styling
-│   ├── index.html                # Player HTML entry point
-│   └── screen-select.html        # Screen selection page
+│   └── index.html                # Player HTML entry point
 ├── /dashboard                    # Dashboard application
 │   ├── /js                       # Dashboard JavaScript
 │   │   ├── script.js             # Main dashboard script
