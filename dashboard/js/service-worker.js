@@ -1,3 +1,6 @@
+import { fetchJSON } from '../../utils/utils.js'
+import { ENTU_ENTITY_URL } from '../../config/constants.js'
+
 const CACHE_NAME = 'media-cache-v1.0.1';
 const MEDIA_URL_RE = new RegExp('[0-9a-f]{24}/[0-9a-f]{24}')
 

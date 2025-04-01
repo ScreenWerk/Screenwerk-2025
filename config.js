@@ -1,3 +1,5 @@
+import { fetchJSON } from './common/utils/utils.js'
+
 // sw_screen belongs to sw_screen_group.
 // sw_screen_group belongs to sw_configuration.
 //

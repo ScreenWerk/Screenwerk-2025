@@ -1,6 +1,6 @@
 import { groupEntities, fetchPublishedScreenGroups } from './data.js'
 import { toolbarSnippet } from './ui.js'
-import { EntuScreenWerkPlayer } from '../player/js/sw-player.js'
+import { EntuScreenWerkPlayer } from '../../player/js/sw-player.js'
 
 export function updateProgressBar(progress) {
     const progressBar = document.getElementById('progress-bar')

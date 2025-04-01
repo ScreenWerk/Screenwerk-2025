@@ -189,4 +189,3 @@ The dashboard application for configuration management.
 - [ ] Test both applications thoroughly
 - [ ] Update build configuration
 - [ ] Update documentation
-

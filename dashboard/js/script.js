@@ -2,15 +2,16 @@
 // Description: Main script for the dashboard
 // Used in: dashboard/index.html
 
+import { fetchJSON } from '../../common/utils/utils.js'
+import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
 import { displayConfigurations } from './display.js'
 import { 
     HOSTNAME,
     ACCOUNT,
     ENTU_ENTITY_URL,
     ENTU_FRONTEND_URL,
-    SCREENWERK_PUBLISHER_API,
     UNICODE_ICONS 
-} from '../config/constants.js'
+} from '../../common/config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 

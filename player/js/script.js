@@ -1,7 +1,7 @@
-import { SCREENWERK_PUBLISHER_API } from './config/constants.js'
-import { fetchJSON } from './utils/utils.js'
-import { toDateTimeString } from './common.js'
+import { fetchJSON } from '../../common/utils/utils.js'
+import { SCREENWERK_PUBLISHER_API } from '../../config/constants.js'
 import { EntuScreenWerkPlayer } from './sw-player.js'
+import { toDateTimeString } from '../../common/utils/common.js'
 
 const reportProblem = (message, with_link = false) => {
     console.error(message)

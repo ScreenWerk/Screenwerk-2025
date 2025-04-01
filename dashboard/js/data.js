@@ -1,6 +1,6 @@
-import { fetchJSON } from '/utils/utils.js'
-import { ENTU_ENTITY_URL, SCREENWERK_PUBLISHER_API } from '../config/constants.js'
-import { validateConfiguration } from '/validator.js'
+import { fetchJSON } from '../../common/utils/utils.js'
+import { ENTU_ENTITY_URL, SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js' // Updated path
+import ConfigValidator from '../../common/validators/config-validator.js' // Updated path
 import { updateProgressBar } from './display.js'
 
 async function fillEntuConfiguration(configuration_eid, updateProgress) {
@@ -89,6 +89,13 @@ function flattenEntuConfiguration(configuration) {
     }
 
     try {
+        const validator = new ConfigValidator(configuration)
+        const validationResult = validator.validate()
+        if (!validationResult.isValid) {
+            console.warn('Configuration validation failed:', validationResult.errors)
+            return null
+        }
+
         configuration.schedules.forEach(schedule => {
             if (!schedule || !schedule.layout || !schedule.layout.layout_playlists) {
                 console.warn('Invalid schedule structure:', schedule)

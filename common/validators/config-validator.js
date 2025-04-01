@@ -1,3 +1,5 @@
+import { fetchJSON } from '../utils/utils.js' // Updated path
+
 class ConfigValidator {
     constructor(configuration) {
         this.configuration = configuration || {}
@@ -239,3 +241,5 @@ class ConfigValidator {
         }
     }
 }
+
+export default ConfigValidator
