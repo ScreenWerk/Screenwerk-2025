@@ -28,7 +28,6 @@ The restructuring recognizes that the project contains two equal applications - 
 ├── /player                       # Player application
 │   ├── /js                       # Player-specific JavaScript
 │   │   ├── script.js             # Main player script
-│   │   ├── screen-select.js      # Screen selection logic
 │   │   └── config-iterator.js    # Configuration iterator
 │   ├── /css                      # Player styles
 │   │   └── style.css             # Player styling
