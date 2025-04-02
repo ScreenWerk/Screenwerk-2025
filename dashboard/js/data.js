@@ -2,6 +2,8 @@ import { fetchJSON } from '../../common/utils/utils.js'
 import { ENTU_ENTITY_URL, SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
 import ConfigValidator from '../../common/validators/config-validator.js'
 import { updateProgressBar } from './display.js'
+import { getConfigurationById } from '../../common/services/entu-configuration-service.js'
+import { fetchEntitiesByType } from '../../common/utils/entu-utils.js'
 
 function validateConfiguration(configuration) {
     if (!configuration){ 
@@ -386,15 +388,18 @@ function flattenEntuConfiguration(configuration) {
 }
 
 export async function fetchEntuConfigurations() {
-    console.log('Fetching configurations from entu...')
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
+    console.log('Fetching configuration id\'s from entu...')
     try {
-        const data = await fetchJSON(url)
+        // Use fetchEntitiesByType instead of direct URL construction
+        const configurations = await fetchEntitiesByType('sw_configuration')
+        
+        // console.debug('Fetched configuration id\'s:', configurations)
         const debug_configuration = '5da5a2944ecca5c17a596cb0'
-        const configurations = data.entities
+        const filteredConfigurations = configurations
             .filter(config => config._id === debug_configuration)
 
-        const totalConfigurations = configurations.length
+        // console.debug('Filtered configuration id\'s:', filteredConfigurations)
+        const totalConfigurations = filteredConfigurations.length
         let loadedConfigurations = 0
 
         const updateProgress = () => {
@@ -402,24 +407,22 @@ export async function fetchEntuConfigurations() {
             updateProgressBar(Math.round((loadedConfigurations / totalConfigurations) * 100))
         }
 
+        // Use the new service functions to fetch and process configurations
         const fullConfigurations = await Promise.all(
-            configurations.map(config => fillEntuConfiguration(config._id, updateProgress))
+            filteredConfigurations.map(async config => {
+                const result = await getConfigurationById(config._id)
+                if (!result.configuration) {
+                    console.error(`Failed to fetch configuration: ${config._id}`)
+                    return null
+                }
+                
+                updateProgress()
+                return result
+            })
         )
-
-        const flattenedConfigurations = fullConfigurations
-            .filter(config => config)
-            .map(flattenEntuConfiguration)
-            .filter(config => config) // Filter out null values after flattening
-
-        if (flattenedConfigurations.length === 0) {
-            throw new Error("No valid configurations found after flattening")
-        }
-        const valid_entu_configurations = flattenedConfigurations
-            .filter(validateConfiguration)
-        if (valid_entu_configurations.length === 0) {
-            throw new Error("All configurations are invalid")
-        }
-        return valid_entu_configurations
+        console.debug('Fetched and processed configurations:', fullConfigurations)
+        
+        return fullConfigurations
     } catch (error) {
         console.error("Failed to fetch configurations from entu:", error)
         return []
@@ -427,13 +430,17 @@ export async function fetchEntuConfigurations() {
 }
 
 export async function fetchEntuScreenGroups() {
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen_group&props=name.string,configuration.reference,published.datetime`
     try {
-        const data = await fetchJSON(url)
+        // Use fetchEntitiesByType instead of direct URL construction
+        const screenGroups = await fetchEntitiesByType('sw_screen_group', {
+            props: ['name.string', 'configuration.reference', 'published.datetime']
+        })
+        
         const debug_screen_group = '5da59e6f4ecca5c17a596ca3'
-        const screen_groups = data.entities
+        const filteredScreenGroups = screenGroups
             .filter(screen_group => screen_group._id === debug_screen_group)
-        return screen_groups
+        
+        return filteredScreenGroups
     } catch (error) {
         console.error("Failed to fetch screen groups:", error)
         return []
@@ -441,15 +448,19 @@ export async function fetchEntuScreenGroups() {
 }
 
 export async function fetchEntuScreens() {
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_screen&props=name.string,screen_group.reference,screen_group.string,published.string&limit=10000`
     try {
-        const data = await fetchJSON(url)
+        // Use fetchEntitiesByType instead of direct URL construction
+        const screens = await fetchEntitiesByType('sw_screen', {
+            props: ['name.string', 'screen_group.reference', 'screen_group.string', 'published.string'],
+            limit: 10000
+        })
+        
         const debug_screen = '5da5a9ce4ecca5c17a596cbb'
-        const screens = data.entities
+        const filteredScreens = screens
             .filter(screen => screen.screen_group && screen.screen_group.length > 0)
             .filter(screen => screen._id === debug_screen)
 
-        return screens
+        return filteredScreens
     } catch (error) {
         console.error("Failed to fetch screens:", error)
         return []
