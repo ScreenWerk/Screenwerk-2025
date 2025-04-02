@@ -7,17 +7,17 @@ import { displayConfigurations } from './display.js'
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 async function init() {
-    try {
-      console.log('Dashboard initialization started.')
-      await displayConfigurations()
-      console.log('Dashboard initialization completed.')
-    } catch (error) {
-      console.error('Error during dashboard initialization:', error)
-      // Display a user-friendly error message on the page
-    }
+  try {
+    console.log('Dashboard initialization started.')
+    await displayConfigurations()
+    console.log('Dashboard initialization completed.')
+  } catch (error) {
+    console.error('Error during dashboard initialization:', error)
+    // Display a user-friendly error message on the page
   }
-  
-  document.addEventListener('DOMContentLoaded', init)
+}
+
+document.addEventListener('DOMContentLoaded', init)
 
 // Populate Git info
 function populateGitInfo() {
