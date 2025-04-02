@@ -53,18 +53,35 @@ async function fetchReferringScreenGroups(configurationId) {
             filterProperty: 'configuration.reference',
             filterValue: configurationId
         })
-        
+
         // Convert to a dictionary with screen group ID as key
-        const screenGroupDict = {};
+        const screenGroupDict = {}
         for (const screenGroup of screenGroups) {
+            // Fetch screens for each screen group
+            const screens = await fetchEntitiesByType('sw_screen', {
+                props: ['name.string', '_parent.reference'],
+                filterProperty: 'screen_group.reference',
+                filterValue: screenGroup._id
+            })
+
+            // Convert screens to a subdictionary
+            const screenDict = {}
+            for (const screen of screens) {
+                screenDict[screen._id] = {
+                    _id: screen._id,
+                    name: screen.name?.[0]?.string || 'Unnamed Screen'
+                }
+            }
+
             screenGroupDict[screenGroup._id] = {
                 _id: screenGroup._id,
                 name: screenGroup.name?.[0]?.string || 'Unnamed Screen Group',
-                published: screenGroup.published?.[0]?.datetime
+                published: screenGroup.published?.[0]?.datetime,
+                screens: screenDict // Add screens subdictionary
             }
         }
-        
-        return screenGroupDict;
+
+        return screenGroupDict
     } catch (error) {
         console.error(`Error fetching screen groups for configuration ${configurationId}:`, error)
         return {}

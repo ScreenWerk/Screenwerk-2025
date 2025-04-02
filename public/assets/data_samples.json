@@ -447,7 +447,13 @@
         "5da59e6f4ecca5c17a596ca3": {
           "_id": "5da59e6f4ecca5c17a596ca3",
           "name": "VLN 4E / 1/4 / performance",
-          "published": "2025-03-29T09:15:44.519Z"
+          "published": "2025-03-29T09:15:44.519Z",
+          "screens": {
+            "5da5a9ce4ecca5c17a596cbb": {
+              "_id": "5da5a9ce4ecca5c17a596cbb",
+              "name": "VLN 4E / 1/4 / performance screen"
+            }
+          }
         }
       }
     },
