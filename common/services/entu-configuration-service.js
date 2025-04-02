@@ -1,4 +1,5 @@
 import { fetchEntity, fetchChildEntities, transformEntity, hasEntuProperty, getFirstReferenceValue, fetchEntitiesByType } from '../utils/entu-utils.js'
+import { getPublisherFilesApiUrl } from '../config/constants.js'
 
 /**
  * Recursively fetches and transforms a configuration entity from Entu
@@ -326,14 +327,15 @@ async function processPlaylistMedia(rawPlaylistMedia, result) {
     }
     
     const transformedMedia = transformEntity(media)
-    
     // Store media ID as mediaEid in the playlistMedia
     playlistMedia.mediaEid = mediaId
+    // playlistMedia.mediaFileEid = playlistMedia.file[0].id
+    console.log('Transformed media:', {id: transformedMedia._id, from:media, to:transformedMedia, plmedia:playlistMedia})
     
     // Copy media properties to the playlistMedia level
     if (transformedMedia) {
         if (transformedMedia.name) playlistMedia.name = transformedMedia.name
-        if (transformedMedia.file) playlistMedia.file = transformedMedia.file
+        if (transformedMedia.file) playlistMedia.fileDO = getPublisherFilesApiUrl(transformedMedia._id, transformedMedia.file[0]._id)
         if (transformedMedia.fileName) playlistMedia.fileName = transformedMedia.fileName
         
         // Rename type to mediaType for clarity

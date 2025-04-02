@@ -156,6 +156,9 @@ export function transformEntity(entity) {
     
     // Copy all properties except internal ones
     for (const key in entity) {
+        if (key === 'file') {
+            console.debug('File property:', entity[key][0])
+        }
         if (!key.startsWith('_') && Array.isArray(entity[key])) {
             // For properties that are arrays of values (Entu format)
             transformed[key] = entity[key].map(item => {
@@ -164,6 +167,7 @@ export function transformEntity(entity) {
                 if (item.boolean !== undefined) return item.boolean
                 if (item.datetime !== undefined) return item.datetime
                 if (item.reference !== undefined) return { id: item.reference, name: item.string }
+                if (item.filename !== undefined) return { _id: item._id, filename: item.filename }
                 return item
             })
             

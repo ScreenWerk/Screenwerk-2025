@@ -5,7 +5,7 @@ export const ENVIRONMENT = 'development' // Set to 'production' for production e
 
 export const DEBUG = {
     // In development, we can filter to a specific configuration for testing
-    CONFIGURATION_ID: ENVIRONMENT === 'development' 
+    CONFIGURATION_ID: ENVIRONMENT === 'test' 
         ? '5da5a2944ecca5c17a596cb0' 
         : '',
     

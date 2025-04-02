@@ -1,6 +1,3 @@
-import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
-import ConfigValidator from '../../common/validators/config-validator.js' // Updated import
 import { LinkedList } from '../../common/utils/linked-list.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
@@ -90,44 +87,53 @@ class SwMedia {
     constructor(parent, dom_element, configuration) {
         this.parent = parent
         this.dom_element = dom_element
-        this.type = configuration.type
+        this.type = configuration.mediaType
         if (this.type === 'Image') {
             this.duration = configuration.duration || DEFAULTS.IMAGE_PLAYBACK_DURATION
         }
         while (this.dom_element.firstChild) {
             this.dom_element.removeChild(this.dom_element.firstChild)
         }
-        this.render(configuration)
+        this.id = configuration.playlistMediaEid
+        this.name = configuration.name
+        this.mediaEid = configuration.mediaEid
+        this.fileDO = configuration.fileDO
+        this.validFrom = configuration.validFrom
+        this.validTo = configuration.validTo
+        this.ordinal = configuration.ordinal
+        this.mute = configuration.mute
+        this.stretch = configuration.stretch
+        this.render()
     }
-    render(configuration) {
-        // console.log('rendering media', configuration)
-        this.dom_element.id = configuration.playlistMediaEid
-        this.dom_element.setAttribute('name', configuration.name)
-        this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.mediaEid}`)
-        this.dom_element.setAttribute('type', configuration.type)
-        this.dom_element.setAttribute('file', configuration.fileDO)
-        this.dom_element.setAttribute('validFrom', configuration.validFrom)
-        this.dom_element.setAttribute('validTo', configuration.validTo)
-        this.dom_element.setAttribute('ordinal', configuration.ordinal)
+    render() {
+        // console.log('rendering media', this)
+        this.dom_element.id = this.id
+        this.dom_element.setAttribute('name', this.name)
+        this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${this.mediaEid}`)
+        this.dom_element.setAttribute('type', this.type)
+        this.dom_element.setAttribute('file', this.fileDO)
+        this.dom_element.setAttribute('validFrom', this.validFrom)
+        this.dom_element.setAttribute('validTo', this.validTo)
+        this.dom_element.setAttribute('ordinal', this.ordinal)
         this.dom_element.classList.add('media')
         this.parent.dom_element.appendChild(this.dom_element)
 
-        if (configuration.type === 'Image') {
+        if (this.type === 'Image') {
             const img = document.createElement('img')
-            img.src = configuration.fileDO
+            img.src = this.fileDO
             img.style.width = '100%'
             img.style.height = '100%'
-            // img.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            // img.style.objectFit = this.stretch ? 'cover' : 'contain'
             this.dom_element.appendChild(img)
-        } else if (configuration.type === 'Video') {
+        } else if (this.type === 'Video') {
             const video = document.createElement('video')
-            video.src = configuration.fileDO
+            video.src = this.fileDO
             video.style.width = '100%'
             video.style.height = '100%'
-            video.muted = configuration.mute
+            video.muted = this.mute
             video.loop = false  // Changed to false since we handle looping ourselves
             video.autoplay = false  // Changed to false for explicit control
-            // video.style.objectFit = configuration.stretch ? 'cover' : 'contain'
+            // video.style.objectFit = this.stretch ? 'cover' : 'contain'
             
             // Set up the ended event listener during initialization
             video.addEventListener('ended', () => {
@@ -169,23 +175,8 @@ class SwMedia {
 
 class EntuScreenWerkPlayer {
     constructor(dom_element, configuration) {
+        console.log('EntuScreenWerkPlayer constructor', configuration)
         try {
-            // Make sure configuration has all required fields
-            if (configuration && !configuration.configurationEid && configuration._id) {
-                configuration.configurationEid = configuration._id
-            }
-            
-            if (configuration && !configuration.publishedAt && configuration.published) {
-                configuration.publishedAt = configuration.published
-            }
-            
-            const validator = new ConfigValidator(configuration)
-            const validationResult = validator.validate()
-            if (!validationResult.isValid) {
-                console.error('Validation errors:', validationResult.errors)
-                throw new Error('Configuration validation failed: ' + validationResult.errors[0])
-            }
-            
             this.dom_element = dom_element
             this.layout = {}
             // clear the player
