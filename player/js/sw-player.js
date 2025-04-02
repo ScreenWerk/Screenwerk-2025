@@ -170,10 +170,20 @@ class SwMedia {
 class EntuScreenWerkPlayer {
     constructor(dom_element, configuration) {
         try {
+            // Make sure configuration has all required fields
+            if (configuration && !configuration.configurationEid && configuration._id) {
+                configuration.configurationEid = configuration._id
+            }
+            
+            if (configuration && !configuration.publishedAt && configuration.published) {
+                configuration.publishedAt = configuration.published
+            }
+            
             const validator = new ConfigValidator(configuration)
             const validationResult = validator.validate()
             if (!validationResult.isValid) {
-                throw new Error('Configuration validation failed')
+                console.error('Validation errors:', validationResult.errors)
+                throw new Error('Configuration validation failed: ' + validationResult.errors[0])
             }
             
             this.dom_element = dom_element
@@ -220,71 +230,3 @@ class EntuScreenWerkPlayer {
 }
 
 export { EntuScreenWerkPlayer }
-
-// Sample data:
-// {
-//     "_mid": 7472,
-//     "configurationEid": "5541ec554ecca5c17a5992da",
-//     "screenGroupEid": "5541ec724ecca5c17a5992dc",
-//     "screenEid": "5799c2744ecca5c17a599ecd",
-//     "publishedAt": "2024-12-12T11:55:06.221Z",
-//     "updateInterval": 1,
-//     "schedules": [
-//       {
-//         "eid": "5541ee914ecca5c17a5992e5",
-//         "cleanup": true,
-//         "crontab": "0 * * * *",
-//         "ordinal": 1,
-//         "layoutEid": "5541ec454ecca5c17a5992d9",
-//         "name": "BP RIMI FullScreenLive Layout",
-//         "width": 0,
-//         "height": 0,
-//         "layoutPlaylists": [
-//           {
-//             "eid": "5541ee364ecca5c17a5992e4",
-//             "name": "Bilietai Live Playlist",
-//             "left": 0,
-//             "top": 0,
-//             "width": 100,
-//             "height": 100,
-//             "inPixels": false,
-//             "zindex": 1,
-//             "loop": true,
-//             "playlistEid": "5541ec244ecca5c17a5992d8",
-//             "playlistMedias": [
-//               {
-//                 "playlistMediaEid": "65c9a4894ecca5c17a598559",
-//                 "duration": 8,
-//                 "delay": 0,
-//                 "mute": false,
-//                 "ordinal": 4,
-//                 "stretch": false,
-//                 "mediaEid": "65c9a2fe4ecca5c17a598558",
-//                 "file": "https://entu.app/api/piletilevi/property/65c9a3364ecca5c17a600673?download=true",
-//                 "fileName": "Auksinis 1920x1080.jpg",
-//                 "name": "blt_dc_2024_12-31",
-//                 "type": "Image",
-//                 "validFrom": "2024-02-11T20:00:00.000Z",
-//                 "validTo": "2024-12-30T20:00:00.000Z"
-//               },
-//               {
-//                 "playlistMediaEid": "657197964ecca5c17a598419",
-//                 "duration": 8,
-//                 "delay": 0,
-//                 "mute": false,
-//                 "ordinal": 8,
-//                 "stretch": false,
-//                 "mediaEid": "657195ce4ecca5c17a598418",
-//                 "file": "https://entu.app/api/piletilevi/property/657196e54ecca5c17a5fe3fe?download=true",
-//                 "fileName": "1920x1080_SEL_kasu-ekranai.png",
-//                 "name": "blt_sel_2024 12 14",
-//                 "type": "Image",
-//                 "validFrom": "2023-12-06T20:00:00.000Z",
-//                 "validTo": "2024-12-14T20:00:00.000Z"
-//               }
-//             ]
-//           }
-//         ]
-//       }
-//     ]
-//   }

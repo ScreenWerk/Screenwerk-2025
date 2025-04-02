@@ -1,4 +1,5 @@
-import { fetchJSON } from '../utils/utils.js' // Updated path
+import { fetchJSON } from '../utils/utils.js'
+import { ENTU_ENTITY_URL, ENTU_FRONTEND_URL } from '../config/constants.js' // Added import
 
 class ConfigValidator {
     constructor(configuration) {
@@ -21,28 +22,26 @@ class ConfigValidator {
             return this.getResult()
         }
 
-        if (!this.configuration.schedules) {
-            this.errors.push('Schedules array is missing')
+        // Check for required top-level fields
+        const requiredTopLevelFields = ['configurationEid', 'schedules']
+        requiredTopLevelFields.forEach(field => {
+            if (!this.configuration[field]) {
+                this.errors.push(`Missing required field: ${field} in configuration ${this.formatEntityLink(this.configuration.configurationEid, this.configuration.configurationEid)}`)
+            }
+        })
+
+        if (!this.configuration.schedules || !Array.isArray(this.configuration.schedules)) {
+            this.errors.push('Schedules array is missing or invalid')
             return this.getResult()
         }
 
         // Run all validations with null checks
-        this.validateBasicStructure()
         this.validateSchedules()
         this.validateLayouts()
         this.validatePlaylists()
         this.validateMedia()
         
         return this.getResult()
-    }
-
-    validateBasicStructure() {
-        const required = ['configurationEid', 'publishedAt', 'schedules']
-        required.forEach(field => {
-            if (!this.configuration[field]) {
-                this.errors.push(`Missing required field: ${field}`)
-            }
-        })
     }
 
     validateSchedules() {
@@ -60,9 +59,19 @@ class ConfigValidator {
                 }
             })
 
+            // Extract crontab string if it's an array of objects
+            if (Array.isArray(schedule.crontab) && schedule.crontab.length > 0 && schedule.crontab[0].string) {
+                schedule.crontab = schedule.crontab[0].string
+            }
+
             // Validate crontab format
             if (schedule.crontab && !this.isValidCrontab(schedule.crontab)) {
                 this.errors.push(`Schedule ${this.formatEntityLink(schedule.eid, schedule.eid)}: Invalid crontab expression: ${schedule.crontab}`)
+            }
+
+            // Ensure layoutPlaylists is an array
+            if (!Array.isArray(schedule.layoutPlaylists)) {
+                this.errors.push(`Schedule ${this.formatEntityLink(schedule.eid, schedule.eid)}: layoutPlaylists is missing or invalid`)
             }
         })
     }
@@ -103,24 +112,32 @@ class ConfigValidator {
         const required = ['left', 'top', 'width', 'height']
         required.forEach(field => {
             if (typeof playlist[field] !== 'number') {
-                this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Missing or invalid ${field}`)
+                this.errors.push(`Schedule ${schedule_eid}, Playlist ${playlist_eid}: Missing or invalid ${field}. Value ${JSON.stringify(playlist[field])}`)
             }
         })
 
-        // Validate dimensions
+        // Validate dimensions using the normalized values
         if (playlist.width < 0 || playlist.width > 100) {
-            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Width must be between 0 and 100`)
+            this.warnings.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Width should be between 0 and 100`)
         }
         if (playlist.height < 0 || playlist.height > 100) {
-            this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Height must be between 0 and 100`)
+            this.warnings.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Height should be between 0 and 100`)
         }
     }
 
     validatePlaylists() {
         this.configuration.schedules.forEach((schedule) => {
             const schedule_eid = schedule.eid
+
+            // Ensure layoutPlaylists is an array before iterating
+            if (!Array.isArray(schedule.layoutPlaylists)) {
+                this.errors.push(`Invalid or missing layoutPlaylists for Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}`)
+                return
+            }
+
             schedule.layoutPlaylists.forEach((playlist) => {
                 const playlist_eid = playlist.eid
+
                 // Check required playlist fields
                 const required = ['eid', 'name', 'left', 'top', 'width', 'height', 'playlistMedias']
                 required.forEach(field => {
@@ -129,12 +146,18 @@ class ConfigValidator {
                     }
                 })
 
+                // Ensure playlistMedias is an array before iterating
+                if (!Array.isArray(playlist.playlistMedias)) {
+                    console.warn(`Invalid or missing playlistMedias for Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}`)
+                    return
+                }
+
                 // Validate dimensions
                 if (playlist.width < 0 || playlist.width > 100) {
-                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid width: ${playlist.width}`)
+                    this.warnings.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid width: ${playlist.width}`)
                 }
                 if (playlist.height < 0 || playlist.height > 100) {
-                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid height: ${playlist.height}`)
+                    this.warnings.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: Invalid height: ${playlist.height}`)
                 }
             })
         })
@@ -143,10 +166,19 @@ class ConfigValidator {
     validateMedia() {
         this.configuration.schedules.forEach((schedule) => {
             const schedule_eid = schedule.eid
+
+            // Ensure layoutPlaylists is an array before iterating
+            if (!Array.isArray(schedule.layoutPlaylists)) {
+                this.errors.push(`Invalid or missing layoutPlaylists for Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}`)
+                return
+            }
+
             schedule.layoutPlaylists.forEach((playlist) => {
                 const playlist_eid = playlist.eid
+
+                // Ensure playlistMedias is an array before iterating
                 if (!Array.isArray(playlist.playlistMedias)) {
-                    this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}: playlistMedias must be an array`)
+                    this.errors.push(`Invalid or missing playlistMedias for Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}`)
                     return
                 }
 
@@ -195,6 +227,10 @@ class ConfigValidator {
 
     // Helper methods
     isValidCrontab(crontab) {
+        if (typeof crontab !== 'string') {
+            console.warn('Invalid crontab value:', crontab)
+            return false
+        }
         const parts = crontab.split(' ')
         return parts.length === 5 || parts.length === 6
     }
