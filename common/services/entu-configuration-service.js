@@ -109,7 +109,7 @@ async function processSchedule(rawSchedule, result) {
     const processedLayoutPlaylists = []
     for (const layoutPlaylist of layoutPlaylists) {
         const processedLayoutPlaylist = await processLayoutPlaylist(layoutPlaylist, result)
-        console.log('Processed layout playlist:', {id: processedLayoutPlaylist._id, from:layoutPlaylist, to:processedLayoutPlaylist})
+        console.debug('Processed layout playlist:', {id: processedLayoutPlaylist._id, from:layoutPlaylist, to:processedLayoutPlaylist})
         if (processedLayoutPlaylist) {
             processedLayoutPlaylists.push(processedLayoutPlaylist)
         }

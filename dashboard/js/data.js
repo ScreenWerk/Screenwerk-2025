@@ -390,7 +390,6 @@ function flattenEntuConfiguration(configuration) {
 export async function fetchEntuConfigurations() {
     console.log('Fetching configuration id\'s from entu...')
     try {
-        // Use fetchEntitiesByType instead of direct URL construction
         const configurations = await fetchEntitiesByType('sw_configuration')
         
         // console.debug('Fetched configuration id\'s:', configurations)
@@ -420,7 +419,7 @@ export async function fetchEntuConfigurations() {
                 return result
             })
         )
-        console.debug('Fetched and processed configurations:', fullConfigurations)
+        console.log('Fetched and processed configurations:', fullConfigurations)
         
         return fullConfigurations
     } catch (error) {
@@ -470,6 +469,7 @@ export async function fetchEntuScreens() {
 // Main entry point for the dashboard
 export async function groupEntities() {
     const configurations = await fetchEntuConfigurations()
+    console.log('Fetched configurations:', configurations)
     const screen_groups = await fetchEntuScreenGroups()
     const screens = await fetchEntuScreens()
     const grouped_customers = {}
