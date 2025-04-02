@@ -4,6 +4,9 @@ import { updateProgressBar } from './display.js'
 import { getConfigurationById } from '../../common/services/entu-configuration-service.js'
 import { fetchEntitiesByType } from '../../common/utils/entu-utils.js'
 
+// Debug configurations - set to empty string to fetch all configurations
+const debug_configuration = '5da5a2944ecca5c17a596cb0'
+
 /**
  * 
  * @returns {Promise<Array>} - Array of configuration objects
@@ -15,12 +18,11 @@ export async function fetchEntuConfigurations() {
     try {
         const configurations = await fetchEntitiesByType('sw_configuration')
         
-        // console.debug('Fetched configuration id\'s:', configurations)
-        const debug_configuration = '5da5a2944ecca5c17a596cb0'
-        const filteredConfigurations = configurations
-            .filter(config => config._id === debug_configuration)
+        // Filter configurations only if debug_configuration is set
+        const filteredConfigurations = debug_configuration 
+            ? configurations.filter(config => config._id === debug_configuration)
+            : configurations.filter(config => config._id)
 
-        // console.debug('Filtered configuration id\'s:', filteredConfigurations)
         const totalConfigurations = filteredConfigurations.length
         let loadedConfigurations = 0
 
@@ -47,44 +49,6 @@ export async function fetchEntuConfigurations() {
         return fullConfigurations
     } catch (error) {
         console.error("Failed to fetch configurations from entu:", error)
-        return []
-    }
-}
-
-export async function fetchEntuScreenGroups() {
-    try {
-        // Use fetchEntitiesByType instead of direct URL construction
-        const screenGroups = await fetchEntitiesByType('sw_screen_group', {
-            props: ['name.string', 'configuration.reference', 'published.datetime']
-        })
-        
-        const debug_screen_group = '5da59e6f4ecca5c17a596ca3'
-        const filteredScreenGroups = screenGroups
-            .filter(screen_group => screen_group._id === debug_screen_group)
-        
-        return filteredScreenGroups
-    } catch (error) {
-        console.error("Failed to fetch screen groups:", error)
-        return []
-    }
-}
-
-export async function fetchEntuScreens() {
-    try {
-        // Use fetchEntitiesByType instead of direct URL construction
-        const screens = await fetchEntitiesByType('sw_screen', {
-            props: ['name.string', 'screen_group.reference', 'screen_group.string', 'published.string'],
-            limit: 10000
-        })
-        
-        const debug_screen = '5da5a9ce4ecca5c17a596cbb'
-        const filteredScreens = screens
-            .filter(screen => screen.screen_group && screen.screen_group.length > 0)
-            .filter(screen => screen._id === debug_screen)
-
-        return filteredScreens
-    } catch (error) {
-        console.error("Failed to fetch screens:", error)
         return []
     }
 }

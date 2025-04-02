@@ -113,23 +113,34 @@ async function processConfiguration(rawConfiguration, result) {
  * @returns {Promise<Object|null>} - The processed schedule or null if invalid
  */
 async function processSchedule(rawSchedule, result) {
+    if (!rawSchedule) {
+        console.warn('Received null or undefined schedule')
+        result.warnings.push('Received null or undefined schedule')
+        return null
+    }
+    
     const schedule = transformEntity(rawSchedule)
     // console.log('Processing schedule:', {id: schedule._id, from:rawSchedule, to:schedule})
     
     // Check if schedule has a layout reference
     if (!hasEntuProperty(rawSchedule, 'layout')) {
-        console.warn(`Schedule ${schedule._id} has no layout reference`)
-        result.warnings.push(`Schedule ${schedule._id} has no layout reference`)
+        console.warn(`Schedule ${schedule._id || 'unknown'} has no layout reference`)
+        result.warnings.push(`Schedule ${schedule._id || 'unknown'} has no layout reference`)
         return null
     }
     
     const layoutId = getFirstReferenceValue(rawSchedule, 'layout')
-    // console.log('Layout ID:', layoutId)
+    if (!layoutId) {
+        console.warn(`Schedule ${schedule._id || 'unknown'} has invalid layout reference`)
+        result.warnings.push(`Schedule ${schedule._id || 'unknown'} has invalid layout reference`)
+        return null
+    }
+    
     // Fetch the layout
     const layout = await fetchEntity(layoutId)
     if (!layout) {
-        console.warn(`Failed to fetch layout: ${layoutId} for schedule ${schedule._id}`)
-        result.warnings.push(`Failed to fetch layout: ${layoutId} for schedule ${schedule._id}`)
+        console.warn(`Failed to fetch layout: ${layoutId} for schedule ${schedule._id || 'unknown'}`)
+        result.warnings.push(`Failed to fetch layout: ${layoutId} for schedule ${schedule._id || 'unknown'}`)
         return null
     }
     
@@ -138,7 +149,7 @@ async function processSchedule(rawSchedule, result) {
     
     // Fetch and process layout playlists
     const layoutPlaylists = await fetchChildEntities('sw_layout_playlist', layoutId, result)
-    if (layoutPlaylists.length === 0) {
+    if (!layoutPlaylists || layoutPlaylists.length === 0) {
         console.warn(`No layout playlists found for layout: ${layoutId}`)
         result.warnings.push(`No layout playlists found for layout: ${layoutId}`)
         return null
@@ -147,8 +158,9 @@ async function processSchedule(rawSchedule, result) {
     // Process each layout playlist and filter out invalid ones
     const processedLayoutPlaylists = []
     for (const layoutPlaylist of layoutPlaylists) {
+        if (!layoutPlaylist) continue
+        
         const processedLayoutPlaylist = await processLayoutPlaylist(layoutPlaylist, result)
-        console.debug('Processed layout playlist:', {id: processedLayoutPlaylist._id, from:layoutPlaylist, to:processedLayoutPlaylist})
         if (processedLayoutPlaylist) {
             processedLayoutPlaylists.push(processedLayoutPlaylist)
         }
@@ -166,18 +178,18 @@ async function processSchedule(rawSchedule, result) {
     // Copy layout properties to the schedule level
     if (transformedLayout) {
         // Copy basic layout properties
-        if (transformedLayout.name) schedule.name = transformedLayout.name;
-        if (transformedLayout.width !== undefined) schedule.width = transformedLayout.width;
-        if (transformedLayout.height !== undefined) schedule.height = transformedLayout.height;
+        if (transformedLayout.name) schedule.name = transformedLayout.name
+        if (transformedLayout.width !== undefined) schedule.width = transformedLayout.width
+        if (transformedLayout.height !== undefined) schedule.height = transformedLayout.height
         
         // Copy any other relevant layout properties
         // Add more properties as needed
     }
     
     // Store the processed layout playlists directly in the schedule
-    schedule.layoutPlaylists = processedLayoutPlaylists;
+    schedule.layoutPlaylists = processedLayoutPlaylists
     
-    return schedule;
+    return schedule
 }
 
 /**
@@ -187,22 +199,33 @@ async function processSchedule(rawSchedule, result) {
  * @returns {Promise<Object|null>} - The processed layout playlist or null if invalid
  */
 async function processLayoutPlaylist(rawLayoutPlaylist, result) {
+    if (!rawLayoutPlaylist) {
+        console.warn('Received null or undefined layout playlist')
+        result.warnings.push('Received null or undefined layout playlist')
+        return null
+    }
+
     const layoutPlaylist = transformEntity(rawLayoutPlaylist)
     
     // Check if layout playlist has a playlist reference
     if (!hasEntuProperty(rawLayoutPlaylist, 'playlist')) {
-        console.warn(`Layout playlist ${layoutPlaylist._id} has no playlist reference`)
-        result.warnings.push(`Layout playlist ${layoutPlaylist._id} has no playlist reference`)
+        console.warn(`Layout playlist ${layoutPlaylist._id || 'unknown'} has no playlist reference`)
+        result.warnings.push(`Layout playlist ${layoutPlaylist._id || 'unknown'} has no playlist reference`)
         return null
     }
     
     const playlistId = getFirstReferenceValue(rawLayoutPlaylist, 'playlist')
+    if (!playlistId) {
+        console.warn(`Layout playlist ${layoutPlaylist._id || 'unknown'} has invalid playlist reference`)
+        result.warnings.push(`Layout playlist ${layoutPlaylist._id || 'unknown'} has invalid playlist reference`)
+        return null
+    }
     
     // Fetch the playlist
     const playlist = await fetchEntity(playlistId)
     if (!playlist) {
-        console.warn(`Failed to fetch playlist: ${playlistId} for layout playlist ${layoutPlaylist._id}`)
-        result.warnings.push(`Failed to fetch playlist: ${playlistId} for layout playlist ${layoutPlaylist._id}`)
+        console.warn(`Failed to fetch playlist: ${playlistId} for layout playlist ${layoutPlaylist._id || 'unknown'}`)
+        result.warnings.push(`Failed to fetch playlist: ${playlistId} for layout playlist ${layoutPlaylist._id || 'unknown'}`)
         return null
     }
     
@@ -210,7 +233,7 @@ async function processLayoutPlaylist(rawLayoutPlaylist, result) {
     
     // Fetch and process playlist medias
     const playlistMedias = await fetchChildEntities('sw_playlist_media', playlistId, result)
-    if (playlistMedias.length === 0) {
+    if (!playlistMedias || playlistMedias.length === 0) {
         console.warn(`No playlist medias found for playlist: ${playlistId}`)
         result.warnings.push(`No playlist medias found for playlist: ${playlistId}`)
         return null
@@ -219,6 +242,8 @@ async function processLayoutPlaylist(rawLayoutPlaylist, result) {
     // Process each playlist media and filter out invalid ones
     const processedPlaylistMedias = []
     for (const playlistMedia of playlistMedias) {
+        if (!playlistMedia) continue
+        
         const processedPlaylistMedia = await processPlaylistMedia(playlistMedia, result)
         if (processedPlaylistMedia) {
             processedPlaylistMedias.push(processedPlaylistMedia)
@@ -236,14 +261,14 @@ async function processLayoutPlaylist(rawLayoutPlaylist, result) {
     
     // Copy playlist properties to the layoutPlaylist level
     if (transformedPlaylist) {
-        if (transformedPlaylist.name) layoutPlaylist.name = transformedPlaylist.name;
+        if (transformedPlaylist.name) layoutPlaylist.name = transformedPlaylist.name
         // Add any other relevant playlist properties
     }
     
     // Store the processed playlist medias directly in the layoutPlaylist
-    layoutPlaylist.playlistMedias = processedPlaylistMedias;
+    layoutPlaylist.playlistMedias = processedPlaylistMedias
     
-    return layoutPlaylist;
+    return layoutPlaylist
 }
 
 /**
@@ -253,22 +278,33 @@ async function processLayoutPlaylist(rawLayoutPlaylist, result) {
  * @returns {Promise<Object|null>} - The processed playlist media or null if invalid
  */
 async function processPlaylistMedia(rawPlaylistMedia, result) {
+    if (!rawPlaylistMedia) {
+        console.warn('Received null or undefined playlist media')
+        result.warnings.push('Received null or undefined playlist media')
+        return null
+    }
+
     const playlistMedia = transformEntity(rawPlaylistMedia)
     
     // Check if playlist media has a media reference
     if (!hasEntuProperty(rawPlaylistMedia, 'media')) {
-        console.warn(`Playlist media ${playlistMedia._id} has no media reference`)
-        result.warnings.push(`Playlist media ${playlistMedia._id} has no media reference`)
+        console.warn(`Playlist media ${playlistMedia._id || 'unknown'} has no media reference`)
+        result.warnings.push(`Playlist media ${playlistMedia._id || 'unknown'} has no media reference`)
         return null
     }
     
     const mediaId = getFirstReferenceValue(rawPlaylistMedia, 'media')
+    if (!mediaId) {
+        console.warn(`Playlist media ${playlistMedia._id || 'unknown'} has invalid media reference`)
+        result.warnings.push(`Playlist media ${playlistMedia._id || 'unknown'} has invalid media reference`)
+        return null
+    }
     
     // Fetch the media
     const media = await fetchEntity(mediaId)
     if (!media) {
-        console.warn(`Failed to fetch media: ${mediaId} for playlist media ${playlistMedia._id}`)
-        result.warnings.push(`Failed to fetch media: ${mediaId} for playlist media ${playlistMedia._id}`)
+        console.warn(`Failed to fetch media: ${mediaId} for playlist media ${playlistMedia._id || 'unknown'}`)
+        result.warnings.push(`Failed to fetch media: ${mediaId} for playlist media ${playlistMedia._id || 'unknown'}`)
         return null
     }
     
@@ -279,17 +315,17 @@ async function processPlaylistMedia(rawPlaylistMedia, result) {
     
     // Copy media properties to the playlistMedia level
     if (transformedMedia) {
-        if (transformedMedia.name) playlistMedia.name = transformedMedia.name;
-        if (transformedMedia.file) playlistMedia.file = transformedMedia.file;
-        if (transformedMedia.fileName) playlistMedia.fileName = transformedMedia.fileName;
+        if (transformedMedia.name) playlistMedia.name = transformedMedia.name
+        if (transformedMedia.file) playlistMedia.file = transformedMedia.file
+        if (transformedMedia.fileName) playlistMedia.fileName = transformedMedia.fileName
         
         // Rename type to mediaType for clarity
         if (transformedMedia.type) {
-            playlistMedia.mediaType = transformedMedia.type;
+            playlistMedia.mediaType = transformedMedia.type
         }
         
         // Add any other relevant media properties
     }
     
-    return playlistMedia;
+    return playlistMedia
 }
