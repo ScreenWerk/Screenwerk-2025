@@ -1,4 +1,4 @@
-import { groupEntities, fetchPublishedScreenGroups } from './data.js'
+import { groupEntities } from './data.js'
 import { toolbarSnippet } from './ui.js'
 import { EntuScreenWerkPlayer } from '../../player/js/sw-player.js'
 
@@ -18,9 +18,6 @@ function showProgressBar() {
 export async function displayConfigurations() {
     showProgressBar()
     const grouped_customers = await groupEntities()
-    
-    await fetchPublishedScreenGroups(grouped_customers)
-    console.log("Grouped customers:", grouped_customers)
 
     const accordion = document.getElementById("accordion")
     let totalScreens = 0

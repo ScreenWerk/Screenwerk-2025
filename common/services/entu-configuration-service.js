@@ -1,4 +1,4 @@
-import { fetchEntity, fetchChildEntities, transformEntity, hasEntuProperty, getFirstReferenceValue } from '../utils/entu-utils.js'
+import { fetchEntity, fetchChildEntities, transformEntity, hasEntuProperty, getFirstReferenceValue, fetchEntitiesByType } from '../utils/entu-utils.js'
 
 /**
  * Recursively fetches and transforms a configuration entity from Entu
@@ -13,22 +13,61 @@ export async function getConfigurationById(configurationId) {
     }
 
     try {
-        // Fetch the main configuration
-        const rawConfiguration = await fetchEntity(configurationId)
+        // Fetch the main configuration and parent customer name
+        const rawConfiguration = await fetchEntity(configurationId, {
+            props: ['name.string', 'published.datetime', '_parent.reference', '_parent.string']
+        })
         if (!rawConfiguration) {
             console.warn(`Failed to fetch configuration: ${configurationId}`)
             result.errors.push(`Failed to fetch configuration: ${configurationId}`)
             return result
         }
+        rawConfiguration.customer = {
+            _id: rawConfiguration._parent?.[0]?.reference,
+            name: rawConfiguration._parent?.[0]?.string || 'Unknown Customer'}
 
         // Begin processing the configuration
         result.configuration = await processConfiguration(rawConfiguration, result)
+        
+        // Add referring screen groups
+        result.configuration.referringScreenGroups = await fetchReferringScreenGroups(configurationId)
         
         return result
     } catch (error) {
         console.error(`Error fetching configuration ${configurationId}:`, error)
         result.errors.push(`Error fetching configuration ${configurationId}: ${error.message}`)
         return result
+    }
+}
+
+/**
+ * Fetch screen groups referencing this configuration
+ * @param {string} configurationId - The ID of the configuration
+ * @returns {Promise<Object>} - Dictionary of screen groups referencing this configuration
+ */
+async function fetchReferringScreenGroups(configurationId) {
+    try {
+        // Fetch all screen groups that reference this configuration
+        const screenGroups = await fetchEntitiesByType('sw_screen_group', {
+            props: ['name.string', 'published.datetime', '_parent.reference', '_parent.string'],
+            filterProperty: 'configuration.reference',
+            filterValue: configurationId
+        })
+        
+        // Convert to a dictionary with screen group ID as key
+        const screenGroupDict = {};
+        for (const screenGroup of screenGroups) {
+            screenGroupDict[screenGroup._id] = {
+                _id: screenGroup._id,
+                name: screenGroup.name?.[0]?.string || 'Unnamed Screen Group',
+                published: screenGroup.published?.[0]?.datetime
+            }
+        }
+        
+        return screenGroupDict;
+    } catch (error) {
+        console.error(`Error fetching screen groups for configuration ${configurationId}:`, error)
+        return {}
     }
 }
 

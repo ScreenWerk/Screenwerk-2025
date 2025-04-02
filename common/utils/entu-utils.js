@@ -72,6 +72,7 @@ export async function fetchEntitiesByType(type, options = {}) {
         if (limit && Number.isInteger(limit) && limit > 0) {
             url += `&limit=${limit}`
         }
+        console.debug(`Fetching ${type} entities with URL: ${url}`)
         
         const response = await fetchJSON(url)
         

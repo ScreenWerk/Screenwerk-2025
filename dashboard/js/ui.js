@@ -32,7 +32,7 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
                 </a>
             ` : ''}
             <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
-                <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
+                <img src="/public/images/entulogo.png" class="entu-logo" alt="Entu">
             </a>
             ${errorIcon}
             ${infoIcon}
