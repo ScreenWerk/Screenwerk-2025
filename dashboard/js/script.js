@@ -2,30 +2,9 @@
 // Description: Main script for the dashboard
 // Used in: dashboard/index.html
 
-import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
 import { displayConfigurations } from './display.js'
-import { 
-    HOSTNAME,
-    ACCOUNT,
-    ENTU_ENTITY_URL,
-    ENTU_FRONTEND_URL,
-    UNICODE_ICONS 
-} from '../../common/config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
-
-async function fetchConfigurations() {
-    const url = `${ENTU_ENTITY_URL}?_type.string=sw_configuration&props=name.string,_parent.reference,_parent.string`
-    try {
-        const response = await fetch(url)
-        const data = await response.json()
-        // ...existing code...
-    } catch (error) {
-        console.error("Failed to fetch configurations:", error)
-        return []
-    }
-}
 
 async function init() {
     try {
