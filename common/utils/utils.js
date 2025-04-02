@@ -23,3 +23,5 @@ export async function fetchJSON(url) {
         return false
     }
 }
+
+// Disclaimer: no semicolons, if unnecessary, are used in this project

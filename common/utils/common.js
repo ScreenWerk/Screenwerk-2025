@@ -1,13 +1,13 @@
-import { fetchJSON } from './utils.js' // Corrected path
-import { SCREENWERK_PUBLISHER_API } from '../config/constants.js'
-
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
-function toDateTimeString(ISODate) {
+/**
+ * Formats an ISO date string to a more readable format
+ * @param {string} ISODate - Date in ISO format
+ * @returns {string} Formatted date string
+ */
+export function toDateTimeString(ISODate) {
+  if (!ISODate) return ''
   return ISODate.slice(0, 10) + ' ' + ISODate.slice(11, 19)
 }
 
-// The fetchJSON function is now imported from utils.js
-// const SCREENWERK_PUBLISHER_API is now imported from constants.js
-
-export { toDateTimeString }
+// Add other common utility functions here

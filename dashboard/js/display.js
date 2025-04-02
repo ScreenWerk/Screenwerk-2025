@@ -123,17 +123,26 @@ export async function displayConfigurations() {
 
     const accordions = document.getElementsByClassName("accordion")
     for (let i = 0; i < accordions.length; i++) {
-        accordions[i].addEventListener("click", function() {
-            this.classList.toggle("active")
-            let panel = this.nextElementSibling
+        const accordion = accordions[i];
+        const panel = accordion.nextElementSibling;
+        
+        // Add appropriate ARIA attributes
+        accordion.setAttribute('aria-expanded', 'false');
+        accordion.setAttribute('aria-controls', `panel-${i}`);
+        panel.id = `panel-${i}`;
+        panel.setAttribute('aria-hidden', 'true');
+        
+        accordion.addEventListener("click", function() {
+            const expanded = this.classList.toggle("active");
+            this.setAttribute('aria-expanded', expanded);
+            
+            let panel = this.nextElementSibling;
             while (panel && panel.classList.contains("panel")) {
-                if (panel.style.display === "block") {
-                    panel.style.display = "none"
-                } else {
-                    panel.style.display = "block"
-                }
-                panel = panel.nextElementSibling
+                const isVisible = panel.style.display === "block";
+                panel.style.display = isVisible ? "none" : "block";
+                panel.setAttribute('aria-hidden', isVisible);
+                panel = panel.nextElementSibling;
             }
-        })
+        });
     }
 }

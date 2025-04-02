@@ -9,7 +9,7 @@
 // If running in Node.js, import later from 'later'
 // If running in browser, include later.js in your HTML file
 // and remove the line below
-// import later from 'later'77
+// import later from 'later'
 
 
 class Cron {
