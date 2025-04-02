@@ -1,0 +1,457 @@
+{
+  "swPublisherConfiguration": {
+    "_mid": 7472,
+    "configurationEid": "5541ec554ecca5c17a5992da",
+    "screenGroupEid": "5541ec724ecca5c17a5992dc",
+    "screenEid": "5799c2744ecca5c17a599ecd",
+    "publishedAt": "2024-12-12T11:55:06.221Z",
+    "updateInterval": 1,
+    "schedules": [
+      {
+        "eid": "5541ee914ecca5c17a5992e5",
+        "cleanup": true,
+        "crontab": "0 * * * *",
+        "ordinal": 1,
+        "layoutEid": "5541ec454ecca5c17a5992d9",
+        "name": "BP RIMI FullScreenLive Layout",
+        "width": 0,
+        "height": 0,
+        "layoutPlaylists": [
+          {
+            "eid": "5541ee364ecca5c17a5992e4",
+            "name": "Bilietai Live Playlist",
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100,
+            "inPixels": false,
+            "zindex": 1,
+            "loop": true,
+            "playlistEid": "5541ec244ecca5c17a5992d8",
+            "playlistMedias": [
+              {
+                "playlistMediaEid": "65c9a4894ecca5c17a598559",
+                "duration": 8,
+                "delay": 0,
+                "mute": false,
+                "ordinal": 4,
+                "stretch": false,
+                "mediaEid": "65c9a2fe4ecca5c17a598558",
+                "file": "https://entu.app/api/piletilevi/property/65c9a3364ecca5c17a600673?download=true",
+                "fileName": "Auksinis 1920x1080.jpg",
+                "name": "blt_dc_2024_12-31",
+                "type": "Image",
+                "validFrom": "2024-02-11T20:00:00.000Z",
+                "validTo": "2024-12-30T20:00:00.000Z"
+              },
+              {
+                "playlistMediaEid": "657197964ecca5c17a598419",
+                "duration": 8,
+                "delay": 0,
+                "mute": false,
+                "ordinal": 8,
+                "stretch": false,
+                "mediaEid": "657195ce4ecca5c17a598418",
+                "file": "https://entu.app/api/piletilevi/property/657196e54ecca5c17a5fe3fe?download=true",
+                "fileName": "1920x1080_SEL_kasu-ekranai.png",
+                "name": "blt_sel_2024 12 14",
+                "type": "Image",
+                "validFrom": "2023-12-06T20:00:00.000Z",
+                "validTo": "2024-12-14T20:00:00.000Z"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rawEntuConfiguration": {
+    "_id": "5541ec554ecca5c17a5992da",
+    "_parent": [
+      {
+        "_id": "5541ec554ecca5c17a61f539",
+        "reference": "5541c8164ecca5c17a5992ce",
+        "string": "Bilietu Pasaulis"
+      }
+    ],
+    "_sharing": [
+      {
+        "_id": "665606f14ecca5c17a620d87",
+        "string": "public"
+      }
+    ],
+    "_type": [
+      {
+        "_id": "5541ec554ecca5c17a61f53a",
+        "reference": "665606334ecca5c17a59aa28",
+        "string": "sw_configuration"
+      }
+    ],
+    "name": [
+      {
+        "_id": "5541ec554ecca5c17a61f50d",
+        "string": "BP RIMI Live Conf"
+      }
+    ],
+    "update_interval": [
+      {
+        "_id": "555d667b4ecca5c17a61f510",
+        "number": 1
+      }
+    ],
+    "schedules": [
+      {
+        "_parent": [
+          {
+            "_id": "5541ec454ecca5c17a61f50a",
+            "reference": "5541c8164ecca5c17a5992ce",
+            "string": "Bilietu Pasaulis"
+          }
+        ],
+        "_sharing": [
+          {
+            "_id": "665606f14ecca5c17a620d85",
+            "string": "public"
+          }
+        ],
+        "_type": [
+          {
+            "_id": "5541ec454ecca5c17a61f50b",
+            "reference": "665606334ecca5c17a59aa2b",
+            "string": "sw_layout"
+          }
+        ],
+        "cleanup": [
+          {
+            "_id": "5541ee9d4ecca5c17a61f96a",
+            "boolean": true
+          }
+        ],
+        "crontab": "0 * * * *",
+        "ordinal": [
+          {
+            "_id": "5541ee934ecca5c17a61f96d",
+            "number": 1
+          }
+        ],
+        "eid": "5541ee914ecca5c17a5992e5",
+        "name": [
+          {
+            "_id": "5541ec454ecca5c17a61f4e2",
+            "string": "BP RIMI FullScreenLive Layout"
+          }
+        ],
+        "layoutEid": "5541ec454ecca5c17a5992d9",
+        "layoutPlaylists": [
+          {
+            "_parent": [
+              {
+                "_id": "5541ec244ecca5c17a61f4df",
+                "reference": "5541c8164ecca5c17a5992ce",
+                "string": "Bilietu Pasaulis"
+              }
+            ],
+            "_sharing": [
+              {
+                "_id": "679b4fba32faaba00f8fd285",
+                "string": "public"
+              }
+            ],
+            "_type": [
+              {
+                "_id": "5541ec244ecca5c17a61f4e0",
+                "reference": "665606334ecca5c17a59aa46",
+                "string": "sw_playlist"
+              }
+            ],
+            "height": [
+              {
+                "_id": "5541ee414ecca5c17a61f938",
+                "number": 100
+              }
+            ],
+            "left": [
+              {
+                "_id": "5541ee3d4ecca5c17a61f939",
+                "number": 0
+              }
+            ],
+            "loop": [
+              {
+                "_id": "5541ee424ecca5c17a61f93a",
+                "boolean": true
+              }
+            ],
+            "name": [
+              {
+                "_id": "5877303b4ecca5c17a61f4b5",
+                "string": "Bilietai Live Playlist"
+              }
+            ],
+            "top": [
+              {
+                "_id": "5541ee3e4ecca5c17a61f93d",
+                "number": 0
+              }
+            ],
+            "width": [
+              {
+                "_id": "5541ee3f4ecca5c17a61f93e",
+                "number": 100
+              }
+            ],
+            "zindex": [
+              {
+                "_id": "5541ee424ecca5c17a61f93f",
+                "number": 1
+              }
+            ],
+            "eid": "5541ee364ecca5c17a5992e4",
+            "playlistEid": "5541ec244ecca5c17a5992d8",
+            "playlistMedias": []
+          }
+        ]
+      },
+      {
+        "_parent": [
+          {
+            "_id": "5549e08e4ecca5c17a61fdf1",
+            "reference": "5541c8164ecca5c17a5992ce",
+            "string": "Bilietu Pasaulis"
+          }
+        ],
+        "_sharing": [
+          {
+            "_id": "665606f14ecca5c17a620de9",
+            "string": "public"
+          }
+        ],
+        "_type": [
+          {
+            "_id": "5549e08e4ecca5c17a61fdf2",
+            "reference": "665606334ecca5c17a59aa2b",
+            "string": "sw_layout"
+          }
+        ],
+        "cleanup": [
+          {
+            "_id": "63da6ddf4ecca5c17a61fe41",
+            "boolean": false
+          }
+        ],
+        "crontab": "1 * * * *",
+        "ordinal": [
+          {
+            "_id": "5549e2574ecca5c17a61fe46",
+            "number": 2
+          }
+        ],
+        "valid_to": [
+          {
+            "_id": "651f830d4ecca5c17a61fe47",
+            "datetime": "2023-09-30T18:00:00.000Z"
+          }
+        ],
+        "eid": "5549e2554ecca5c17a599308",
+        "name": [
+          {
+            "_id": "5874a4e34ecca5c17a61fdc9",
+            "string": "Bilietai Logo 288x100 Layout"
+          }
+        ],
+        "layoutEid": "5549e08e4ecca5c17a599305",
+        "layoutPlaylists": [
+          {
+            "_parent": [
+              {
+                "_id": "5549d8a14ecca5c17a61fd40",
+                "reference": "5541c8164ecca5c17a5992ce",
+                "string": "Bilietu Pasaulis"
+              }
+            ],
+            "_sharing": [
+              {
+                "_id": "665606f14ecca5c17a620de1",
+                "string": "public"
+              }
+            ],
+            "_type": [
+              {
+                "_id": "5549d8a14ecca5c17a61fd41",
+                "reference": "665606334ecca5c17a59aa46",
+                "string": "sw_playlist"
+              }
+            ],
+            "height": [
+              {
+                "_id": "5549e22a4ecca5c17a61fdf4",
+                "number": 10
+              }
+            ],
+            "left": [
+              {
+                "_id": "5549e2224ecca5c17a61fdf5",
+                "number": 85
+              }
+            ],
+            "loop": [
+              {
+                "_id": "5549e22b4ecca5c17a61fdf6",
+                "boolean": true
+              }
+            ],
+            "name": [
+              {
+                "_id": "5874a4d14ecca5c17a61fd17",
+                "string": "Bilietai Logo Playlist"
+              }
+            ],
+            "top": [
+              {
+                "_id": "5549e2234ecca5c17a61fdfc",
+                "number": 0
+              }
+            ],
+            "width": [
+              {
+                "_id": "5549e2254ecca5c17a61fdfd",
+                "number": 15
+              }
+            ],
+            "zindex": [
+              {
+                "_id": "5549e22b4ecca5c17a61fdfe",
+                "number": 2
+              }
+            ],
+            "eid": "5549e2104ecca5c17a599306",
+            "playlistEid": "5549d8a14ecca5c17a599301",
+            "playlistMedias": []
+          }
+        ]
+      }
+    ],
+    "configurationEid": "5541ec554ecca5c17a5992da"
+  },
+  "processedEntuConfiguration": {
+    "configuration": {
+      "_id": "5da5a2944ecca5c17a596cb0",
+      "name": "VLN 4E / 1/4 / performance",
+      "customer": {
+        "_id": "5417ef064ecca5c17a598a96",
+        "name": "Vaba Lava"
+      },
+      "schedules": [
+        {
+          "_id": "5da5a2df4ecca5c17a596cb1",
+          "cleanup": true,
+          "crontab": "* 8-23 * * *",
+          "layout": "VLN 4E / 1/4 / performance",
+          "ordinal": 1,
+          "layoutEid": "5da59f554ecca5c17a596ca8",
+          "name": "VLN 4E / 1/4 / performance",
+          "width": 1920,
+          "height": 1080,
+          "layoutPlaylists": [
+            {
+              "_id": "5da59fb54ecca5c17a596ca9",
+              "height": 100,
+              "in_pixels": false,
+              "left": 0,
+              "loop": true,
+              "name": "VLN 4E / Playlist 1",
+              "playlist": "VLN 4E / Playlist 1",
+              "top": 0,
+              "width": 100,
+              "playlistEid": "5bfbe4b44ecca5c17a5963b1",
+              "playlistMedias": [
+                {
+                  "_id": "64fe8fd04ecca5c17a5981e6",
+                  "duration": 10,
+                  "media": "VLN 4E tere tulemast valge mustal",
+                  "mute": true,
+                  "ordinal": 1,
+                  "stretch": true,
+                  "mediaEid": "5bfbcbc24ecca5c17a5963a8",
+                  "name": "VLN 4E tere tulemast valge mustal",
+                  "file": [
+                    {
+                      "_id": "5bfbcbd44ecca5c17a5bd5dc",
+                      "filename": "vaba_lava_narva_teretulemast.png",
+                      "md5": "cc8de9c2885d1934e50a886361b6a2ae",
+                      "filesize": 249237
+                    }
+                  ],
+                  "mediaType": "Image"
+                },
+                {
+                  "_id": "67e41186a0c5b80a74f69713",
+                  "duration": 10,
+                  "media": "VLN_Suur_veeuputus_26.03.2025",
+                  "mute": true,
+                  "ordinal": 2,
+                  "mediaEid": "67e40e4da0c5b80a74f696ea",
+                  "name": "VLN_Suur_veeuputus_26.03.2025",
+                  "file": [
+                    {
+                      "_id": "67e40e4da0c5b80a74f696eb",
+                      "filename": "1920x1080_Narva_veeuputus.jpg",
+                      "filesize": 2260956,
+                      "filetype": "image/jpeg"
+                    }
+                  ],
+                  "mediaType": "Image"
+                },
+                {
+                  "_id": "67e51b8ba0c5b80a74f69fae",
+                  "duration": 10,
+                  "media": "VLN_IgapaevaSumfoonia_03.2025",
+                  "mute": true,
+                  "ordinal": 3,
+                  "mediaEid": "67e51b4fa0c5b80a74f69f93",
+                  "name": "VLN_IgapaevaSumfoonia_03.2025",
+                  "file": [
+                    {
+                      "_id": "67e51b6ca0c5b80a74f69fac",
+                      "filename": "IS_vabalava_ekraan_1920x1080.jpg",
+                      "filesize": 714481,
+                      "filetype": "image/jpeg"
+                    }
+                  ],
+                  "mediaType": "Image"
+                },
+                {
+                  "_id": "67e51bdca0c5b80a74f69fda",
+                  "duration": 10,
+                  "media": "VLN_UnistusteSaar_03.2025",
+                  "mute": true,
+                  "ordinal": 4,
+                  "mediaEid": "67e51b1ea0c5b80a74f69f89",
+                  "name": "VLN_UnistusteSaar_03.2025",
+                  "file": [
+                    {
+                      "_id": "67e51b2ba0c5b80a74f69f92",
+                      "filename": "UnistusteSaar_1920x1080px_piletilevi-digiekraan (1).jpg",
+                      "filesize": 1002110,
+                      "filetype": "image/jpeg"
+                    }
+                  ],
+                  "mediaType": "Image"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "referringScreenGroups": {
+        "5da59e6f4ecca5c17a596ca3": {
+          "_id": "5da59e6f4ecca5c17a596ca3",
+          "name": "VLN 4E / 1/4 / performance",
+          "published": "2025-03-29T09:15:44.519Z"
+        }
+      }
+    },
+    "errors": [],
+    "warnings": []
+  }
+}

@@ -2,21 +2,20 @@
 <html lang='en'>
     <head>
         <meta charset='UTF-8' />
-        <meta http-equiv='X-UA-Compatible' content='IE=edge' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-        <title>Entu ScreenWerk Player '25sss</title>
-        <link rel="icon" href="favicon.svg" type="image/svg+xml">
-        <link href='style.css' rel='stylesheet' />
-        <script src="later.min.js" type="text/javascript"></script>
-        <script src="cron.js" type="text/javascript"></script>
-        <script src='config.js' type="module"></script>
-        <script src='linked-list.js' type="module"></script>
-        <script src='sw-player.js' type="module"></script>
+        <title>Entu ScreenWerk Player</title>
+        <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+        <link href='./css/style.css' rel='stylesheet' />
+        <script src="/later.min.js"></script>
+        <script src="/cron.js"></script>
+        <script src='/config.js' type="module"></script>
+        <script src='/common/utils/linked-list.js' type="module"></script>
+        <script src='/player/js/sw-player.js' type="module"></script>
     </head>
 
     <body>
         <pre id='error' style='display: none'></pre>
-        <h1>Entu ScreenWerk '25s</h1>
+        <h1>Entu ScreenWerk Player</h1>
         <div>Screen on Entu: <a id='screenId' href=''></a></div>
         <!-- <p>Screen name: <span id='screenName'></span></p> -->
         <div>Published at: <span id='published'></span></div>
@@ -29,6 +28,6 @@
     </body>
 
     <!-- read common functions from common.js -->
-    <script src='common.js' type="module"></script>
-    <script src='script.js' type="module"></script>
+    <script src='/common.js' type="module"></script>
+    <script src='/player/js/script.js' type="module"></script>
 </html>

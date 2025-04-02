@@ -1,4 +1,4 @@
-import { fetchJSON } from './utils/utils.js'
+import { fetchJSON } from './utils.js' // Corrected path
 import { SCREENWERK_PUBLISHER_API } from '../config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project

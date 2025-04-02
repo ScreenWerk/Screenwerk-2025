@@ -1,4 +1,6 @@
-import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../config/constants.js'
+import { fetchJSON } from '../../common/utils/utils.js'
+import { toDateTimeString } from '../../common/utils/common.js'
+import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../../common/config/constants.js'
 
 export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
     const configurationsJSON = configurations ? JSON.stringify(configurations).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"') : '[]'
@@ -30,7 +32,7 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
                 </a>
             ` : ''}
             <a href="${ENTU_FRONTEND_URL}/${id}" target="_blank">
-                <img src="/images/entulogo.png" class="entu-logo" alt="Entu">
+                <img src="/public/images/entulogo.png" class="entu-logo" alt="Entu">
             </a>
             ${errorIcon}
             ${infoIcon}

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { fetchJSON } from '../common/utils/utils.js'
+
 const fs = require('fs')
 const path = require('path')
 

@@ -1,4 +1,4 @@
-import Cron from './cron.js'
+import Cron from '../cron.js'
 
 describe('Cron', () => {
   describe('current', () => {

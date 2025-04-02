@@ -22,6 +22,9 @@ Authorization: Bearer {{pl_token}}
 GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string HTTP/1.1
 
 ###
+# GET list of customers
+GET {{hostname}}/{{account}}/entity?_type.string=customer
+###
 # GET list of screen groups
 GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.string,published.datetime HTTP/1.1
 
