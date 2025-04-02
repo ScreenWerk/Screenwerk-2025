@@ -28,7 +28,7 @@ export async function fetchChildEntities(type, parentId, result) {
         const url = `${ENTU_ENTITY_URL}?_type.string=${type}&_parent.reference=${parentId}`
         const response = await fetchJSON(url)
 
-        console.debug(`Fetching ${type} entities for parent ${parentId}:`, response)
+        // console.debug(`Fetching ${type} entities for parent ${parentId}:`, response)
         
         if (!response || !response.entities || !Array.isArray(response.entities)) {
             result.warnings.push(`Failed to fetch ${type} entities for parent: ${parentId}`)
@@ -72,7 +72,7 @@ export async function fetchEntitiesByType(type, options = {}) {
         if (limit && Number.isInteger(limit) && limit > 0) {
             url += `&limit=${limit}`
         }
-        console.debug(`Fetching ${type} entities with URL: ${url}`)
+        // console.debug(`Fetching ${type} entities with URL: ${url}`)
         
         const response = await fetchJSON(url)
         
@@ -202,7 +202,7 @@ export function hasEntuProperty(entity, property) {
  * @returns {string|null} - The reference ID or null
  */
 export function getFirstReferenceValue(entity, property) {
-    console.debug('getFirstReferenceValue', entity, property)
+    // console.debug('getFirstReferenceValue', entity, property)
     if (hasEntuProperty(entity, property)) {
         if (typeof entity[property][0] === 'object' && entity[property][0].id) {
             return entity[property][0].id

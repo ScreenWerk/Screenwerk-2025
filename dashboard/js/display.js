@@ -81,11 +81,20 @@ export async function displayConfigurations() {
                 playerPanelE.className = "panel"
                 playerPanelE.appendChild(playerElementE)
                 screenGroupSectionE.appendChild(playerPanelE)
-                const screen_group_config = screen_group.configuration
+                const screen_group_config = configuration
+                console.log(`Processing screen group: ${screen_group_id}`)
+                console.log(`Screen group configuration:`, screen_group_config)
+
                 if (screen_group_config) {
-                    const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
-                    player.play()
+                    try {
+                        const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
+                        player.play()
+                        console.log(`Player initialized for screen group: ${screen_group_id}`)
+                    } catch (error) {
+                        console.error(`Error initializing player for screen group: ${screen_group_id}`, error)
+                    }
                 } else {
+                    console.warn(`Configuration not available for screen group: ${screen_group_id}`)
                     playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
                 }
 
