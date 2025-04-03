@@ -13,8 +13,9 @@ export function extendLinkedList(LinkedList) {
         if (this.current && this.current.next) {
             this.current = this.current.next
             return true
-        } else if (this.current && this.shouldLoop) {
-            // Loop back to the first item if looping is enabled
+        } else if (this.current) {
+            // Always loop back to the first item - removed conditional check for shouldLoop
+            // since we always want playlists to loop
             this.current = this.head
             return true
         }

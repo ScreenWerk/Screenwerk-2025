@@ -353,20 +353,23 @@ export class EntuScreenWerkPlayer {
         // Add to layout container instead of this.element
         layoutContainer.appendChild(container)
         
-        // Start playing media in the playlist - always enable looping
+        // Start playing media in the playlist - removed loop parameter since we always loop
         if (layoutPlaylist.playlistMedias && layoutPlaylist.playlistMedias.length > 0) {
-            this.playMediaSequence(container, layoutPlaylist.playlistMedias, true) // Force loop to true
+            this.playMediaSequence(container, layoutPlaylist.playlistMedias)
         }
     }
     
-    playMediaSequence(container, mediaItems, loop = true) {
+    playMediaSequence(container, mediaItems) {
         // Create a linked list structure for media items
         const mediaList = new LinkedList()
 
         // Store the list by container reference for later use
         container.mediaList = mediaList
 
-        this.debugLog(`Creating playlist with ${mediaItems.length} items, loop: ${loop}`)
+        this.debugLog(`Creating playlist with ${mediaItems.length} items`)
+
+        // Always set shouldLoop to true - we always want playlists to loop
+        mediaList.shouldLoop = true
 
         // Add each media item to the list
         mediaItems.forEach(mediaItem => {
@@ -384,17 +387,17 @@ export class EntuScreenWerkPlayer {
             // Add it to the container
             container.appendChild(mediaElement)
 
-            // Add to the linked list
+            // Add to the linked list - removed loop parameter from play method
             mediaList.add({
                 element: mediaElement,
                 mediaItem: mediaItem,
                 container: container,
-                play: () => this.playMediaItem(mediaElement, mediaItem, mediaList, loop)
+                play: () => this.playMediaItem(mediaElement, mediaItem, mediaList)
             })
         })
 
         // Store loop property directly on the list
-        mediaList.shouldLoop = loop
+        mediaList.shouldLoop = true
 
         // Start playing the first item if there are any
         if (mediaList.first()) {
@@ -405,7 +408,7 @@ export class EntuScreenWerkPlayer {
         }
     }
     
-    playMediaItem(element, mediaItem, mediaList, loop) {
+    playMediaItem(element, mediaItem, mediaList) {
         // Hide all other media elements in the same container
         const container = element.parentNode
         Array.from(container.children).forEach(child => {
@@ -460,17 +463,16 @@ export class EntuScreenWerkPlayer {
                         element.progressInterval = null
                     }
                     
-                    // Move to next item or loop back to start
+                    // Move to next item or loop back to start - simplified logic since we always loop
                     const hasNext = mediaList.next()
                     if (hasNext) {
-                        this.debugLog(`Moving to next item: ${mediaList.current.name}`)
-                        mediaList.current.play()
+                        this.debugLog(`Moving to next item: ${mediaList.getCurrent().mediaItem.name}`)
                     } else {
-                        // Always loop back to the first item
-                        mediaList.first() 
-                        this.debugLog(`Looping back to first item: ${mediaList.current.name}`)
-                        mediaList.current.play()
+                        // This branch should never execute since mediaList.shouldLoop is always true,
+                        // but keeping it as a fallback
+                        this.debugLog(`Looping back to first item: ${mediaList.getCurrent().mediaItem.name}`)
                     }
+                    mediaList.getCurrent().play()
                 }, duration * 1000)
             }
         } else if (mediaItem.type === 'Video') {
@@ -514,7 +516,7 @@ export class EntuScreenWerkPlayer {
                         })
                     }
                     
-                    // Add event listener to stop the progress interval when video ends
+                    // Add event listener to stop the progress interval when video ends - simplified logic
                     video.addEventListener('ended', () => {
                         this.debugLog(`Video ended: ${mediaItem.name}`)
                 
@@ -523,17 +525,14 @@ export class EntuScreenWerkPlayer {
                             element.progressInterval = null
                         }
                         
-                        // Move to next item or loop back to start
+                        // Move to next item or loop back to start - simplified logic
                         const hasNext = mediaList.next()
                         if (hasNext) {
-                            this.debugLog(`Moving to next item: ${mediaList.current.name}`)
-                            mediaList.current.play()
+                            this.debugLog(`Moving to next item: ${mediaList.getCurrent().mediaItem.name}`)
                         } else {
-                            // Always loop back to the first item
-                            mediaList.first()
-                            this.debugLog(`Looping back to first item: ${mediaList.current.name}`)
-                            mediaList.current.play()
+                            this.debugLog(`Looping back to first item: ${mediaList.getCurrent().mediaItem.name}`)
                         }
+                        mediaList.getCurrent().play()
                     })
                 }
             }
@@ -736,19 +735,14 @@ export class EntuScreenWerkPlayer {
                     visibleMedia.imageTimeout = null
                 }
                 
-                // Advance to next or loop
+                // Advance to next or loop - simplified logic
                 const hasNext = mediaList.next()
                 if (hasNext) {
                     this.debugLog('Manually advancing to next media')
-                    // FIX: Use mediaList.getCurrent() to get the value object with the play method
-                    mediaList.getCurrent().play()
                 } else {
-                    // Always loop back when we reach the end
-                    mediaList.first()
                     this.debugLog('Manually looping to first media')
-                    // FIX: Use mediaList.getCurrent() to get the value object with the play method
-                    mediaList.getCurrent().play()
                 }
+                mediaList.getCurrent().play()
             }
         }
     }
