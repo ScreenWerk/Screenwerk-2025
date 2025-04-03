@@ -107,7 +107,7 @@ class SwMedia {
     }
     render() {
         // console.log('rendering media', this)
-        this.dom_element.id = this.id
+        this.dom_element.id = this.mediaEid
         this.dom_element.setAttribute('name', this.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${this.mediaEid}`)
         this.dom_element.setAttribute('type', this.type)
@@ -185,14 +185,20 @@ class EntuScreenWerkPlayer {
             }
             this.render(configuration)
         } catch (error) {
-            console.error('Configuration validation failed:', error.message)
+            console.error('Constructor failed:', error.message)
             this.dom_element.innerHTML = `<div class="error">Configuration error: ${error.message}</div>`
             return
         }
     }
     render(configuration) {
-        if (!configuration || !configuration.schedules) {
+        if (!configuration) {
             console.error('Invalid configuration in render:', configuration)
+            return
+        }
+
+        if (!configuration.schedules || !configuration.schedules.length) {
+            console.error('No schedules found in configuration:', configuration)
+            this.dom_element.innerHTML = `<div class="error">No schedules found</div>`
             return
         }
         
@@ -205,18 +211,41 @@ class EntuScreenWerkPlayer {
         // console.log('rendering player', configuration)
         // [{ cron_expression, schedule_id }, ...]
         const cron = new Cron(cron_schedules)
-        const current_schedule_id = cron.current().schedule_id
-        const current_schedule = configuration.schedules.find(schedule => schedule.eid === current_schedule_id)
+        const current_schedule = cron.current()
+        
+        if (!current_schedule) {
+            console.error('No valid schedule found in configuration:', configuration)
+            this.dom_element.innerHTML = `<div class="error">No valid schedule found</div>`
+            return
+        }
+
+        const current_schedule_id = current_schedule.schedule_id
+        const current_schedule_data = configuration.schedules.find(schedule => schedule.eid === current_schedule_id)
+        if (!current_schedule_data) {
+            console.error('Current schedule data not found:', current_schedule_id)
+            this.dom_element.innerHTML = `<div class="error">Current schedule data not found</div>`
+            return
+        }
+
         const layout_div = document.createElement('div')
-        const sw_layout = new SwLayout(this, layout_div, current_schedule)
+        const sw_layout = new SwLayout(this, layout_div, current_schedule_data)
         this.layout = sw_layout
     }
 
     play() {
-        this.layout.play()
+        if (this.layout && typeof this.layout.play === 'function') {
+            this.layout.play()
+        } else {
+            console.error('Cannot play: layout is not properly initialized or play is not a function.')
+        }
     }
 
     stop() {
+        if (this.layout && typeof this.layout.stop === 'function') {
+            this.layout.stop()
+        } else {
+            console.error('Cannot stop: layout is not properly initialized or stop is not a function.')
+        }
     }
 }
 

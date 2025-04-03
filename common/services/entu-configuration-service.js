@@ -29,6 +29,11 @@ export async function getConfigurationById(configurationId) {
 
         // Begin processing the configuration
         result.configuration = await processConfiguration(rawConfiguration, result)
+        if (result.configuration === null) {
+            console.warn(`Configuration ${configurationId} is invalid or has no schedules`)
+            result.errors.push(`Configuration ${configurationId} is invalid or has no schedules`)
+            return result
+        }
         
         // Add referring screen groups
         result.configuration.referringScreenGroups = await fetchReferringScreenGroups(configurationId)
@@ -103,7 +108,8 @@ async function processConfiguration(rawConfiguration, result) {
     const schedules = await fetchChildEntities('sw_schedule', configuration._id, result)
     if (schedules.length === 0) {
         console.warn(`No schedules found for configuration: ${configuration._id}`)
-        result.warnings.push(`No schedules found for configuration: ${configuration._id}`)
+        result.errors.push(`No schedules found for configuration: ${configuration._id}`)
+        return null
     }
 
     // Process each schedule and filter out invalid ones
@@ -118,7 +124,9 @@ async function processConfiguration(rawConfiguration, result) {
     configuration.schedules = processedSchedules
     
     if (processedSchedules.length === 0) {
+        console.warn(`No valid schedules for configuration: ${configuration._id}`)
         result.errors.push(`No valid schedules for configuration: ${configuration._id}`)
+        return null
     }
     
     return configuration
@@ -330,7 +338,7 @@ async function processPlaylistMedia(rawPlaylistMedia, result) {
     // Store media ID as mediaEid in the playlistMedia
     playlistMedia.mediaEid = mediaId
     // playlistMedia.mediaFileEid = playlistMedia.file[0].id
-    console.log('Transformed media:', {id: transformedMedia._id, from:media, to:transformedMedia, plmedia:playlistMedia})
+    // console.log('Transformed media:', {id: transformedMedia._id, from:media, to:transformedMedia, plmedia:playlistMedia})
     
     // Copy media properties to the playlistMedia level
     if (transformedMedia) {
