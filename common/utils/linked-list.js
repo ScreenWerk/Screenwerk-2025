@@ -1,6 +1,6 @@
 class Node {
-  constructor(data) {
-    this.data = data
+  constructor(value) {
+    this.value = value
     this.next = null
   }
 }
@@ -9,71 +9,57 @@ export class LinkedList {
   constructor() {
     this.head = null
     this.current = null
-    this.size = 0
   }
 
-  // Add a node immediately after the head
-  add(data) {
-    let node = new Node(data)
-
-    if (this.head === null) {
+  // Add a new item to the linked list
+  add(item) {
+    const node = new Node(item) // Use the Node class to ensure proper structure
+    if (!this.head) {
       this.head = node
-      this.head.next = this.head // Make it circular
+      this.current = node
     } else {
-      node.next = this.head.next
-      this.head.next = node
+      let tail = this.head
+      while (tail.next) {
+        tail = tail.next
+      }
+      tail.next = node
     }
-    this.current = node.data
-    this.size++
   }
 
-  // Remove current node
-  remove() {
-    if (this.head === null) {
-      return null
+  // Move to the first item in the list
+  first() {
+    if (this.head) {
+      this.current = this.head
+      return true
     }
-
-    if (this.size === 1) {
-      this.head = null
-      this.size--
-      return 0
-    }
-
-    // let current = this.head // 
-    let previous = this.head
-    while (previous.next !== this.head) {
-      previous = previous.next
-    }
-
-    previous.next = this.head.next
-    this.head = previous.next
-    this.size--
-    return this.size
+    return false
   }
 
-  // Return current node and move head to the next node
-    next() {
-        if (this.head === null) {
-            return null
-        }
-        const node = this.head
-        this.head = this.head.next
-        return node.data
+  // Move to the next item in the list
+  next() {
+    if (this.current && this.current.next) {
+      this.current = this.current.next
+      return true
+    } else if (this.current) {
+      // Loop back to the first item if looping is enabled
+      this.current = this.head
+      return true
     }
+    return false
+  }
 
-  // Print the list
-  printList() {
-    let current = this.head
-    let str = ""
-    while (current) {
-      str += current.data + " "
-      current = current.next
-    }
-    console.log(str)
+  // Check if the list is empty
+  isEmpty() {
+    return this.head === null
+  }
+
+  // Get the current item
+  getCurrent() {
+    return this.current ? this.current.value : null
   }
 }
 
 // For backward compatibility with non-module scripts
 if (typeof window !== 'undefined') {
-    window.LinkedList = LinkedList
+  window.LinkedList = LinkedList
 }
