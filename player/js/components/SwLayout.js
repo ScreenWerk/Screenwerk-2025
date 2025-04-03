@@ -20,7 +20,15 @@ export class SwLayout {
         this.dom_element.setAttribute('crontab', configuration.crontab)
         this.dom_element.setAttribute('cleanup', configuration.cleanup ? 'true' : 'false')
         this.dom_element.classList.add('layout')
-        this.parent.dom_element.appendChild(this.dom_element)
+        
+        // Check if the parent has a dom_element property before trying to append to it
+        // This allows the SwLayout to work even when initialized from EntuScreenWerkPlayer
+        if (this.parent.dom_element) {
+            this.parent.dom_element.appendChild(this.dom_element)
+        } else if (this.parent.element) {
+            // Fallback for when parent is EntuScreenWerkPlayer which has 'element' property
+            // No need to append since the layout container is already added to element
+        }
 
         configuration.layoutPlaylists.forEach(layout_playlist => {
             const playlist_div = document.createElement('div')

@@ -1,14 +1,13 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
-import { SwLayout } from './components/SwLayout.js'
 import { LinkedList } from '../../common/utils/linked-list.js'
 import { extendLinkedList } from './utils/linked-list-extensions.js'
 import { getMediaListContainer, showError } from './utils/player-utils.js'
-import { ConfigValidator } from './utils/ConfigValidator.js'
-import { DebugPanel } from './ui/DebugPanel.js'
-import { ProgressBar } from './ui/ProgressBar.js'
 import { ImageMediaHandler } from './media/ImageMediaHandler.js'
 import { VideoMediaHandler } from './media/VideoMediaHandler.js'
+import { DebugPanel } from './ui/DebugPanel.js'
+import { ProgressBar } from './ui/ProgressBar.js'
+import { SwLayout } from './components/SwLayout.js'
 
 // Extend LinkedList with additional methods
 extendLinkedList(LinkedList)
@@ -118,34 +117,24 @@ export class EntuScreenWerkPlayer {
             this.addDebugControls()
         }
         
-        // Create layout container - this was missing before
-        const layoutContainer = document.createElement('div')
-        layoutContainer.className = 'layout-container'
-        layoutContainer.style.position = 'relative'
-        layoutContainer.style.width = '100%'
-        layoutContainer.style.height = '100%'
-        layoutContainer.style.overflow = 'hidden'
+        // Create layout container using SwLayout component
+        const layoutContainerElement = document.createElement('div')
+        layoutContainerElement.className = 'layout-container'
+        layoutContainerElement.style.position = 'relative'
+        layoutContainerElement.style.width = '100%'
+        layoutContainerElement.style.height = '100%'
+        layoutContainerElement.style.overflow = 'hidden'
         
-        // Add ID and attributes to layout container
-        if (activeSchedule._id) {
-            layoutContainer.id = `layout_${activeSchedule._id}`
-            layoutContainer.setAttribute('data-entu-id', activeSchedule._id)
-            layoutContainer.setAttribute('data-entu-type', 'schedule')
-        }
-        if (activeSchedule.layoutEid) {
-            layoutContainer.setAttribute('data-layout-eid', activeSchedule.layoutEid)
-        }
-        if (activeSchedule.name) {
-            layoutContainer.setAttribute('name', activeSchedule.name)
-        }
+        // Use SwLayout to handle layout rendering
+        this.layout = new SwLayout(this, layoutContainerElement, activeSchedule)
         
-        this.element.appendChild(layoutContainer)
+        this.element.appendChild(layoutContainerElement)
         
         // Process layout playlists
         if (activeSchedule.layoutPlaylists && activeSchedule.layoutPlaylists.length > 0) {
             activeSchedule.layoutPlaylists.forEach(playlist => {
                 // Now add playlists to the layout container instead of directly to the element
-                this.createPlaylistContainer(layoutContainer, playlist)
+                this.createPlaylistContainer(layoutContainerElement, playlist)
             })
         } else {
             this.showError('No playlists in the active schedule')
@@ -255,66 +244,18 @@ export class EntuScreenWerkPlayer {
     }
     
     addDebugControls() {
-        // Create debug panel
-        const debugPanel = document.createElement('div')
-        debugPanel.className = 'debug-panel'
-        debugPanel.style.position = 'absolute'
-        debugPanel.style.top = '0'
-        debugPanel.style.left = '0'
-        debugPanel.style.padding = '5px'
-        debugPanel.style.background = 'rgba(0,0,0,0.5)'
-        debugPanel.style.color = 'white'
-        debugPanel.style.fontSize = '10px'
-        debugPanel.style.zIndex = '9999'
-        
-        // Add play/pause button
-        const playPauseBtn = document.createElement('button')
-        playPauseBtn.textContent = '⏯️'
-        playPauseBtn.style.marginRight = '5px'
-        playPauseBtn.addEventListener('click', () => this.togglePlayPause())
-        
-        // Add next button
-        const nextBtn = document.createElement('button')
-        nextBtn.textContent = '⏭️'
-        nextBtn.style.marginRight = '5px'
-        nextBtn.addEventListener('click', () => this.forceNextMedia())
-        
-        // Add status indicator
-        const statusIndicator = document.createElement('span')
-        statusIndicator.className = 'debug-status'
-        statusIndicator.textContent = '▶️ Playing'
-        
-        // Add info display
-        const infoDisplay = document.createElement('div')
-        infoDisplay.className = 'debug-info'
-        infoDisplay.style.fontSize = '8px'
-        
-        // Assemble debug panel
-        debugPanel.appendChild(playPauseBtn)
-        debugPanel.appendChild(nextBtn)
-        debugPanel.appendChild(statusIndicator)
-        debugPanel.appendChild(infoDisplay)
-        
-        this.element.appendChild(debugPanel)
+        // Use DebugPanel class instead of directly creating elements
+        this.debugPanel = new DebugPanel(this.element, {
+            onTogglePlayback: () => this.togglePlayPause(),
+            onNextMedia: () => this.forceNextMedia()
+        })
     }
     
     updateDebugStatus() {
-        const statusIndicator = this.element.querySelector('.debug-status')
-        if (statusIndicator) {
-            statusIndicator.textContent = this.isPlaying ? '▶️ Playing' : '⏸️ Paused'
-        }
-        
-        const infoDisplay = this.element.querySelector('.debug-info')
-        if (infoDisplay) {
-            // Show currently playing media
+        if (this.debugPanel) {
+            // Get the currently visible media element
             const visibleMedia = this.element.querySelector('.media-element[style*="display: block"]')
-            if (visibleMedia) {
-                const mediaId = visibleMedia.getAttribute('data-media-eid')
-                const mediaType = visibleMedia.querySelector('video') ? 'Video' : 'Image'
-                infoDisplay.textContent = `Current: ${mediaType} (${mediaId})`
-            } else {
-                infoDisplay.textContent = 'No media playing'
-            }
+            this.debugPanel.updateStatus(this.isPlaying, visibleMedia)
         }
     }
     
@@ -423,10 +364,15 @@ export class EntuScreenWerkPlayer {
         
         const duration = mediaItem.duration || DEFAULTS.IMAGE_PLAYBACK_DURATION
         
-        // Reset progress bar
-        const progressBar = element.querySelector('.media-progress-bar')
-        if (progressBar) {
-            progressBar.style.width = '0%'
+        // Reset progress bar using the component if available
+        if (element.progressBarComponent) {
+            element.progressBarComponent.reset()
+        } else {
+            // Fallback for older elements
+            const progressBar = element.querySelector('.media-progress-bar')
+            if (progressBar) {
+                progressBar.style.width = '0%'
+            }
         }
         
         // For images, use setTimeout to move to next item
@@ -548,9 +494,12 @@ export class EntuScreenWerkPlayer {
         const elapsedTime = Date.now() - element.startTime
         const progress = Math.min(100, (elapsedTime / element.originalDuration) * 100)
         
-        if (progressBar) {
+        // Use the ProgressBar component if available
+        if (element.progressBarComponent) {
+            element.progressBarComponent.setProgress(progress)
+        } else if (progressBar) {
+            // Fallback for older elements
             progressBar.style.width = `${progress}%`
-            // Debug info in data attribute for easy inspection
             progressBar.setAttribute('data-progress', `${Math.round(progress)}%`)
         }
         
@@ -599,26 +548,16 @@ export class EntuScreenWerkPlayer {
         // Determine media type
         const mediaType = mediaItem.mediaType || mediaItem.type
         
-        // Create progress bar container
-        const progressContainer = document.createElement('div')
-        progressContainer.className = 'media-progress-container'
-        progressContainer.style.position = 'absolute'
-        progressContainer.style.bottom = '0'
-        progressContainer.style.left = '0'
-        progressContainer.style.width = '100%'
-        progressContainer.style.height = '4px'
-        progressContainer.style.backgroundColor = 'rgba(0,0,0,0.3)'
-        progressContainer.style.zIndex = '5'
+        // Create progress bar using ProgressBar class
+        const progressBar = new ProgressBar(element, {
+            height: '4px',
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            barColor: '#00a1ff',
+            zIndex: '5'
+        })
         
-        const progressBar = document.createElement('div')
-        progressBar.className = 'media-progress-bar'
-        progressBar.style.height = '100%'
-        progressBar.style.width = '0%'
-        progressBar.style.backgroundColor = '#00a1ff'
-        progressBar.style.transition = 'width 0.1s linear'
-        
-        progressContainer.appendChild(progressBar)
-        element.appendChild(progressContainer)
+        // Store progress bar reference on element for updates
+        element.progressBarComponent = progressBar
         
         if (mediaType === 'Image') {
             const img = document.createElement('img')
