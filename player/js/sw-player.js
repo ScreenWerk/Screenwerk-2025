@@ -156,8 +156,13 @@ export class EntuScreenWerkPlayer {
             // Pause all image timeouts by storing their current state
             if (element.imageTimeout) {
                 clearTimeout(element.imageTimeout)
-                element.pausedTime = Date.now() - element.startTime
-                this.debugLog(`Image paused with ${element.pausedTime}ms remaining`)
+                // Make sure we have a valid startTime before calculating pausedTime
+                if (element.startTime && typeof element.startTime === 'number') {
+                    element.pausedTime = Date.now() - element.startTime
+                    this.debugLog(`Image paused with ${element.pausedTime}ms remaining from ${element.originalDuration}ms total`)
+                } else {
+                    this.debugLog(`Cannot pause image: missing startTime`)
+                }
             }
             
             // Pause the progress updates
@@ -180,11 +185,17 @@ export class EntuScreenWerkPlayer {
             video.play()
         })
         
-        // Resume all image timeouts - improved implementation
+        // Resume all image timeouts - improved implementation with proper checks
         const mediaElements = this.element.querySelectorAll('.media-element[style*="display: block"]')
         
         mediaElements.forEach(element => {
-            if (element.pausedTime && element.querySelector('img')) {
+            this.debugLog(`Resuming media element: ${element.id || 'unknown'}`)
+            
+            // Check if we have the necessary timing information
+            if (element.querySelector('img') && 
+                typeof element.originalDuration === 'number' && 
+                typeof element.pausedTime === 'number') {
+                
                 const remainingTime = element.originalDuration - element.pausedTime
                 
                 if (remainingTime > 0) {
@@ -192,14 +203,13 @@ export class EntuScreenWerkPlayer {
                     element.startTime = Date.now()
                     
                     // Restart the progress bar interval
-                    const progressBar = element.querySelector('.media-progress-bar')
-                    if (progressBar) {
+                    if (element.progressBarComponent) {
                         if (element.progressInterval) clearInterval(element.progressInterval)
                         
                         element.progressInterval = setInterval(() => {
                             const elapsedTime = Date.now() - element.startTime
                             const progress = Math.min(100, ((element.pausedTime + elapsedTime) / element.originalDuration) * 100)
-                            progressBar.style.width = `${progress}%`
+                            element.progressBarComponent.setProgress(progress)
                         }, 50)
                     }
                     
@@ -228,6 +238,55 @@ export class EntuScreenWerkPlayer {
                     }
                     
                     element.pausedTime = null
+                } else {
+                    this.debugLog(`Cannot resume image: remaining time is ${remainingTime}ms`)
+                    // Force advancing to next item if remaining time is invalid
+                    this.forceNextMedia()
+                }
+            } else {
+                // Handle case where timing information is missing
+                this.debugLog(`Cannot resume media: missing timing information`)
+                if (element.querySelector('img')) {
+                    this.debugLog(`Restarting image from beginning`)
+                    // Restart the image from the beginning
+                    element.startTime = Date.now()
+                    element.originalDuration = element.originalDuration || DEFAULTS.IMAGE_PLAYBACK_DURATION * 1000
+                    element.pausedTime = 0
+                    
+                    // Restart the progress bar interval
+                    if (element.progressBarComponent) {
+                        if (element.progressInterval) clearInterval(element.progressInterval)
+                        
+                        element.progressInterval = setInterval(() => {
+                            const elapsedTime = Date.now() - element.startTime
+                            const progress = Math.min(100, (elapsedTime / element.originalDuration) * 100)
+                            element.progressBarComponent.setProgress(progress)
+                        }, 50)
+                    }
+                    
+                    // Restart the timeout for the image
+                    const container = element.parentNode
+                    if (container && container.mediaList) {
+                        const mediaList = container.mediaList
+                        
+                        element.imageTimeout = setTimeout(() => {
+                            this.debugLog('Image timeout complete after restart')
+                            
+                            if (element.progressInterval) {
+                                clearInterval(element.progressInterval)
+                                element.progressInterval = null
+                            }
+                            
+                            // Move to the next media item
+                            const hasNext = mediaList.next()
+                            if (hasNext) {
+                                mediaList.current.play()
+                            } else if (mediaList.shouldLoop) {
+                                mediaList.first()
+                                mediaList.current.play()
+                            }
+                        }, element.originalDuration)
+                    }
                 }
             }
         })
@@ -337,9 +396,6 @@ export class EntuScreenWerkPlayer {
             })
         })
 
-        // Store loop property directly on the list
-        mediaList.shouldLoop = true
-
         // Start playing the first item if there are any
         if (mediaList.first()) {
             this.debugLog(`Starting playback with first item: ${mediaList.getCurrent().mediaItem.name}`)
@@ -357,29 +413,22 @@ export class EntuScreenWerkPlayer {
                 child.style.display = 'none'
             }
         })
-        
+
         // Show this element
         element.style.display = 'block'
         this.debugLog(`Playing media: ${mediaItem.name || mediaItem.mediaEid}`)
-        
         const duration = mediaItem.duration || DEFAULTS.IMAGE_PLAYBACK_DURATION
         
-        // Reset progress bar using the component if available
+        // Reset progress bar using the component
         if (element.progressBarComponent) {
             element.progressBarComponent.reset()
-        } else {
-            // Fallback for older elements
-            const progressBar = element.querySelector('.media-progress-bar')
-            if (progressBar) {
-                progressBar.style.width = '0%'
-            }
         }
         
         // For images, use setTimeout to move to next item
         if (mediaItem.type === 'Image') {
             element.startTime = Date.now()
             element.originalDuration = duration * 1000
-            
+
             // Clear any existing timeout and interval
             if (element.imageTimeout) {
                 clearTimeout(element.imageTimeout)
@@ -389,15 +438,19 @@ export class EntuScreenWerkPlayer {
                 clearInterval(element.progressInterval)
                 element.progressInterval = null
             }
-            
-            // Always update progress initially even if paused later
-            this.updateImageProgress(element, progressBar)
+
+            this.updateImageProgress(element)
             
             if (this.isPlaying) {
-                // Start progress update interval for images
+                // Ensure progress bar is visible before starting updates
+                if (element.progressBarComponent) {
+                    element.progressBarComponent.ensureVisible()
+                }
+                
+                // More frequent updates for smoother progress
                 element.progressInterval = setInterval(() => {
-                    this.updateImageProgress(element, progressBar)
-                }, 50) // Update every 50ms
+                    this.updateImageProgress(element)
+                }, 33) // Update every 33ms for smoother animation (approx 30fps)
                 
                 this.debugLog(`Setting timeout for ${duration}s for ${mediaItem.name}`)
                 element.imageTimeout = setTimeout(() => {
@@ -414,8 +467,6 @@ export class EntuScreenWerkPlayer {
                     if (hasNext) {
                         this.debugLog(`Moving to next item: ${mediaList.getCurrent().mediaItem.name}`)
                     } else {
-                        // This branch should never execute since mediaList.shouldLoop is always true,
-                        // but keeping it as a fallback
                         this.debugLog(`Looping back to first item: ${mediaList.getCurrent().mediaItem.name}`)
                     }
                     mediaList.getCurrent().play()
@@ -426,7 +477,7 @@ export class EntuScreenWerkPlayer {
             const video = element.querySelector('video')
             if (video) {
                 video.currentTime = 0 // Ensure we start from the beginning
-                
+
                 // Set up progress update for video
                 if (element.progressInterval) {
                     clearInterval(element.progressInterval)
@@ -435,52 +486,50 @@ export class EntuScreenWerkPlayer {
                 element.progressInterval = setInterval(() => {
                     if (video.duration) {
                         const progress = (video.currentTime / video.duration) * 100
-                        if (progressBar) {
-                            progressBar.style.width = `${progress}%`
+                        if (element.progressBarComponent) {
+                            element.progressBarComponent.ensureVisible()
+                            element.progressBarComponent.setProgress(progress)
                         }
                     }
-                }, 50) // Update every 50ms
+                }, 33) // Update every 33ms for smoother animation
                 
-                if (this.isPlaying) {
-                    const playPromise = video.play()
-                    
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            console.error(`Error playing video: ${error}`)
-                            // Clear the progress interval
-                            if (element.progressInterval) {
-                                clearInterval(element.progressInterval)
-                                element.progressInterval = null
-                            }
-                            
-                            // If autoplay fails, move to next item after duration
-                            setTimeout(() => {
-                                if (mediaList.next() || loop) {
-                                    mediaList.current.play()
-                                }
-                            }, duration * 1000)
-                        })
-                    }
-                    
-                    // Add event listener to stop the progress interval when video ends - simplified logic
-                    video.addEventListener('ended', () => {
-                        this.debugLog(`Video ended: ${mediaItem.name}`)
-                
+                const playPromise = video.play()
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error(`Error playing video: ${error}`)
+                        // Clear the progress interval
                         if (element.progressInterval) {
                             clearInterval(element.progressInterval)
                             element.progressInterval = null
                         }
                         
-                        // Move to next item or loop back to start - simplified logic
-                        const hasNext = mediaList.next()
-                        if (hasNext) {
-                            this.debugLog(`Moving to next item: ${mediaList.getCurrent().mediaItem.name}`)
-                        } else {
-                            this.debugLog(`Looping back to first item: ${mediaList.getCurrent().mediaItem.name}`)
-                        }
-                        mediaList.getCurrent().play()
+                        // If autoplay fails, move to next item after duration
+                        setTimeout(() => {
+                            if (mediaList.next()) {
+                                mediaList.getCurrent().play()
+                            }
+                        }, duration * 1000)
                     })
                 }
+                
+                // Add event listener to stop the progress interval when video ends - simplified logic
+                video.addEventListener('ended', () => {
+                    this.debugLog(`Video ended: ${mediaItem.name}`)
+                    
+                    if (element.progressInterval) {
+                        clearInterval(element.progressInterval)
+                        element.progressInterval = null
+                    }
+                    
+                    // Move to next item or loop back to start - simplified logic
+                    const hasNext = mediaList.next()
+                    if (hasNext) {
+                        this.debugLog(`Moving to next item: ${mediaList.getCurrent().mediaItem.name}`)
+                    } else {
+                        this.debugLog(`Looping back to first item: ${mediaList.getCurrent().mediaItem.name}`)
+                    }
+                    mediaList.getCurrent().play()
+                })
             }
         }
         
@@ -488,33 +537,24 @@ export class EntuScreenWerkPlayer {
     }
     
     // New helper method to update image progress
-    updateImageProgress(element, progressBar) {
+    updateImageProgress(element) {
         if (!element.startTime) return
-        
+           
         const elapsedTime = Date.now() - element.startTime
         const progress = Math.min(100, (elapsedTime / element.originalDuration) * 100)
         
         // Use the ProgressBar component if available
         if (element.progressBarComponent) {
+            element.progressBarComponent.ensureVisible() // Make sure it's visible
             element.progressBarComponent.setProgress(progress)
-        } else if (progressBar) {
-            // Fallback for older elements
-            progressBar.style.width = `${progress}%`
-            progressBar.setAttribute('data-progress', `${Math.round(progress)}%`)
+            // Force a browser reflow to ensure the progress bar updates
+            // This is a performance hack but helps with rendering issues
+            void element.progressBarComponent.bar.offsetWidth
         }
         
-        // Log progress at 25%, 50%, 75% to help with debugging
-        if (progress >= 25 && !element.progress25) {
-            element.progress25 = true
-            this.debugLog(`Progress 25% for ${element.getAttribute('data-media-eid')}`)
-        }
-        if (progress >= 50 && !element.progress50) {
-            element.progress50 = true
-            this.debugLog(`Progress 50% for ${element.getAttribute('data-media-eid')}`)
-        }
-        if (progress >= 75 && !element.progress75) {
-            element.progress75 = true
-            this.debugLog(`Progress 75% for ${element.getAttribute('data-media-eid')}`)
+        // More frequent logging for debugging
+        if (this.debugMode && progress % 10 < 1) {
+            this.debugLog(`Progress ${Math.floor(progress)}% for ${element.getAttribute('data-media-eid') || 'media'}`)
         }
     }
     
@@ -545,8 +585,8 @@ export class EntuScreenWerkPlayer {
             return
         }
         
-        // Determine media type
-        const mediaType = mediaItem.mediaType || mediaItem.type
+        // Determine media type (fix: use mediaItem.type instead of undefined mediaType)
+        const mediaType = mediaItem.type || mediaItem.mediaType
         
         // Create progress bar using ProgressBar class
         const progressBar = new ProgressBar(element, {
