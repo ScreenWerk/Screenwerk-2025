@@ -46,7 +46,7 @@ export async function displayConfigurations() {
         for (const config_id in grouped_customers[customer_id].configurations) {
             const configuration = grouped_customers[customer_id].configurations[config_id]
             const configSectionE = document.createElement("section")
-            configSectionE.dataset.config = JSON.stringify(configuration)
+            // configSectionE.dataset.config = JSON.stringify(configuration)
             configSectionE.className = "config-section"
 
             const configTitleE = document.createElement("button")
@@ -88,8 +88,8 @@ export async function displayConfigurations() {
 
                 if (screen_group_config) {
                     try {
-                        const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
-                        player.resume() // Updated from play() to resume()
+                        // Initialize the player with the screen group configuration
+                        playerElementE.SwPlayer = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
                         console.log(`Player initialized for screen group: ${screen_group_id}`)
                     } catch (error) {
                         console.error(`Error initializing player for screen group: ${screen_group_id}`, error)
