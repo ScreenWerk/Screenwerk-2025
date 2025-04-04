@@ -1,5 +1,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
+import { debugLog } from '../utils/debug-utils.js'
+
 export class ProgressBar {
     constructor(parent, options = {}) {
         this.parent = parent
@@ -45,7 +47,7 @@ export class ProgressBar {
         
         // Make progress visible immediately
         this.ensureVisible()
-        console.log(`Progress bar initialized for ${parent.id || 'element'}`)
+        debugLog(`Progress bar initialized for ${parent.id || 'element'}`)
     }
     
     setProgress(percent) {
@@ -59,13 +61,13 @@ export class ProgressBar {
         
         // Log every 5% to avoid too many logs
         if (Math.abs(boundedPercent - this.lastProgress) >= 5) {
-            console.log(`Progress updated to ${boundedPercent.toFixed(1)}%`)
+            debugLog(`Progress updated to ${boundedPercent.toFixed(1)}%`)
             this.lastProgress = boundedPercent
         }
     }
     
     reset() {
-        console.log('Progress bar reset', this.parent)
+        debugLog('Progress bar reset')
         this.bar.style.width = '0%'
         this.lastProgress = 0
     }
@@ -74,5 +76,33 @@ export class ProgressBar {
     ensureVisible() {
         this.container.style.display = 'block'
         this.container.style.opacity = '1'
+    }
+
+    start(duration) {
+        this.reset()
+        this.startTime = Date.now()
+        this.originalDuration = duration
+        this.progressInterval = setInterval(() => {
+            const elapsedTime = Date.now() - this.startTime
+            const progress = Math.min(100, (elapsedTime / duration) * 100)
+            this.setProgress(progress)
+            if (progress >= 100) {
+                clearInterval(this.progressInterval)
+            }
+        }, 50)
+    }
+
+    pause() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval)
+            this.pausedTime = Date.now() - this.startTime
+        }
+    }
+
+    resume() {
+        if (this.pausedTime !== undefined) {
+            const remainingTime = this.originalDuration - this.pausedTime
+            this.start(remainingTime)
+        }
     }
 }

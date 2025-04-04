@@ -8,6 +8,7 @@ import { VideoMediaHandler } from './media/VideoMediaHandler.js'
 import { DebugPanel } from './ui/DebugPanel.js'
 import { ProgressBar } from './ui/ProgressBar.js'
 import { SwLayout } from './components/SwLayout.js'
+import { debugLog } from './utils/debug-utils.js'
 
 // Extend LinkedList with additional methods
 extendLinkedList(LinkedList)
@@ -67,7 +68,7 @@ export class EntuScreenWerkPlayer {
         this.element.style.aspectRatio = 16/9
 
         // Do not start playlists automatically
-        this.debugLog('Player initialized without starting playlists')
+        debugLog('Player initialized without starting playlists')
 
         // Clear previous content
         this.element.innerHTML = ''
@@ -100,12 +101,6 @@ export class EntuScreenWerkPlayer {
         }
     }
     
-    debugLog(message) {
-        if (this.debugMode) {
-            console.log(`%c[PLAYER DEBUG] ${message}`, 'background:#333; color:#bada55')
-        }
-    }
-
     getMediaListForElement(element) {
         return getMediaListContainer(element)
     }
@@ -149,9 +144,9 @@ export class EntuScreenWerkPlayer {
                 // Advance to next or loop - simplified logic
                 const hasNext = mediaList.next()
                 if (hasNext) {
-                    this.debugLog('Manually advancing to next media')
+                    debugLog('Manually advancing to next media')
                 } else {
-                    this.debugLog('Manually looping to first media')
+                    debugLog('Manually looping to first media')
                 }
                 mediaList.getCurrent().play()
             }
@@ -177,163 +172,23 @@ export class EntuScreenWerkPlayer {
     
     resume() {
         this.isPlaying = true
-        this.debugLog('Player resumed')
+        debugLog('Player resumed')
         this.resumeMediaElements()
     }
 
     pause() {
         this.isPlaying = false
-        this.debugLog('Player pause() called')
-        
-        // Pause all videos and stop progress updates
-        const mediaElements = this.element.querySelectorAll('.media-element')
-        mediaElements.forEach(element => {
-            const video = element.querySelector('video')
-            if (video) {
-                video.pause()
-            }
-            
-            // Pause all image timeouts by storing their current state
-            if (element.imageTimeout) {
-                clearTimeout(element.imageTimeout)
-                // Make sure we have a valid startTime before calculating pausedTime
-                if (element.startTime && typeof element.startTime === 'number') {
-                    element.pausedTime = Date.now() - element.startTime
-                    this.debugLog(`Image paused with ${element.pausedTime}ms remaining from ${element.originalDuration}ms total`)
-                } else {
-                    this.debugLog(`Cannot pause image: missing startTime`)
-                }
-            }
-            
-            // Pause the progress updates
-            if (element.progressInterval) {
-                clearInterval(element.progressInterval)
-                element.progressInterval = null
-            }
-        })
-        
+        debugLog('Player pause() called')
+        if (this.layout) {
+            this.layout.pauseMediaElements()
+        }
         this.updateDebugStatus()
     }
 
     resumeMediaElements() {
-        // Resume all videos that were visible
-        const videos = this.element.querySelectorAll('video:not([style*="display: none"])')
-        videos.forEach(video => {
-            video.play()
-        })
-        
-        // Resume all image timeouts - improved implementation with proper checks
-        const mediaElements = this.element.querySelectorAll('.media-element[style*="display: block"]')
-        
-        mediaElements.forEach(element => {
-            this.debugLog(`Resuming media element: ${element.id || 'unknown'}`)
-            
-            // Check if we have the necessary timing information
-            if (element.querySelector('img') && 
-                typeof element.originalDuration === 'number' && 
-                typeof element.pausedTime === 'number') {
-                
-                const remainingTime = element.originalDuration - element.pausedTime
-                
-                if (remainingTime > 0) {
-                    this.debugLog(`Resuming image with ${remainingTime}ms remaining`)
-                    element.startTime = Date.now()
-                    
-                    // Restart the progress bar interval
-                    if (element.progressBarComponent) {
-                        if (element.progressInterval) clearInterval(element.progressInterval)
-                        
-                        element.progressInterval = setInterval(() => {
-                            const elapsedTime = Date.now() - element.startTime
-                            const progress = Math.min(100, ((element.pausedTime + elapsedTime) / element.originalDuration) * 100)
-                            element.progressBarComponent.setProgress(progress)
-                        }, 50)
-                    }
-                    
-                    // Get the parent container and its mediaList
-                    const container = element.parentNode
-                    if (container && container.mediaList) {
-                        const mediaList = container.mediaList
-                        
-                        element.imageTimeout = setTimeout(() => {
-                            this.debugLog('Resumed image timeout complete')
-                            
-                            if (element.progressInterval) {
-                                clearInterval(element.progressInterval)
-                                element.progressInterval = null
-                            }
-                            
-                            // Find the current media item and advance
-                            const hasNext = mediaList.next()
-                            const currentMedia = mediaList.getCurrent()
-                            if (hasNext && currentMedia && typeof currentMedia.play === 'function') {
-                                currentMedia.play()
-                            } else if (mediaList.shouldLoop && currentMedia && typeof currentMedia.play === 'function') {
-                                mediaList.first()
-                                mediaList.getCurrent().play()
-                            } else {
-                                this.debugLog('No valid media to play after timeout')
-                            }
-                        }, remainingTime)
-                    }
-                    
-                    element.pausedTime = null
-                } else {
-                    this.debugLog(`Cannot resume image: remaining time is ${remainingTime}ms`)
-                    // Force advancing to next item if remaining time is invalid
-                    this.forceNextMedia()
-                }
-            } else {
-                // Handle case where timing information is missing
-                this.debugLog(`Cannot resume media: missing timing information`)
-                if (element.querySelector('img')) {
-                    this.debugLog(`Restarting image from beginning`)
-                    // Restart the image from the beginning
-                    element.startTime = Date.now()
-                    element.originalDuration = element.originalDuration || DEFAULTS.IMAGE_PLAYBACK_DURATION * 1000
-                    element.pausedTime = 0
-                    
-                    // Restart the progress bar interval
-                    if (element.progressBarComponent) {
-                        if (element.progressInterval) clearInterval(element.progressInterval)
-                        
-                        element.progressInterval = setInterval(() => {
-                            const elapsedTime = Date.now() - element.startTime
-                            const progress = Math.min(100, (elapsedTime / element.originalDuration) * 100)
-                            element.progressBarComponent.setProgress(progress)
-                        }, 50)
-                    }
-                    
-                    // Restart the timeout for the image
-                    const container = element.parentNode
-                    if (container && container.mediaList) {
-                        const mediaList = container.mediaList
-                        
-                        element.imageTimeout = setTimeout(() => {
-                            this.debugLog('Image timeout complete after restart')
-                            
-                            if (element.progressInterval) {
-                                clearInterval(element.progressInterval)
-                                element.progressInterval = null
-                            }
-                            
-                            // Move to the next media item
-                            const hasNext = mediaList.next()
-                            const currentMedia = mediaList.getCurrent()
-                            if (hasNext && currentMedia && typeof currentMedia.play === 'function') {
-                                currentMedia.play()
-                            } else if (mediaList.shouldLoop && currentMedia && typeof currentMedia.play === 'function') {
-                                mediaList.first()
-                                mediaList.getCurrent().play()
-                            } else {
-                                this.debugLog('No valid media to play after restart')
-                            }
-                        }, element.originalDuration)
-                    }
-                }
-            }
-        })
-        
+        if (this.layout) {
+            this.layout.resumeMediaElements()
+        }
         this.updateDebugStatus()
     }    
 }

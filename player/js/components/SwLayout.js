@@ -46,4 +46,14 @@ export class SwLayout {
             playlist.play()
         })
     }
+    resumeMediaElements() {
+        this.playlists.forEach(playlist => {
+            playlist.resumeMediaElements()
+        })
+    }
+    pauseMediaElements() {
+        this.playlists.forEach(playlist => {
+            playlist.pauseMediaElements()
+        })
+    }
 }

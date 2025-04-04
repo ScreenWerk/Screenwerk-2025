@@ -82,8 +82,8 @@ export async function displayConfigurations() {
                 playerPanelE.appendChild(playerElementE)
                 screenGroupSectionE.appendChild(playerPanelE)
                 const screen_group_config = configuration
-                console.log(`Processing screen group: ${screen_group_id}`)
-                console.log(`Screen group configuration:`, screen_group_config)
+                // console.log(`Processing screen group: ${screen_group_id}`)
+                // console.log(`Screen group configuration:`, screen_group_config)
 
                 if (screen_group_config) {
                     try {

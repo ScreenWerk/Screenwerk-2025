@@ -1,5 +1,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
+import { ProgressBar } from '../ui/ProgressBar.js'
+
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10
 }
@@ -24,6 +26,7 @@ export class SwMedia {
         this.ordinal = configuration.ordinal
         this.mute = configuration.mute
         this.stretch = configuration.stretch
+        this.progressBar = null // Initialize progress bar reference
         this.render()
     }
     render() {
@@ -67,6 +70,13 @@ export class SwMedia {
             this.dom_element.appendChild(video)
             video.pause()  // Ensure it's paused initially
         }
+
+        // Add a progress bar to the media element
+        this.progressBar = new ProgressBar(this.dom_element, {
+            barColor: '#00a1ff',
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            height: '4px'
+        })
     }
     play() {
         this.dom_element.style.display = 'block'
@@ -77,19 +87,41 @@ export class SwMedia {
             const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
-                    // console.log(`Autoplay started for ${this.dom_element.id}`)
+                    this.progressBar.start(video_div.duration * 1000)
                 }).catch(error => {
-                    // console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
+                    console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
                 })
             }
         } else if (this.type === 'Image') {
-            // console.log(`Image ${this.dom_element.id} started for ${this.duration} s`)
+            this.progressBar.start(this.duration * 1000)
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
-                const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
-                // console.log(`Image ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                 this.parent.next().play()
-            }, this.duration * 1e3)
+            }, this.duration * 1000)
+        }
+    }
+    resume() {
+        if (this.type === 'Video') {
+            const video = this.dom_element.querySelector('video')
+            if (video) {
+                video.play()
+                this.progressBar.resume()
+            }
+        } else if (this.type === 'Image') {
+            console.log(`Resuming image: ${this.name}`)
+            this.progressBar.resume()
+        }
+    }
+    pause() {
+        if (this.type === 'Video') {
+            const video = this.dom_element.querySelector('video')
+            if (video) {
+                video.pause()
+                this.progressBar.pause()
+            }
+        } else if (this.type === 'Image') {
+            console.log(`Pausing image: ${this.name}`)
+            this.progressBar.pause()
         }
     }
 }

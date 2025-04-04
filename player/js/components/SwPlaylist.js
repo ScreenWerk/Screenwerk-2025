@@ -46,4 +46,16 @@ export class SwPlaylist extends LinkedList {
     play() {
         this.current.play()
     }
+    resumeMediaElements() {
+        const currentMedia = this.getCurrent()
+        if (currentMedia) {
+            currentMedia.resume()
+        }
+    }
+    pauseMediaElements() {
+        const currentMedia = this.getCurrent()
+        if (currentMedia) {
+            currentMedia.pause()
+        }
+    }
 }
