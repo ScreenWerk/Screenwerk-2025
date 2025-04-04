@@ -68,9 +68,7 @@ export class EntuScreenWerkPlayer {
 
         // Do not start playlists automatically
         this.debugLog('Player initialized without starting playlists')
-    }
-    
-    initializePlayerContent(activeSchedule) {
+
         // Clear previous content
         this.element.innerHTML = ''
 
@@ -88,17 +86,8 @@ export class EntuScreenWerkPlayer {
         layoutContainerElement.style.overflow = 'hidden'
 
         // Use SwLayout to handle layout rendering
-        this.layout = new SwLayout(this, layoutContainerElement, activeSchedule)
+        this.layout = new SwLayout(this, layoutContainerElement, this.configuration.schedules[this.currentScheduleIndex])
         this.element.appendChild(layoutContainerElement)
-
-        // Process layout playlists
-        if (activeSchedule.layoutPlaylists && activeSchedule.layoutPlaylists.length > 0) {
-            activeSchedule.layoutPlaylists.forEach(playlist => {
-                this.createPlaylistContainer(layoutContainerElement, playlist)
-            })
-        } else {
-            this.showError('No playlists in the active schedule')
-        }
     }
 
     togglePlayPause() {
@@ -128,41 +117,6 @@ export class EntuScreenWerkPlayer {
     debugLog(message) {
         if (this.debugMode) {
             console.log(`%c[PLAYER DEBUG] ${message}`, 'background:#333; color:#bada55')
-        }
-    }
-    
-    createPlaylistContainer(layoutContainer, layoutPlaylist) {
-        const container = document.createElement('div')
-        container.className = 'playlist-container'
-        container.style.position = 'absolute'
-        container.style.left = `${layoutPlaylist.left}${layoutPlaylist.inPixels ? 'px' : '%'}`
-        container.style.top = `${layoutPlaylist.top}${layoutPlaylist.inPixels ? 'px' : '%'}`
-        container.style.width = `${layoutPlaylist.width}${layoutPlaylist.inPixels ? 'px' : '%'}`
-        container.style.height = `${layoutPlaylist.height}${layoutPlaylist.inPixels ? 'px' : '%'}`
-        container.style.zIndex = layoutPlaylist.zindex || 1
-        
-        // Add Entu ID to playlist container
-        if (layoutPlaylist._id) {
-            container.id = `playlist_${layoutPlaylist._id}`
-            container.setAttribute('data-entu-id', layoutPlaylist._id)
-            container.setAttribute('data-entu-type', 'layout_playlist')
-        }
-        if (layoutPlaylist.eid) {
-            container.setAttribute('data-eid', layoutPlaylist.eid)
-        }
-        if (layoutPlaylist.playlistEid) {
-            container.setAttribute('data-playlist-eid', layoutPlaylist.playlistEid)
-        }
-        
-        // Store original loop setting as attribute for reference only
-        container.setAttribute('data-original-loop', layoutPlaylist.loop)
-        
-        // Add to layout container instead of this.element
-        layoutContainer.appendChild(container)
-        
-        // Start playing media in the playlist - removed loop parameter since we always loop
-        if (layoutPlaylist.playlistMedias && layoutPlaylist.playlistMedias.length > 0) {
-            this.playMediaSequence(container, layoutPlaylist.playlistMedias)
         }
     }
     
@@ -525,23 +479,9 @@ export class EntuScreenWerkPlayer {
         return current
     }
 
-    play() {
-        this.isPlaying = true
-        this.debugLog('Player play() called')
-        
-        const activeSchedule = this.configuration.schedules[this.currentScheduleIndex]
-        if (!activeSchedule) {
-            this.showError('No active schedule found')
-            return
-        }
-
-        this.initializePlayerContent(activeSchedule)
-        this.resumeMediaElements()
-    }
-    
     resume() {
         this.isPlaying = true
-        this.debugLog('Player resume() called')
+        this.debugLog('Player resumed')
         this.resumeMediaElements()
     }
 
