@@ -106,62 +106,6 @@ export class EntuScreenWerkPlayer {
         }
     }
     
-    playMediaSequence(container, mediaItems) {
-        // Create a linked list structure for media items
-        const mediaList = new LinkedList()
-
-        // Store the list by container reference for later use
-        container.mediaList = mediaList
-
-        this.debugLog(`Creating playlist with ${mediaItems.length} items`)
-
-        // Always set shouldLoop to true - we always want playlists to loop
-        mediaList.shouldLoop = true
-
-        // Add each media item to the list
-        mediaItems.forEach(mediaItem => {
-            // Create the media element
-            const mediaElement = document.createElement('div')
-            mediaElement.className = 'media-element'
-            mediaElement.style.display = 'none'
-            mediaElement.style.width = '100%'
-            mediaElement.style.height = '100%'
-            mediaElement.style.position = 'absolute'
-
-            // Load the media content
-            this.loadMedia(mediaItem, mediaElement)
-
-            // Add it to the container
-            container.appendChild(mediaElement)
-
-            // Add to the linked list - removed loop parameter from play method
-            mediaList.add({
-                element: mediaElement,
-                mediaItem: mediaItem,
-                container: container,
-                play: () => this.playMediaItem(mediaElement, mediaItem, mediaList)
-            })
-        })
-
-        // Removed automatic playback of the first item
-        this.debugLog('Playlist created but not started automatically')
-    }
-    
-    playMediaItem(media_element, mediaItem, mediaList) {
-        this.hideOtherMediaElements(media_element)
-
-        media_element.style.display = 'block'
-        this.debugLog(`Playing media: ${mediaItem.name || mediaItem.mediaEid}`)
-
-        if (mediaItem.type === 'Image') {
-            this.handleImagePlayback(media_element, mediaItem, mediaList)
-        } else if (mediaItem.type === 'Video') {
-            this.handleVideoPlayback(media_element, mediaItem, mediaList)
-        }
-
-        this.updateDebugStatus()
-    }
-
     hideOtherMediaElements(media_element) {
         const playlist_container = media_element.parentNode
         Array.from(playlist_container.children).forEach(child => {
