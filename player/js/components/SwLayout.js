@@ -21,13 +21,18 @@ export class SwLayout {
         this.dom_element.setAttribute('cleanup', configuration.cleanup ? 'true' : 'false')
         this.dom_element.classList.add('layout')
         
-        // Check if the parent has a dom_element property before trying to append to it
-        // This allows the SwLayout to work even when initialized from EntuScreenWerkPlayer
+        // Set attributes and styles for the layout container
+        this.dom_element.className = 'layout-container'
+        this.dom_element.style.position = 'relative'
+        this.dom_element.style.width = '100%'
+        this.dom_element.style.height = '100%'
+        this.dom_element.style.overflow = 'hidden'
+
+        // Append the layout container to the parent
         if (this.parent.dom_element) {
             this.parent.dom_element.appendChild(this.dom_element)
         } else if (this.parent.element) {
-            // Fallback for when parent is EntuScreenWerkPlayer which has 'element' property
-            // No need to append since the layout container is already added to element
+            // Fallback for when parent is EntuScreenWerkPlayer
         }
 
         configuration.layoutPlaylists.forEach(layout_playlist => {

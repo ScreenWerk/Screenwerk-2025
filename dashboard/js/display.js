@@ -88,7 +88,7 @@ export async function displayConfigurations() {
                 if (screen_group_config) {
                     try {
                         const player = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
-                        player.play()
+                        player.resume() // Updated from play() to resume()
                         console.log(`Player initialized for screen group: ${screen_group_id}`)
                     } catch (error) {
                         console.error(`Error initializing player for screen group: ${screen_group_id}`, error)

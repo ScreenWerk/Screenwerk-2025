@@ -79,25 +79,11 @@ export class EntuScreenWerkPlayer {
 
         // Create layout container using SwLayout component
         const layoutContainerElement = document.createElement('div')
-        layoutContainerElement.className = 'layout-container'
-        layoutContainerElement.style.position = 'relative'
-        layoutContainerElement.style.width = '100%'
-        layoutContainerElement.style.height = '100%'
-        layoutContainerElement.style.overflow = 'hidden'
-
-        // Use SwLayout to handle layout rendering
-        this.layout = new SwLayout(this, layoutContainerElement, this.configuration.schedules[this.currentScheduleIndex])
+        const current_schedule = this.configuration.schedules[this.currentScheduleIndex]
+        this.layout = new SwLayout(this, layoutContainerElement, current_schedule)
         this.element.appendChild(layoutContainerElement)
     }
 
-    togglePlayPause() {
-        if (this.isPlaying) {
-            this.pause()
-        } else {
-            this.resume()
-        }
-    }
-    
     addDebugControls() {
         // Use DebugPanel class instead of directly creating elements
         this.debugPanel = new DebugPanel(this.element, {
@@ -479,6 +465,14 @@ export class EntuScreenWerkPlayer {
         return current
     }
 
+    togglePlayPause() {
+        if (this.isPlaying) {
+            this.pause()
+        } else {
+            this.resume()
+        }
+    }
+    
     resume() {
         this.isPlaying = true
         this.debugLog('Player resumed')
