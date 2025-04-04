@@ -65,6 +65,7 @@ export class ProgressBar {
     }
     
     reset() {
+        console.log('Progress bar reset', this.parent)
         this.bar.style.width = '0%'
         this.lastProgress = 0
     }
