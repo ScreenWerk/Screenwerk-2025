@@ -1,6 +1,7 @@
 import { groupEntities } from './data.js'
 import { toolbarSnippet } from './ui.js'
 import { EntuScreenWerkPlayer } from '../../player/js/sw-player.js'
+import { debugLog } from '../../common/utils/debug-utils.js'
 
 export function updateProgressBar(progress) {
     const progressBar = document.getElementById('progress-bar')
@@ -132,26 +133,39 @@ export async function displayConfigurations() {
 
     const accordions = document.getElementsByClassName("accordion")
     for (let i = 0; i < accordions.length; i++) {
-        const accordion = accordions[i];
-        const panel = accordion.nextElementSibling;
+        const accordion = accordions[i]
+        const panel = accordion.nextElementSibling
         
         // Add appropriate ARIA attributes
-        accordion.setAttribute('aria-expanded', 'false');
-        accordion.setAttribute('aria-controls', `panel-${i}`);
-        panel.id = `panel-${i}`;
-        panel.setAttribute('aria-hidden', 'true');
+        accordion.setAttribute('aria-expanded', 'false')
+        accordion.setAttribute('aria-controls', `panel-${i}`)
+        panel.id = `panel-${i}`
+        panel.setAttribute('aria-hidden', 'true')
         
         accordion.addEventListener("click", function() {
-            const expanded = this.classList.toggle("active");
-            this.setAttribute('aria-expanded', expanded);
+            debugLog(`Accordion clicked: ${this.textContent}`)
+            const expanded = this.classList.toggle("active")
+            this.setAttribute('aria-expanded', expanded)
             
-            let panel = this.nextElementSibling;
+            let panel = this.nextElementSibling
             while (panel && panel.classList.contains("panel")) {
-                const isVisible = panel.style.display === "block";
-                panel.style.display = isVisible ? "none" : "block";
-                panel.setAttribute('aria-hidden', isVisible);
-                panel = panel.nextElementSibling;
+                const isVisible = panel.style.display === "block"
+                panel.style.display = isVisible ? "none" : "block"
+                panel.setAttribute('aria-hidden', isVisible)
+
+                // Start or pause the child player
+                const playerElement = panel.querySelector(".mini-player")
+                if (playerElement && playerElement.mediaList) {
+                    debugLog(`Player found for ${playerElement.id}`)
+                    if (!isVisible) {
+                        playerElement.mediaList.getCurrent()?.play()
+                    } else {
+                        playerElement.mediaList.getCurrent()?.pause()
+                    }
+                }
+
+                panel = panel.nextElementSibling
             }
-        });
+        })
     }
 }

@@ -4,6 +4,7 @@ import { fetchJSON } from '../../common/utils/utils.js'
 import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js' 
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
+import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 
 const reportProblem = (message, with_link = false) => {
     console.error(message)

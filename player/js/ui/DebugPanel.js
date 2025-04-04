@@ -1,3 +1,5 @@
+import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
+
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 export class DebugPanel {

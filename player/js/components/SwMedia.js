@@ -1,6 +1,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { ProgressBar } from '../ui/ProgressBar.js'
+import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
 
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10

@@ -6,9 +6,8 @@ import { getMediaListContainer, showError } from './utils/player-utils.js'
 import { ImageMediaHandler } from './media/ImageMediaHandler.js'
 import { VideoMediaHandler } from './media/VideoMediaHandler.js'
 import { DebugPanel } from './ui/DebugPanel.js'
-import { ProgressBar } from './ui/ProgressBar.js'
 import { SwLayout } from './components/SwLayout.js'
-import { debugLog } from './utils/debug-utils.js'
+import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 
 // Extend LinkedList with additional methods
 extendLinkedList(LinkedList)
