@@ -179,6 +179,7 @@ export class EntuScreenWerkPlayer {
         if (this.layout) {
             this.layout.resumeMediaElements()
         }
+        this.updateDebugStatus()
         return true
     }
 
