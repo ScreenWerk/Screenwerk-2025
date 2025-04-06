@@ -162,13 +162,14 @@ function handlePlayerState(panel, section_name) {
         return
     }
     const subPanels = panel.querySelectorAll(".panel")
-    const allSubPanelsExpanded = Array.from(subPanels).every(subPanel => subPanel.style.display === "block")
-    if (!allSubPanelsExpanded) {
-        console.log(`Not all sub-panels are expanded for ${section_name}`)
-        swPlayer.pause()
-    } else {
+    const allPanelsExpanded = panel.style.display === "block"
+        && Array.from(subPanels).every(subPanel => subPanel.style.display === "block")
+    if (allPanelsExpanded) {
         console.log(`All sub-panels are expanded for ${section_name}`)
         swPlayer.resume()
+    } else {
+        console.log(`Not all sub-panels are expanded for ${section_name}`)
+        swPlayer.pause()
     }
     if (swPlayer.isPlaying) {
         console.log(`Player is now playing for ${section_name}`)
