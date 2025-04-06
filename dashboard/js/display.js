@@ -89,6 +89,7 @@ export async function displayConfigurations() {
                 if (screen_group_config) {
                     try {
                         // Initialize the player with the screen group configuration
+                        // and bind it to the playerElementE
                         playerElementE.SwPlayer = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
                         console.log(`Player initialized for screen group: ${screen_group_id}`)
                     } catch (error) {
@@ -99,22 +100,6 @@ export async function displayConfigurations() {
                     playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
                 }
 
-                const screenList = document.createElement("div")
-                screenList.className = "panel"
-
-                screen_group.screens.forEach(screen => {
-                    const screenSection = document.createElement("section")
-                    screenSection.className = "screen-section"
-                    screenSection.innerHTML = `
-                        ${screen.name[0].string} 
-                        ${toolbarSnippet(screen._id, '', screen._id)}
-                    `
-                    screenList.appendChild(screenSection)
-                    loadedScreens++
-                    updateProgressBar(Math.round((loadedScreens / totalScreens) * 100))
-                })
-
-                screenGroupSectionE.appendChild(screenList)
                 screenGroupListE.appendChild(screenGroupSectionE)
             }
 
@@ -143,29 +128,51 @@ export async function displayConfigurations() {
         panel.setAttribute('aria-hidden', 'true')
         
         accordion.addEventListener("click", function() {
-            debugLog(`Accordion clicked: ${this.textContent}`)
+            const parent_class = this.parentElement.classList[0]
+            debugLog(`Accordion clicked: ${parent_class}`)
             const expanded = this.classList.toggle("active")
             this.setAttribute('aria-expanded', expanded)
             
             let panel = this.nextElementSibling
             while (panel && panel.classList.contains("panel")) {
-                const isVisible = panel.style.display === "block"
-                panel.style.display = isVisible ? "none" : "block"
-                panel.setAttribute('aria-hidden', isVisible)
-
-                // Start or pause the child player
-                const playerElement = panel.querySelector(".mini-player")
-                if (playerElement && playerElement.mediaList) {
-                    debugLog(`Player found for ${playerElement.id}`)
-                    if (!isVisible) {
-                        playerElement.mediaList.getCurrent()?.play()
-                    } else {
-                        playerElement.mediaList.getCurrent()?.pause()
-                    }
-                }
-
+                togglePanelVisibility(panel)
+                handlePlayerState(panel, parent_class)
                 panel = panel.nextElementSibling
             }
         })
+    }
+}
+
+function togglePanelVisibility(panel) {
+    const isVisible = panel.style.display === "block"
+    panel.style.display = isVisible ? "none" : "block"
+    panel.setAttribute('aria-hidden', isVisible)
+}
+
+function handlePlayerState(panel, section_name) {
+    const playerElement = panel.querySelector(".mini-player")
+    if (!playerElement) {
+        debugLog(`No player element found for ${section_name}`)
+        debugLog(panel)
+        return
+    }
+    const swPlayer = playerElement.SwPlayer
+    if (!swPlayer) {
+        debugLog(`No SwPlayer instance found for ${section_name}`)
+        return
+    }
+    const subPanels = panel.querySelectorAll(".panel")
+    const allSubPanelsExpanded = Array.from(subPanels).every(subPanel => subPanel.style.display === "block")
+    if (!allSubPanelsExpanded) {
+        console.log(`Not all sub-panels are expanded for ${section_name}`)
+        swPlayer.pause()
+    } else {
+        console.log(`All sub-panels are expanded for ${section_name}`)
+        swPlayer.resume()
+    }
+    if (swPlayer.isPlaying) {
+        console.log(`Player is now playing for ${section_name}`)
+    } else {
+        console.log(`Player is now paused for ${section_name}`)
     }
 }

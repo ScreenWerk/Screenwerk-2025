@@ -170,24 +170,29 @@ export class EntuScreenWerkPlayer {
     }
     
     resume() {
+        if (this.isPlaying) {
+            debugLog('Player already playing')
+            return false
+        }
         this.isPlaying = true
         debugLog('Player resumed')
-        this.resumeMediaElements()
+        if (this.layout) {
+            this.layout.resumeMediaElements()
+        }
+        return true
     }
 
     pause() {
+        if (!this.isPlaying) {
+            debugLog('Player already paused')
+            return false
+        }
         this.isPlaying = false
         debugLog('Player pause() called')
         if (this.layout) {
             this.layout.pauseMediaElements()
         }
         this.updateDebugStatus()
+        return true
     }
-
-    resumeMediaElements() {
-        if (this.layout) {
-            this.layout.resumeMediaElements()
-        }
-        this.updateDebugStatus()
-    }    
 }

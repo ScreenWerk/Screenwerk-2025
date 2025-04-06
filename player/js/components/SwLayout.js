@@ -42,11 +42,6 @@ export class SwLayout {
             this.playlists.push(sw_playlist)
         })
     }
-    play() {
-        this.playlists.forEach(playlist => {
-            playlist.play()
-        })
-    }
     resumeMediaElements() {
         this.playlists.forEach(playlist => {
             playlist.resumeMediaElements()
