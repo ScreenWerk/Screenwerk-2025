@@ -102,6 +102,7 @@ export class SwMedia {
         }
     }
     resume() {
+        this.dom_element.style.display = 'block'
         if (this.type === 'Video') {
             const video = this.dom_element.querySelector('video')
             if (video) {
