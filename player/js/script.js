@@ -113,16 +113,43 @@ const promptForScreenId = () => {
     errorMsg.style.marginTop = '0.5em'
     errorMsg.style.fontSize = '0.95em'
 
-    button.onclick = () => {
+    button.onclick = async () => {
         const val = input.value.trim()
         const eid_re = /^[0-9a-f]{24}$/
+        if (!val) {
+            errorMsg.textContent = 'Screen ID cannot be empty.'
+            return
+        }
+        if (val.length !== 24) {
+            errorMsg.textContent = 'Screen ID must be exactly 24 characters.'
+            return
+        }
+        if (!/^[0-9a-f]+$/.test(val)) {
+            errorMsg.textContent = 'Screen ID must contain only lowercase hex digits (0-9, a-f).'
+            return
+        }
         if (!eid_re.test(val)) {
             errorMsg.textContent = 'Please enter a valid 24-character screen ID.'
             return
         }
-        // Save and reload
-        localStorage.setItem('selected_screen', JSON.stringify({ screen_id: val }))
-        window.location.reload()
+        // Check if published
+        errorMsg.textContent = 'Checking if screen is published...'
+        button.disabled = true
+        input.disabled = true
+        try {
+            const u = `${SCREENWERK_PUBLISHER_API}${val}.json`
+            const resp = await fetch(u)
+            if (!resp.ok) {
+                throw new Error('Not published or not found')
+            }
+            // Save and reload
+            localStorage.setItem('selected_screen', JSON.stringify({ screen_id: val }))
+            window.location.reload()
+        } catch (err) {
+            errorMsg.textContent = 'Screen ID is not published or not found. Please check and try again.'
+            button.disabled = false
+            input.disabled = false
+        }
     }
 
     promptDiv.appendChild(label)
