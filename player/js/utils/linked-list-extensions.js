@@ -10,16 +10,26 @@ export function extendLinkedList(LinkedList) {
     }
 
     LinkedList.prototype.next = function() {
-        if (this.current && this.current.next) {
+        if (!this.head) {
+            console.error('LinkedList is empty')
+            return false
+        }
+        
+        if (!this.current) {
+            console.error('No current node in LinkedList')
+            return this.first() // Try to move to first
+        }
+        
+        if (this.current.next) {
+            console.log('Moving to next node in LinkedList')
             this.current = this.current.next
             return true
-        } else if (this.current) {
-            // Always loop back to the first item - removed conditional check for shouldLoop
-            // since we always want playlists to loop
+        } else {
+            // Loop back to beginning
+            console.log('Reached end of LinkedList, looping back to beginning')
             this.current = this.head
             return true
         }
-        return false
     }
 
     LinkedList.prototype.add = function(item) {
