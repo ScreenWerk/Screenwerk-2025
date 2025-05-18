@@ -15,7 +15,7 @@ function detectEnvironment() {
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1'
   )) {
-    console.log('ENV: Detected from window.location.hostname:', window.location.hostname)
+    console.log('ENV: Detected from window.location.hostname:', window.location.hostname, '(local)')
     return 'local'
   }
   // Browser: try gitInfo branch
