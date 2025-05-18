@@ -3,6 +3,6 @@
 window.gitInfo = {
   branch: 'local-development',
   commit: 'dev',
-  buildTime: '2025-05-18T04:44:23.650Z',
+  buildTime: '2025-03-08T22:38:27.292Z',
   deployUrl: 'http://localhost'
 }

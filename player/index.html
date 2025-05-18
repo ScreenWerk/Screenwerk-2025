@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <title>Entu ScreenWerk Player</title>
+        <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+        <link href='./css/style.css' rel='stylesheet' />
+        <link href='./css/player.css' rel='stylesheet' /> <!-- Added player.css -->
+        <script src="/later.min.js"></script>
+        <script src="/cron.js"></script>
+        <script src='/config.js' type="module"></script>
+    </head>
+
+    <body>
+        <pre id='error' style='display: none'></pre>
+        <h1>Entu ScreenWerk Player</h1>
+        <div>Screen on Entu: <a id='screenId' href=''></a></div>
+        <!-- <p>Screen name: <span id='screenName'></span></p> -->
+        <div>Published at: <span id='published'></span></div>
+        <div id='player'></div>
+        <div>
+        Configuration:
+        <pre id='configuration'></pre>
+        </div>
+        <button id="fullscreenButton" style="display: none;">Enter Fullscreen</button>
+    </body>
+
+    <script src='/player/js/script.js' type="module"></script>
+</html>

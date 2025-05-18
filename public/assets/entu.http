@@ -1,0 +1,69 @@
+@hostname=entu.app/api
+@account=piletilevi
+###########################################
+# only requesting publicly available data #
+# no authorization needed                 #
+###########################################
+
+###
+# auth
+GET {{hostname}}/auth?account={{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_key}}
+
+###
+# account
+GET {{hostname}}/{{account}} HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
+
+###
+# GET list of configurations
+GET {{hostname}}/{{account}}/entity?_type.string=sw_configuration&props=name.string HTTP/1.1
+
+###
+# GET list of customers
+GET {{hostname}}/{{account}}/entity?_type.string=customer
+###
+# GET list of screen groups
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen_group&props=name.string,published.datetime HTTP/1.1
+
+###
+# GET list of sw_screen's
+GET {{hostname}}/{{account}}/entity?_type.string=sw_screen&props=name.string,screen_group.string,screen_group.reference,published.string&limit=10&skip=2 HTTP/1.1
+Accept-Encoding: deflate
+Authorization: Bearer {{pl_token}}
+
+###
+# GET sw_screen
+GET {{hostname}}/{{account}}/entity/568cd3464ecca5c17a599abb HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_screen_group
+GET {{hostname}}/{{account}}/entity/542557254ecca5c17a598bbf HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_configuration
+GET {{hostname}}/{{account}}/entity/5425570e4ecca5c17a598bbe HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_schedules for configuration
+GET {{hostname}}/{{account}}/entity?_type.string=sw_schedule&_parent.reference=5425570e4ecca5c17a598bbe HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_layout_playlists
+GET {{hostname}}/{{account}}/entity?_type.string=sw_layout_playlist&_parent.reference=5425473e4ecca5c17a598bba HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET sw_playlist_medias
+GET {{hostname}}/{{account}}/entity?_type.string=sw_playlist_media&_parent.reference=5476deae4ecca5c17a598d9a HTTP/1.1
+Accept-Encoding: deflate
+
+###
+# GET test
+GET {{hostname}}/{{account}}/entity/549173934ecca5c17a598f20

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
+
+// Simplified version that doesn't need to import fetchJSON
 
 // Get Git information from Netlify environment variables
-const branch = process.env.BRANCH || 'local-development';
-const commit = process.env.COMMIT_REF?.slice(0, 7) || 'dev';
-const buildTime = new Date().toISOString();
-const deployUrl = process.env.DEPLOY_URL || 'http://localhost';
+const branch = process.env.BRANCH || 'local-development'
+const commit = process.env.COMMIT_REF?.slice(0, 7) || 'dev'
+const buildTime = new Date().toISOString()
+const deployUrl = process.env.DEPLOY_URL || 'http://localhost'
 
 // Create the content for git-info.js
 const fileContent = `
@@ -17,11 +19,11 @@ window.gitInfo = {
   commit: '${commit}',
   buildTime: '${buildTime}',
   deployUrl: '${deployUrl}'
-};
-`;
+}
+`
 
 // Write the file
-const outputPath = path.join(__dirname, '..', 'git-info.js');
-fs.writeFileSync(outputPath, fileContent);
+const outputPath = path.join(__dirname, '..', 'git-info.js')
+fs.writeFileSync(outputPath, fileContent)
 
-console.log(`Generated git-info.js with branch: ${branch}, commit: ${commit}`);
+console.log(`Generated git-info.js with branch: ${branch}, commit: ${commit}`)
