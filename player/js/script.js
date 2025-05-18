@@ -62,11 +62,82 @@ const saveScreenIdAndReload = (screen_id) => {
     window.location.href = cleanUrl.toString() // This will reload the page
 }
 
+const promptForScreenId = () => {
+    // Remove any previous prompt
+    let oldPrompt = document.getElementById('screen-id-prompt')
+    if (oldPrompt) oldPrompt.remove()
+
+    // Remove player element if it exists
+    let playerElement = document.getElementById('player')
+    if (playerElement) playerElement.remove()
+
+    // Create a new prompt for screen ID
+    const promptDiv = document.createElement('div')
+    promptDiv.id = 'screen-id-prompt'
+    promptDiv.style.margin = '2em auto'
+    promptDiv.style.maxWidth = '400px'
+    promptDiv.style.padding = '1em'
+    promptDiv.style.background = '#fff'
+    promptDiv.style.border = '1px solid #ccc'
+    promptDiv.style.borderRadius = '8px'
+    promptDiv.style.textAlign = 'center'
+
+    const label = document.createElement('label')
+    label.textContent = 'Enter Screen ID:'
+    label.htmlFor = 'manual-screen-id'
+    label.style.display = 'block'
+    label.style.marginBottom = '0.5em'
+
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.id = 'manual-screen-id'
+    input.placeholder = '24-character screen ID'
+    input.style.width = '90%'
+    input.style.padding = '0.5em'
+    input.style.marginBottom = '0.5em'
+    input.style.border = '1px solid #aaa'
+    input.style.borderRadius = '4px'
+
+    const button = document.createElement('button')
+    button.textContent = 'Submit'
+    button.style.padding = '0.5em 1.5em'
+    button.style.marginLeft = '0.5em'
+    button.style.border = 'none'
+    button.style.background = '#007bff'
+    button.style.color = '#fff'
+    button.style.borderRadius = '4px'
+    button.style.cursor = 'pointer'
+
+    const errorMsg = document.createElement('div')
+    errorMsg.style.color = 'red'
+    errorMsg.style.marginTop = '0.5em'
+    errorMsg.style.fontSize = '0.95em'
+
+    button.onclick = () => {
+        const val = input.value.trim()
+        const eid_re = /^[0-9a-f]{24}$/
+        if (!eid_re.test(val)) {
+            errorMsg.textContent = 'Please enter a valid 24-character screen ID.'
+            return
+        }
+        // Save and reload
+        localStorage.setItem('selected_screen', JSON.stringify({ screen_id: val }))
+        window.location.reload()
+    }
+
+    promptDiv.appendChild(label)
+    promptDiv.appendChild(input)
+    promptDiv.appendChild(button)
+    promptDiv.appendChild(errorMsg)
+    document.body.appendChild(promptDiv)
+    input.focus()
+}
+
 // Get screen ID from localStorage
 const getScreenIdFromStorage = () => {
     const screen_json = localStorage.getItem('selected_screen')
     if (!screen_json) {
-        reportProblem('No screen ID provided in URL and none found in storage. Please select a screen.', true)
+        promptForScreenId()
         return null
     }
 
@@ -75,13 +146,13 @@ const getScreenIdFromStorage = () => {
         const screen_id = stored_screen.screen_id
         
         if (!screen_id) {
-            reportProblem('Invalid screen data in storage. Please select a screen again.', true)
+            promptForScreenId()
             return null
         }
         
         return screen_id
     } catch (error) {
-        reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
+        promptForScreenId()
         console.error(error)
         return null
     }
