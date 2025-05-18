@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Fit Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-container {
+            width: 800px;
+            height: 450px;
+            border: 2px solid #333;
+            position: relative;
+            margin-bottom: 20px;
+            background-color: #000;
+            overflow: hidden;
+        }
+        
+        .image-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            margin-right: 10px;
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .control-group {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+        }
+        
+        .control-group label {
+            cursor: pointer;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .control-group strong {
+            display: block;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            margin-top: 30px;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .image-sample {
+            display: inline-block;
+            width: 80px;
+            height: 45px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+        }
+        
+        .image-sample.active {
+            border: 2px solid blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Advanced Image Fit Test for SW25 Player</h1>
+    
+    <div class="control-panel">
+        <div class="control-group">
+            <strong>Test Images:</strong>
+            <button id="loadWideImage">Wide Image (3000×800)</button>
+            <button id="loadTallImage">Tall Image (800×3000)</button>
+            <button id="loadSquareImage">Square Image (1000×1000)</button>
+            <div style="margin-top: 10px;">
+                <div id="sample1" class="image-sample" style="background-image: url('https://picsum.photos/3000/800')"></div>
+                <div id="sample2" class="image-sample" style="background-image: url('https://picsum.photos/800/3000')"></div>
+                <div id="sample3" class="image-sample" style="background-image: url('https://picsum.photos/1000/1000')"></div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <strong>Object Fit Mode:</strong>
+            <label>
+                <input type="radio" name="objectFitMode" value="contain" checked> Contain (Fit Entire Image)
+            </label>
+            <label>
+                <input type="radio" name="objectFitMode" value="cover"> Cover (Fill Container)
+            </label>
+            <label>
+                <input type="radio" name="objectFitMode" value="fill"> Fill (Stretch to Fit)
+            </label>
+            <label>
+                <input type="radio" name="objectFitMode" value="scale-down"> Scale Down (Like Contain or None)
+            </label>
+            <label>
+                <input type="radio" name="objectFitMode" value="none"> None (No Resizing)
+            </label>
+        </div>
+        
+        <div class="control-group">
+            <strong>Container Size:</strong>
+            <label>
+                <input type="radio" name="containerSize" value="wide" checked> Wide (16:9)
+            </label>
+            <label>
+                <input type="radio" name="containerSize" value="standard"> Standard (4:3)
+            </label>
+            <label>
+                <input type="radio" name="containerSize" value="square"> Square (1:1)
+            </label>
+            <label>
+                <input type="radio" name="containerSize" value="portrait"> Portrait (9:16)
+            </label>
+        </div>
+        
+        <div class="control-group">
+            <strong>Additional Options:</strong>
+            <label>
+                <input type="checkbox" id="centerImage"> Center Image
+            </label>
+            <label>
+                <input type="checkbox" id="maintainAspect" checked> Maintain Aspect Ratio
+            </label>
+            <label>
+                <input type="checkbox" id="showBorders"> Show Image Borders
+            </label>
+        </div>
+    </div>
+    
+    <div class="test-grid">
+        <div>
+            <h3>Player Implementation</h3>
+            <div class="test-container" id="playerTest">
+                <div class="image-container">
+                    <img id="testImage1" src="https://picsum.photos/3000/800" alt="Test Image 1">
+                </div>
+            </div>
+            <div>
+                <strong>Image Properties:</strong>
+                <div id="imageProps1"></div>
+            </div>
+        </div>
+        
+        <div>
+            <h3>Reference Implementation</h3>
+            <div class="test-container" id="referenceTest">
+                <div class="image-container">
+                    <img id="testImage2" src="https://picsum.photos/3000/800" alt="Test Image 2">
+                </div>
+            </div>
+            <div>
+                <strong>Image Properties:</strong>
+                <div id="imageProps2"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load test images
+        const loadWideImage = () => {
+            loadImage('https://picsum.photos/3000/800');
+            highlightSample('sample1');
+        };
+        
+        const loadTallImage = () => {
+            loadImage('https://picsum.photos/800/3000');
+            highlightSample('sample2');
+        };
+        
+        const loadSquareImage = () => {
+            loadImage('https://picsum.photos/1000/1000');
+            highlightSample('sample3');
+        };
+        
+        const loadImage = (url) => {
+            document.getElementById('testImage1').src = url;
+            document.getElementById('testImage2').src = url;
+            updateImageProps();
+        };
+        
+        const highlightSample = (id) => {
+            document.querySelectorAll('.image-sample').forEach(sample => {
+                sample.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+        };
+        
+        // Object fit mode handling
+        const setObjectFitMode = (mode) => {
+            document.querySelectorAll('#testImage1, #testImage2').forEach(img => {
+                img.style.objectFit = mode;
+            });
+            updateImageProps();
+        };
+        
+        // Container size handling
+        const setContainerSize = (size) => {
+            const containers = document.querySelectorAll('.test-container');
+            
+            switch (size) {
+                case 'wide': // 16:9
+                    containers.forEach(container => {
+                        container.style.width = '800px';
+                        container.style.height = '450px';
+                    });
+                    break;
+                case 'standard': // 4:3
+                    containers.forEach(container => {
+                        container.style.width = '800px';
+                        container.style.height = '600px';
+                    });
+                    break;
+                case 'square': // 1:1
+                    containers.forEach(container => {
+                        container.style.width = '600px';
+                        container.style.height = '600px';
+                    });
+                    break;
+                case 'portrait': // 9:16
+                    containers.forEach(container => {
+                        container.style.width = '450px';
+                        container.style.height = '800px';
+                    });
+                    break;
+            }
+            
+            updateImageProps();
+        };
+        
+        // Additional options handling
+        const toggleCenterImage = (centered) => {
+            const containers = document.querySelectorAll('.image-container');
+            
+            containers.forEach(container => {
+                if (centered) {
+                    container.style.display = 'flex';
+                    container.style.justifyContent = 'center';
+                    container.style.alignItems = 'center';
+                } else {
+                    container.style.display = 'block';
+                }
+            });
+            
+            updateImageProps();
+        };
+        
+        const toggleMaintainAspect = (maintain) => {
+            const images = document.querySelectorAll('#testImage1, #testImage2');
+            
+            if (!maintain) {
+                // Override object-fit with fill to ignore aspect ratio
+                images.forEach(img => {
+                    img.style.objectFit = 'fill';
+                });
+            } else {
+                // Restore selected object-fit mode
+                const mode = document.querySelector('input[name="objectFitMode"]:checked').value;
+                images.forEach(img => {
+                    img.style.objectFit = mode;
+                });
+            }
+            
+            updateImageProps();
+        };
+        
+        const toggleShowBorders = (show) => {
+            const images = document.querySelectorAll('#testImage1, #testImage2');
+            
+            images.forEach(img => {
+                img.style.border = show ? '2px solid red' : 'none';
+            });
+            
+            updateImageProps();
+        };
+        
+        const updateImageProps = () => {
+            // Get image properties and display them
+            const image1 = document.getElementById('testImage1');
+            const props1 = document.getElementById('imageProps1');
+            
+            const image2 = document.getElementById('testImage2');
+            const props2 = document.getElementById('imageProps2');
+            
+            // Wait for images to load
+            setTimeout(() => {
+                const getDisplayInfo = (img) => `
+                    <ul>
+                        <li>Natural size: ${img.naturalWidth}x${img.naturalHeight}</li>
+                        <li>Natural aspect ratio: ${(img.naturalWidth / img.naturalHeight).toFixed(2)}</li>
+                        <li>Rendered size: ${img.offsetWidth}x${img.offsetHeight}</li>
+                        <li>Rendered aspect ratio: ${(img.offsetWidth / img.offsetHeight).toFixed(2)}</li>
+                        <li>Object-fit: ${getComputedStyle(img).objectFit}</li>
+                        <li>Container: ${img.parentElement.offsetWidth}x${img.parentElement.offsetHeight}</li>
+                        <li>Container aspect ratio: ${(img.parentElement.offsetWidth / img.parentElement.offsetHeight).toFixed(2)}</li>
+                        <li>Is centered: ${getComputedStyle(img.parentElement).display === 'flex' ? 'Yes' : 'No'}</li>
+                        <li>Maintains aspect: ${getComputedStyle(img).objectFit !== 'fill' ? 'Yes' : 'No'}</li>
+                    </ul>
+                `;
+                
+                props1.innerHTML = getDisplayInfo(image1);
+                props2.innerHTML = getDisplayInfo(image2);
+            }, 300);
+        };
+        
+        // Event listeners for sample images
+        document.getElementById('sample1').addEventListener('click', loadWideImage);
+        document.getElementById('sample2').addEventListener('click', loadTallImage);
+        document.getElementById('sample3').addEventListener('click', loadSquareImage);
+        
+        // Add event listeners
+        document.getElementById('loadWideImage').addEventListener('click', loadWideImage);
+        document.getElementById('loadTallImage').addEventListener('click', loadTallImage);
+        document.getElementById('loadSquareImage').addEventListener('click', loadSquareImage);
+        
+        // Add event listeners for radio buttons - object fit mode
+        document.querySelectorAll('input[name="objectFitMode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    setObjectFitMode(e.target.value);
+                    
+                    // If maintain aspect is checked, make sure we apply object fit
+                    if (document.getElementById('maintainAspect').checked) {
+                        toggleMaintainAspect(true);
+                    }
+                }
+            });
+        });
+        
+        // Add event listeners for radio buttons - container size
+        document.querySelectorAll('input[name="containerSize"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    setContainerSize(e.target.value);
+                }
+            });
+        });
+        
+        // Add event listeners for checkboxes
+        document.getElementById('centerImage').addEventListener('change', (e) => {
+            toggleCenterImage(e.target.checked);
+        });
+        
+        document.getElementById('maintainAspect').addEventListener('change', (e) => {
+            toggleMaintainAspect(e.target.checked);
+        });
+        
+        document.getElementById('showBorders').addEventListener('change', (e) => {
+            toggleShowBorders(e.target.checked);
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial object-fit mode based on selected radio button
+            const selectedMode = document.querySelector('input[name="objectFitMode"]:checked').value;
+            setObjectFitMode(selectedMode);
+            
+            // Set initial container size
+            const selectedSize = document.querySelector('input[name="containerSize"]:checked').value;
+            setContainerSize(selectedSize);
+            
+            // Initialize with centering on
+            toggleCenterImage(document.getElementById('centerImage').checked);
+            
+            // Highlight the first sample
+            highlightSample('sample1');
+            
+            updateImageProps();
+        });
+        
+        // Listen for image load events
+        document.getElementById('testImage1').addEventListener('load', updateImageProps);
+        document.getElementById('testImage2').addEventListener('load', updateImageProps);
+    </script>
+</body>
+</html>
