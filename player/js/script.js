@@ -353,4 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.media-progress-container, .progress-bar, #progress-bar-placeholder').forEach(el => {
     el.style.display = ui.showProgress ? '' : 'none';
   });
+
+  // Screen info
+  const screenInfo = document.getElementById('screen-info');
+  if (screenInfo) screenInfo.style.display = ui.showScreenInfo ? '' : 'none';
+
+  // Configuration panel
+  const configPanel = document.getElementById('configuration');
+  if (configPanel) configPanel.style.display = ui.showConfigurationPanel ? '' : 'none';
 });

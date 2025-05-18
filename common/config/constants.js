@@ -50,19 +50,25 @@ export const UI_VISIBILITY = {
     showMediaControls: false,
     showDebugPanel: false,
     showDevBanner: false,
-    showProgress: false
+    showProgress: false,
+    showScreenInfo: true,
+    showConfigurationPanel: false
   },
   dev: {
     showMediaControls: true,
     showDebugPanel: true,
     showDevBanner: true,
-    showProgress: true
+    showProgress: true,
+    showScreenInfo: true,
+    showConfigurationPanel: true
   },
   local: {
     showMediaControls: false,
     showDebugPanel: false,
     showDevBanner: false,
-    showProgress: false
+    showProgress: false,
+    showScreenInfo: false,
+    showConfigurationPanel: true
   }
 }
 
