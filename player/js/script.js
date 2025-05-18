@@ -1,3 +1,4 @@
+// filepath: /home/michelek/Documents/github/sw25/player/js/script.js
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { fetchJSON } from '../../common/utils/utils.js'
@@ -19,119 +20,106 @@ const reportProblem = (message, with_link = false) => {
     }
 }
 
-window.onload = async () => {
-    let screen_id = null
-    let configuration_id = null
-    let configuration = null
+// Check for screen ID in URL query parameters
+const getScreenIdFromUrl = () => {
+    if (!window.location.search) return null
+    
+    const urlParams = new URLSearchParams(window.location.search)
+    const screen_id = urlParams.get('screen_id')
+    
+    if (!screen_id) {
+        reportProblem('No screen_id in URL query', true)
+        return null
+    }
 
-    // 1. Check if there is a screen selected in URL query
-    if (window.location.search) {
-        const urlParams = new URLSearchParams(window.location.search)
-        screen_id = urlParams.get('screen_id')
-        if (!screen_id) {
-            reportProblem('No screen_id in URL query', true)
-            return
-        }
-
-        // Sanity check the screen ID format
-        const eid_re = /^[0-9a-f]{24}$/
-        if (!eid_re.test(screen_id)) {
-            reportProblem('Invalid screen_id in URL query', true)
-            return
-        }
-
-        // Save screen ID to localStorage
-        localStorage.setItem(
-            'selected_screen',
-            JSON.stringify({
-                screen_id: screen_id
-                // No configuration_id - we'll fetch it every time
-            })
-        )
-        
-        // Reload with clean URL
-        const cleanUrl = new URL(window.location.href)
-        cleanUrl.search = '' // Remove all query parameters
-        window.location.href = cleanUrl.toString() // This will reload the page
-        return // Stop execution as page will reload
+    // Sanity check the screen ID format
+    const eid_re = /^[0-9a-f]{24}$/
+    if (!eid_re.test(screen_id)) {
+        reportProblem('Invalid screen_id in URL query', true)
+        return null
     }
     
-    // At this point, we're either after a redirect or a direct visit without URL parameters
-    // 2. Check if screen ID is stored in browser
+    return screen_id
+}
+
+// Save screen ID to localStorage and reload with clean URL
+const saveScreenIdAndReload = (screen_id) => {
+    // Save screen ID to localStorage
+    localStorage.setItem(
+        'selected_screen',
+        JSON.stringify({ screen_id })
+    )
+    
+    // Reload with clean URL
+    const cleanUrl = new URL(window.location.href)
+    cleanUrl.search = '' // Remove all query parameters
+    window.location.href = cleanUrl.toString() // This will reload the page
+}
+
+// Get screen ID from localStorage
+const getScreenIdFromStorage = () => {
     const screen_json = localStorage.getItem('selected_screen')
     if (!screen_json) {
-        // 3. If still negative, report an error
         reportProblem('No screen ID provided in URL and none found in storage. Please select a screen.', true)
-        return
+        return null
     }
 
-    // Parse stored screen data
-    let stored_screen
     try {
-        stored_screen = JSON.parse(screen_json)
+        const stored_screen = JSON.parse(screen_json)
+        const screen_id = stored_screen.screen_id
+        
+        if (!screen_id) {
+            reportProblem('Invalid screen data in storage. Please select a screen again.', true)
+            return null
+        }
+        
+        return screen_id
     } catch (error) {
         reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
         console.error(error)
-        return
+        return null
     }
-    
-    // Extract screen ID and validate
-    screen_id = stored_screen.screen_id
-    if (!screen_id) {
-        reportProblem('Invalid screen data in storage. Please select a screen again.', true)
-        return
-    }
-    
-    // Fetch screen configuration from swpublisher API
+}
+
+// Fetch configuration from API
+const fetchConfiguration = async (screen_id) => {
     const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
     try {
         const sw_configuration = await fetchJSON(u)
-        configuration_id = sw_configuration.configurationEid
+        const configuration_id = sw_configuration.configurationEid
         
         // Clean up configuration
         const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
         unset.forEach((key) => delete sw_configuration[key])
-        configuration = sw_configuration
-
-        // No need to store configuration in localStorage
-        // We're always fetching it fresh on each page load
+        
+        return {
+            configuration: sw_configuration,
+            configuration_id
+        }
     } catch (fetchError) {
         reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
         console.error(fetchError)
-        return
+        return null
     }
+}
 
-    // At this point, we should have valid screen_id, configuration_id, and configuration
-    if (!screen_id || !configuration) {
-        reportProblem('Unable to initialize player. Missing screen data.', true)
-        return
-    }
-
+// Initialize the UI with configuration data
+const initializeUI = (screen_id, configuration) => {
     const screen_id_element = document.getElementById('screenId')
     screen_id_element.textContent = screen_id
-    screen_id_element.setAttribute(
-        'href',
-        `https://entu.app/piletilevi/${screen_id}`
-    )
+    screen_id_element.setAttribute('href', `https://entu.app/piletilevi/${screen_id}`)
 
-    document.getElementById('published').textContent = toDateTimeString(
-        configuration.publishedAt
-    )
-    document.getElementById('configuration').textContent = JSON.stringify(
-        configuration,
-        null,
-        2
-    )
+    document.getElementById('published').textContent = toDateTimeString(configuration.publishedAt)
+    document.getElementById('configuration').textContent = JSON.stringify(configuration, null, 2)
+}
 
-    // register all media urls from configuration in service worker cache
-    // medias are deeply nested under
-    // configuration.schedules[].layoutPlaylists[].playlistMedias[].file
+// Register media for caching in service worker
+const registerMediaForCaching = (configuration) => {
+    // Medias are deeply nested under configuration.schedules[].layoutPlaylists[].playlistMedias[].file
     const mediaToCache = configuration.schedules
         .flatMap((schedule) => schedule.layoutPlaylists)
         .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
         .map((playlistMedia) => playlistMedia.fileDO)
-
-    // console.log('Media to cache:', mediaToCache)
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
@@ -148,11 +136,39 @@ window.onload = async () => {
                 console.log('Service Worker registration failed:', error)
             })
     }
+}
 
-    // Render the player
+// Initialize the player with configuration
+const initializePlayer = (configuration) => {
     const player_element = document.getElementById('player')
     const player = new EntuScreenWerkPlayer(player_element, configuration)
     player.resume() // Using resume() instead of play() as per the player implementation
+}
+
+window.onload = async () => {
+    // 1. Check if there is a screen selected in URL query
+    const urlScreenId = getScreenIdFromUrl()
+    if (urlScreenId) {
+        saveScreenIdAndReload(urlScreenId)
+        return // Stop execution as page will reload
+    }
+    
+    // 2. Check if screen ID is stored in browser
+    const storedScreenId = getScreenIdFromStorage()
+    if (!storedScreenId) {
+        return // Error already reported in getScreenIdFromStorage
+    }
+    
+    // 3. Fetch configuration from API
+    const configData = await fetchConfiguration(storedScreenId)
+    if (!configData) {
+        return // Error already reported in fetchConfiguration
+    }
+    
+    // 4. Initialize UI and player
+    initializeUI(storedScreenId, configData.configuration)
+    registerMediaForCaching(configData.configuration)
+    initializePlayer(configData.configuration)
 }
 
 async function updateServiceWorker() {
