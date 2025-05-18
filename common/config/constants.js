@@ -24,3 +24,7 @@ export const UNICODE_ICONS = {
     pause: '⏸️',
     stop: '⏹️'
 }
+
+// Configuration polling interval in milliseconds
+// Default: 5 minutes (300000ms)
+export const CONFIG_POLLING_INTERVAL = 300000

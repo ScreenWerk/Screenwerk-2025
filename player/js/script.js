@@ -2,7 +2,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js' 
+import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL } from '../../common/config/constants.js' 
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
 import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
@@ -141,12 +141,21 @@ const registerMediaForCaching = (configuration) => {
     }
 }
 
+// Global variables to track configuration and player instance
+let currentPlayer = null;
+let currentPublishedAt = null;
+let configPollingInterval = null;
+
 // Initialize the player with configuration
 const initializePlayer = (configuration) => {
     const player_element = document.getElementById('player')
     
     // Add debug information about what's being loaded
     console.log('Initializing player with configuration:', configuration)
+    
+    // Store the current publishedAt timestamp for comparison in polling
+    currentPublishedAt = new Date(configuration.publishedAt).getTime();
+    console.log(`Current configuration published at: ${configuration.publishedAt}`);
     
     // Check if configuration contains media files
     if (configuration.schedules) {
@@ -165,8 +174,15 @@ const initializePlayer = (configuration) => {
         }
     }
     
-    const player = new EntuScreenWerkPlayer(player_element, configuration)
-    player.resume() // Using resume() instead of play() as per the player implementation
+    // Cleanup existing player if it exists
+    if (currentPlayer) {
+        console.log('Cleaning up existing player before creating a new one');
+        currentPlayer.cleanup();
+    }
+    
+    // Create new player instance
+    currentPlayer = new EntuScreenWerkPlayer(player_element, configuration)
+    currentPlayer.resume() // Using resume() instead of play() as per the player implementation
 }
 
 window.onload = async () => {
@@ -193,6 +209,7 @@ window.onload = async () => {
     initializeUI(storedScreenId, configData.configuration)
     registerMediaForCaching(configData.configuration)
     initializePlayer(configData.configuration)
+    startConfigPolling(storedScreenId, CONFIG_POLLING_INTERVAL) // Start polling with defined interval
 }
 
 async function updateServiceWorker() {
@@ -220,3 +237,81 @@ async function updateServiceWorker() {
 }
 
 window.addEventListener('load', updateServiceWorker)
+
+// Periodically check for new configuration updates
+const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { // Use default from constants
+    // Clear any existing interval
+    if (configPollingInterval) {
+        clearInterval(configPollingInterval);
+    }
+    
+    console.log(`Starting configuration polling with interval of ${interval/1000} seconds (${interval/60000} minutes)`);
+    
+    configPollingInterval = setInterval(async () => {
+        try {
+            console.log('Checking for configuration updates...');
+            
+            // Fetch the latest configuration
+            const configData = await fetchConfiguration(screenId);
+            if (!configData) {
+                console.error('Failed to fetch configuration during polling');
+                return;
+            }
+            
+            // Compare published timestamps
+            const newPublishedAt = new Date(configData.configuration.publishedAt).getTime();
+            
+            if (newPublishedAt > currentPublishedAt) {
+                console.log(`Configuration update detected!`);
+                console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`);
+                console.log(`New: ${new Date(newPublishedAt).toISOString()}`);
+                
+                // Update UI with new configuration data
+                initializeUI(screenId, configData.configuration);
+                registerMediaForCaching(configData.configuration);
+                
+                // Re-initialize the player with new configuration
+                initializePlayer(configData.configuration);
+                
+                // Show a visual notification of the update
+                showUpdateNotification();
+            } else {
+                console.log('No configuration updates found');
+            }
+        } catch (error) {
+            console.error('Error checking for configuration updates:', error);
+        }
+    }, interval);
+    
+    // Store the interval ID in localStorage to ensure it persists across page refreshes
+    localStorage.setItem('configPollingIntervalId', configPollingInterval);
+    
+    return configPollingInterval;
+};
+
+// Show a temporary notification that the player was updated
+const showUpdateNotification = () => {
+    const notification = document.createElement('div');
+    notification.style.position = 'absolute';
+    notification.style.top = '10px';
+    notification.style.right = '10px';
+    notification.style.backgroundColor = 'rgba(0, 150, 0, 0.8)';
+    notification.style.color = 'white';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '5px';
+    notification.style.zIndex = '9999';
+    notification.style.transition = 'opacity 0.5s';
+    notification.textContent = 'Player updated with new configuration!';
+    
+    document.body.appendChild(notification);
+    
+    // Fade and remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+};
