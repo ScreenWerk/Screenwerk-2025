@@ -39,3 +39,10 @@ export const UNICODE_ICONS = {
 // Configuration polling interval in milliseconds
 // Default: 5 minutes (300000ms)
 export const CONFIG_POLLING_INTERVAL = 300000
+
+export const ENVIRONMENT =
+  typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT
+    ? process.env.ENVIRONMENT
+    : (typeof window !== 'undefined' && window.ENVIRONMENT)
+      ? window.ENVIRONMENT
+      : 'dev'; // fallback
