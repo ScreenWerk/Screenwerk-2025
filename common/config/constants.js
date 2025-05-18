@@ -44,6 +44,28 @@ export const UNICODE_ICONS = {
     stop: '⏹️'
 }
 
+// UI visibility matrix: control which UI elements are shown/hidden in each environment
+export const UI_VISIBILITY = {
+  live: {
+    showMediaControls: false,
+    showDebugPanel: false,
+    showDevBanner: false,
+    showProgress: false
+  },
+  dev: {
+    showMediaControls: true,
+    showDebugPanel: true,
+    showDevBanner: true,
+    showProgress: true
+  },
+  local: {
+    showMediaControls: false,
+    showDebugPanel: false,
+    showDevBanner: false,
+    showProgress: false
+  }
+}
+
 // Configuration polling interval in milliseconds
 // Default: 5 minutes (300000ms)
 export const CONFIG_POLLING_INTERVAL = 300000

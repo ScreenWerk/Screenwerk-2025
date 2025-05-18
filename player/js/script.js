@@ -2,13 +2,16 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL } from '../../common/config/constants.js' 
+import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL, ENVIRONMENT, UI_VISIBILITY } from '../../common/config/constants.js' 
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
 import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 
 // Enable debug mode globally for development/troubleshooting
 window.debugMode = true
+
+window.UI_VISIBILITY = UI_VISIBILITY;
+window.ENVIRONMENT = ENVIRONMENT;
 
 const reportProblem = (message, with_link = false) => {
     console.error(message)
@@ -315,3 +318,39 @@ const showUpdateNotification = () => {
         }, 500);
     }, 3000);
 };
+
+// Hide media controls and debug panel in live environment
+document.addEventListener('DOMContentLoaded', () => {
+  const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev;
+
+  // Media controls (precise: debug-panel buttons, media-debug-info, etc.)
+  if (!ui.showMediaControls) {
+    document.querySelectorAll('.debug-panel button').forEach(el => {
+      el.style.display = 'none';
+    });
+    document.querySelectorAll('.media-debug-info').forEach(el => {
+      el.style.display = 'none';
+    });
+  } else {
+    document.querySelectorAll('.debug-panel button').forEach(el => {
+      el.style.display = '';
+    });
+    document.querySelectorAll('.media-debug-info').forEach(el => {
+      el.style.display = '';
+    });
+  }
+
+  // Debug panel (hide the entire element if not visible)
+  document.querySelectorAll('.debug-panel').forEach(el => {
+    el.style.display = ui.showDebugPanel ? '' : 'none';
+  });
+
+  // Dev banner
+  const devBanner = document.querySelector('.dev-banner');
+  if (devBanner) devBanner.style.display = ui.showDevBanner ? '' : 'none';
+
+  // Progress bar (precise: all .media-progress-container)
+  document.querySelectorAll('.media-progress-container, .progress-bar, #progress-bar-placeholder').forEach(el => {
+    el.style.display = ui.showProgress ? '' : 'none';
+  });
+});
