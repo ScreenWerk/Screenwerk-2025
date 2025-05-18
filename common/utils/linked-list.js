@@ -35,17 +35,17 @@ export class LinkedList {
     return false
   }
 
-  // Move to the next item in the list
+  // Move to the next item in the list and return its value
   next() {
     if (this.current && this.current.next) {
       this.current = this.current.next
-      return true
+      return this.current.value
     } else if (this.current) {
       // Loop back to the first item if looping is enabled
       this.current = this.head
-      return true
+      return this.current ? this.current.value : null
     }
-    return false
+    return null
   }
 
   // Check if the list is empty

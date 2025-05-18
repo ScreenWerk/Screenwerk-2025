@@ -82,27 +82,37 @@ export class SwMedia {
     play() {
         this.dom_element.style.display = 'block'
         this.dom_element.start_ms = new Date().getTime()
+        debugLog(`[SwMedia] play() called for ${this.name}, type: ${this.type}`)
         if (this.type === 'Video') {
             const video_div = this.dom_element.querySelector('video')
+            debugLog(`[SwMedia] video_div.duration: ${video_div.duration}`)
             video_div.currentTime = 0 // rewind
             const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
+                    debugLog(`[SwMedia] ProgressBar.start called for video with duration: ${video_div.duration * 1000}`)
                     this.progressBar.start(video_div.duration * 1000)
                 }).catch(error => {
                     console.log(`Autoplay failed for ${this.dom_element.id}: ${error}`)
                 })
             }
         } else if (this.type === 'Image') {
+            debugLog(`[SwMedia] ProgressBar.start called for image with duration: ${this.duration * 1000}`)
             this.progressBar.start(this.duration * 1000)
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
-                this.parent.next().play()
+                const nextMedia = this.parent.next()
+                if (nextMedia && typeof nextMedia.play === 'function') {
+                    nextMedia.play()
+                } else {
+                    debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
+                }
             }, this.duration * 1000)
         }
     }
     resume() {
         this.dom_element.style.display = 'block'
+        debugLog(`[SwMedia] resume() called for ${this.name}, type: ${this.type}`)
         if (this.type === 'Video') {
             const video = this.dom_element.querySelector('video')
             if (video) {
@@ -110,8 +120,16 @@ export class SwMedia {
                 this.progressBar.resume()
             }
         } else if (this.type === 'Image') {
-            console.log(`Resuming image: ${this.name}`)
-            this.progressBar.resume()
+            // If the image is hidden or progress bar is at 0%, restart playback
+            const isHidden = this.dom_element.style.display === 'none'
+            const progress = parseFloat(this.progressBar.bar.style.width)
+            if (isHidden || progress === 0) {
+                debugLog(`[SwMedia] resume() restarting play() for image: ${this.name}`)
+                this.play()
+            } else {
+                console.log(`Resuming image: ${this.name}`)
+                this.progressBar.resume()
+            }
         }
     }
     pause() {
