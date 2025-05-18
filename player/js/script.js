@@ -10,8 +10,8 @@ import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 // Enable debug mode globally for development/troubleshooting
 window.debugMode = true
 
-window.UI_VISIBILITY = UI_VISIBILITY;
-window.ENVIRONMENT = ENVIRONMENT;
+window.UI_VISIBILITY = UI_VISIBILITY
+window.ENVIRONMENT = ENVIRONMENT
 
 const reportProblem = (message, with_link = false) => {
     console.error(message)
@@ -145,9 +145,9 @@ const registerMediaForCaching = (configuration) => {
 }
 
 // Global variables to track configuration and player instance
-let currentPlayer = null;
-let currentPublishedAt = null;
-let configPollingInterval = null;
+let currentPlayer = null
+let currentPublishedAt = null
+let configPollingInterval = null
 
 // Initialize the player with configuration
 const initializePlayer = (configuration) => {
@@ -157,8 +157,8 @@ const initializePlayer = (configuration) => {
     console.log('Initializing player with configuration:', configuration)
     
     // Store the current publishedAt timestamp for comparison in polling
-    currentPublishedAt = new Date(configuration.publishedAt).getTime();
-    console.log(`Current configuration published at: ${configuration.publishedAt}`);
+    currentPublishedAt = new Date(configuration.publishedAt).getTime()
+    console.log(`Current configuration published at: ${configuration.publishedAt}`)
     
     // Check if configuration contains media files
     if (configuration.schedules) {
@@ -179,8 +179,8 @@ const initializePlayer = (configuration) => {
     
     // Cleanup existing player if it exists
     if (currentPlayer) {
-        console.log('Cleaning up existing player before creating a new one');
-        currentPlayer.cleanup();
+        console.log('Cleaning up existing player before creating a new one')
+        currentPlayer.cleanup()
     }
     
     // Create new player instance
@@ -220,23 +220,23 @@ async function updateServiceWorker() {
     
     if (registration.waiting) {
         // If there's a waiting worker, activate it immediately
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' })
     }
     
     registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
+        const newWorker = registration.installing
         
         newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && registration.active) {
                 // If there's a new worker waiting, activate it
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                newWorker.postMessage({ type: 'SKIP_WAITING' })
             }
             if (newWorker.state === 'activated') {
-                console.log('New service worker activated');
-                window.location.reload();
+                console.log('New service worker activated')
+                window.location.reload()
             }
-        });
-    });
+        })
+    })
 }
 
 window.addEventListener('load', updateServiceWorker)
@@ -245,120 +245,98 @@ window.addEventListener('load', updateServiceWorker)
 const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { // Use default from constants
     // Clear any existing interval
     if (configPollingInterval) {
-        clearInterval(configPollingInterval);
+        clearInterval(configPollingInterval)
     }
     
-    console.log(`Starting configuration polling with interval of ${interval/1000} seconds (${interval/60000} minutes)`);
+    console.log(`Starting configuration polling with interval of ${interval/1000} seconds (${interval/60000} minutes)`)
     
     configPollingInterval = setInterval(async () => {
         try {
-            console.log('Checking for configuration updates...');
+            console.log('Checking for configuration updates...')
             
             // Fetch the latest configuration
-            const configData = await fetchConfiguration(screenId);
+            const configData = await fetchConfiguration(screenId)
             if (!configData) {
-                console.error('Failed to fetch configuration during polling');
-                return;
+                console.error('Failed to fetch configuration during polling')
+                return
             }
             
             // Compare published timestamps
-            const newPublishedAt = new Date(configData.configuration.publishedAt).getTime();
+            const newPublishedAt = new Date(configData.configuration.publishedAt).getTime()
             
             if (newPublishedAt > currentPublishedAt) {
-                console.log(`Configuration update detected!`);
-                console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`);
-                console.log(`New: ${new Date(newPublishedAt).toISOString()}`);
+                console.log(`Configuration update detected!`)
+                console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`)
+                console.log(`New: ${new Date(newPublishedAt).toISOString()}`)
                 
                 // Update UI with new configuration data
-                initializeUI(screenId, configData.configuration);
-                registerMediaForCaching(configData.configuration);
+                initializeUI(screenId, configData.configuration)
+                registerMediaForCaching(configData.configuration)
                 
                 // Re-initialize the player with new configuration
-                initializePlayer(configData.configuration);
+                initializePlayer(configData.configuration)
                 
                 // Show a visual notification of the update
-                showUpdateNotification();
+                showUpdateNotification()
             } else {
-                console.log('No configuration updates found');
+                console.log('No configuration updates found')
             }
         } catch (error) {
-            console.error('Error checking for configuration updates:', error);
+            console.error('Error checking for configuration updates:', error)
         }
-    }, interval);
+    }, interval)
     
     // Store the interval ID in localStorage to ensure it persists across page refreshes
-    localStorage.setItem('configPollingIntervalId', configPollingInterval);
+    localStorage.setItem('configPollingIntervalId', configPollingInterval)
     
-    return configPollingInterval;
-};
+    return configPollingInterval
+}
 
 // Show a temporary notification that the player was updated
 const showUpdateNotification = () => {
-    const notification = document.createElement('div');
-    notification.style.position = 'absolute';
-    notification.style.top = '10px';
-    notification.style.right = '10px';
-    notification.style.backgroundColor = 'rgba(0, 150, 0, 0.8)';
-    notification.style.color = 'white';
-    notification.style.padding = '10px';
-    notification.style.borderRadius = '5px';
-    notification.style.zIndex = '9999';
-    notification.style.transition = 'opacity 0.5s';
-    notification.textContent = 'Player updated with new configuration!';
-    
-    document.body.appendChild(notification);
-    
+    const notification = document.createElement('div')
+    notification.style.position = 'absolute'
+    notification.style.top = '10px'
+    notification.style.right = '10px'
+    notification.style.backgroundColor = 'rgba(0, 150, 0, 0.8)'
+    notification.style.color = 'white'
+    notification.style.padding = '10px'
+    notification.style.borderRadius = '5px'
+    notification.style.zIndex = '9999'
+    notification.style.transition = 'opacity 0.5s'
+    notification.textContent = 'Player updated with new configuration!'
+    document.body.appendChild(notification)
     // Fade and remove after 3 seconds
     setTimeout(() => {
-        notification.style.opacity = '0';
+        notification.style.opacity = '0'
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.parentNode.removeChild(notification)
             }
-        }, 500);
-    }, 3000);
-};
+        }, 500)
+    }, 3000)
+}
 
 // Hide media controls and debug panel in live environment
 document.addEventListener('DOMContentLoaded', () => {
-  const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev;
+  const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev
 
-  // Media controls (precise: debug-panel buttons, media-debug-info, etc.)
-  if (!ui.showMediaControls) {
-    document.querySelectorAll('.debug-panel button').forEach(el => {
-      el.style.display = 'none';
-    });
-    document.querySelectorAll('.media-debug-info').forEach(el => {
-      el.style.display = 'none';
-    });
-  } else {
-    document.querySelectorAll('.debug-panel button').forEach(el => {
-      el.style.display = '';
-    });
-    document.querySelectorAll('.media-debug-info').forEach(el => {
-      el.style.display = '';
-    });
-  }
-
-  // Debug panel (hide the entire element if not visible)
-  document.querySelectorAll('.debug-panel').forEach(el => {
-    el.style.display = ui.showDebugPanel ? '' : 'none';
-  });
+  // Debug panel
 
   // Dev banner
-  const devBanner = document.querySelector('.dev-banner');
-  if (devBanner) devBanner.style.display = ui.showDevBanner ? '' : 'none';
+  const devBanner = document.querySelector('.dev-banner')
+  if (devBanner) devBanner.style.display = ui.showDevBanner ? '' : 'none'
 
   // Progress bar (precise: all .media-progress-container)
   document.querySelectorAll('.media-progress-container, .progress-bar, #progress-bar-placeholder').forEach(el => {
-    el.style.display = ui.showProgress ? '' : 'none';
-  });
+    el.style.display = ui.showProgress ? '' : 'none'
+  })
 
   // Screen info
-  const screenInfo = document.getElementById('screen-info');
-  if (screenInfo) screenInfo.style.display = ui.showScreenInfo ? '' : 'none';
+  const screenInfo = document.getElementById('screen-info')
+  if (screenInfo) screenInfo.style.display = ui.showScreenInfo ? '' : 'none'
 
   // Configuration panel
-  const configPanel = document.getElementById('configuration');
-  if (configPanel) configPanel.style.display = ui.showConfigurationPanel ? '' : 'none';
-});
+  const configPanel = document.getElementById('configuration')
+  if (configPanel) configPanel.style.display = ui.showConfigurationPanel ? '' : 'none'
+})
