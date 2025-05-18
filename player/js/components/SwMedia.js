@@ -104,7 +104,7 @@ export class SwMedia {
                 img.src = this.fileDO
                 img.style.width = '100%'
                 img.style.height = '100%'
-                img.style.objectFit = this.stretch ? 'cover' : 'contain'
+                img.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
                 img.style.position = 'absolute'
                 img.style.top = '0'
                 img.style.left = '0'
@@ -127,7 +127,7 @@ export class SwMedia {
                 video.src = this.fileDO
                 video.style.width = '100%'
                 video.style.height = '100%'
-                video.style.objectFit = this.stretch ? 'cover' : 'contain'
+                video.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
                 video.style.position = 'absolute'
                 video.style.top = '0'
                 video.style.left = '0'
@@ -223,7 +223,7 @@ export class SwMedia {
                 fallbackImg.src = this.fileDO
                 fallbackImg.style.width = '100%'
                 fallbackImg.style.height = '100%'
-                fallbackImg.style.objectFit = this.stretch ? 'cover' : 'contain'
+                fallbackImg.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
                 fallbackImg.style.position = 'absolute'
                 fallbackImg.style.top = '0'
                 fallbackImg.style.left = '0'
@@ -315,7 +315,7 @@ export class SwMedia {
                 fallbackImg.src = this.fileDO
                 fallbackImg.style.width = '100%'
                 fallbackImg.style.height = '100%'
-                fallbackImg.style.objectFit = this.stretch ? 'cover' : 'contain'
+                fallbackImg.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
                 fallbackImg.style.position = 'absolute'
                 fallbackImg.style.top = '0'
                 fallbackImg.style.left = '0'
@@ -367,7 +367,7 @@ export class SwMedia {
             fallbackImg.src = this.fileDO
             fallbackImg.style.width = '100%'
             fallbackImg.style.height = '100%'
-            fallbackImg.style.objectFit = this.stretch ? 'cover' : 'contain'
+            fallbackImg.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
             fallbackImg.style.position = 'absolute'
             fallbackImg.style.top = '0'
             fallbackImg.style.left = '0'

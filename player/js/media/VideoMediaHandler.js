@@ -12,7 +12,7 @@ export class VideoMediaHandler {
         video.style.height = '100%'
         video.muted = mediaItem.mute !== false // Default to muted for mini-player
         video.loop = false // We handle looping ourselves
-        video.style.objectFit = mediaItem.stretch ? 'cover' : 'contain'
+        video.style.objectFit = 'fill' // Always use fill to not maintain aspect ratio
         video.autoplay = false // We'll play explicitly
         video.playsInline = true // For iOS support
         video.controls = false // No controls for the player

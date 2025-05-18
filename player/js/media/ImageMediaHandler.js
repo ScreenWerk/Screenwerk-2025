@@ -12,7 +12,8 @@ export class ImageMediaHandler {
         img.alt = mediaItem.name || 'Image'
         img.style.width = '100%'
         img.style.height = '100%'
-        img.style.objectFit = mediaItem.stretch ? 'cover' : 'contain'
+        // Use object-fit: fill to not maintain aspect ratio instead of contain/cover
+        img.style.objectFit = 'fill'
         
         // Add loading handler
         img.onload = () => {
