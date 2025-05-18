@@ -1,5 +1,7 @@
 // Utility functions to validate media resources
 
+import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
+
 /**
  * Checks if a media URL exists and is accessible
  * @param {string} url - The URL to check
@@ -86,6 +88,12 @@ export async function checkMediaUrl(url, type) {
  * @param {Object} mediaInfo - Information about the media
  */
 export function displayMediaDebugInfo(element, mediaInfo) {
+    // Only show if allowed by UI_VISIBILITY
+    const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
+        ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+        : { showMediaDebugInfo: true }
+    if (!ui.showMediaDebugInfo) return
+
     const debugInfo = document.createElement('div')
     debugInfo.className = 'media-debug-info'
     debugInfo.style.position = 'absolute'

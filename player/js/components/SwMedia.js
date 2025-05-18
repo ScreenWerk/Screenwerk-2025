@@ -3,6 +3,7 @@
 import { ProgressBar } from '../ui/ProgressBar.js'
 import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
 import { checkMediaUrl, displayMediaDebugInfo } from '../utils/media-validator.js' // Import validation utilities
+import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
 
 const DEFAULTS = {
     IMAGE_PLAYBACK_DURATION: 10
@@ -208,6 +209,14 @@ export class SwMedia {
             backgroundColor: 'rgba(0,0,0,0.3)',
             height: '4px'
         })
+        // Hide progress bar if not allowed by UI_VISIBILITY
+        const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
+            ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+            : { showProgress: true }
+        if (!ui.showProgress) {
+            const bars = this.dom_element.querySelectorAll('.media-progress-container')
+            bars.forEach(bar => { bar.style.display = 'none' })
+        }
     }
     play() {
         console.log(`Playing media: ${this.name}, type: ${this.type}`)

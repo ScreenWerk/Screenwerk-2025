@@ -1,4 +1,5 @@
 import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
+import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
@@ -59,6 +60,12 @@ export class DebugPanel {
         debugPanel.appendChild(statusIndicator)
         debugPanel.appendChild(infoDisplay)
         
+        // Hide the panel if not allowed in this environment
+        const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev
+        if (!ui.showDebugPanel) {
+            debugPanel.style.display = 'none'
+        }
+
         this.parent.appendChild(debugPanel)
         return debugPanel
     }

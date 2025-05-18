@@ -47,28 +47,31 @@ export const UNICODE_ICONS = {
 // UI visibility matrix: control which UI elements are shown/hidden in each environment
 export const UI_VISIBILITY = {
   live: {
-    showMediaControls: false,
-    showDebugPanel: false,
-    showDevBanner: false,
-    showProgress: false,
-    showScreenInfo: true,
-    showConfigurationPanel: false
+    showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
+    showDebugPanel: false,            // Show/hide the main debug panel overlay
+    showDevBanner: false,             // Show/hide the developer environment banner
+    showProgress: false,              // Show/hide the media progress bar
+    showScreenInfo: true,             // Show/hide the screen info panel (top right)
+    showConfigurationPanel: false,    // Show/hide the configuration/settings panel
+    showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   },
   dev: {
-    showMediaControls: true,
-    showDebugPanel: true,
-    showDevBanner: true,
-    showProgress: true,
-    showScreenInfo: true,
-    showConfigurationPanel: true
+    showMediaControls: true,          // Show/hide media control buttons (play, pause, etc)
+    showDebugPanel: true,             // Show/hide the main debug panel overlay
+    showDevBanner: true,              // Show/hide the developer environment banner
+    showProgress: true,               // Show/hide the media progress bar
+    showScreenInfo: true,             // Show/hide the screen info panel (top right)
+    showConfigurationPanel: true,     // Show/hide the configuration/settings panel
+    showMediaDebugInfo: true          // Show/hide .media-debug-info overlays on media elements
   },
   local: {
-    showMediaControls: false,
-    showDebugPanel: false,
-    showDevBanner: false,
-    showProgress: false,
-    showScreenInfo: false,
-    showConfigurationPanel: true
+    showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
+    showDebugPanel: false,            // Show/hide the main debug panel overlay
+    showDevBanner: false,             // Show/hide the developer environment banner
+    showProgress: false,              // Show/hide the media progress bar
+    showScreenInfo: false,            // Show/hide the screen info panel (top right)
+    showConfigurationPanel: true,     // Show/hide the configuration/settings panel
+    showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   }
 }
 
