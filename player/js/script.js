@@ -33,61 +33,78 @@ window.onload = async () => {
             return
         }
 
+        // Sanity check the screen ID format
         const eid_re = /^[0-9a-f]{24}$/
         if (!eid_re.test(screen_id)) {
             reportProblem('Invalid screen_id in URL query', true)
             return
         }
 
-        // fetch screen configuration from swpublisher API
-        const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
-        try {
-            const sw_configuration = await fetchJSON(u)
-            configuration_id = sw_configuration.configurationEid
-            const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
-            unset.forEach((key) => delete sw_configuration[key])
-            configuration = sw_configuration
+        // Save screen ID to localStorage
+        localStorage.setItem(
+            'selected_screen',
+            JSON.stringify({
+                screen_id: screen_id,
+                configuration_id: null, // Will be filled after reload
+            })
+        )
+        
+        // Reload with clean URL
+        const cleanUrl = new URL(window.location.href)
+        cleanUrl.search = '' // Remove all query parameters
+        window.location.href = cleanUrl.toString() // This will reload the page
+        return // Stop execution as page will reload
+    }
+    
+    // At this point, we're either after a redirect or a direct visit without URL parameters
+    // 2. Check if screen ID is stored in browser
+    const screen_json = localStorage.getItem('selected_screen')
+    if (!screen_json) {
+        // 3. If still negative, report an error
+        reportProblem('No screen ID provided in URL and none found in storage. Please select a screen.', true)
+        return
+    }
 
-            // save selected screen to local storage
-            localStorage.setItem(
-                'selected_screen',
-                JSON.stringify({
-                    screen_id: screen_id,
-                    configuration_id: configuration_id,
-                })
-            )
-            localStorage.setItem(
-                `swConfiguration_${configuration_id}`, JSON.stringify(configuration)
-            )
-            
-            // Remove screen_id from URL without refreshing the page
-            const url = new URL(window.location.href)
-            url.searchParams.delete('screen_id')
-            window.history.replaceState({}, document.title, url.toString())
-        } catch (error) {
-            reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
-            console.error(error)
-            return
-        }
-    } else {
-        // 2. Check if screen ID is stored in browser
-        const screen_json = localStorage.getItem('selected_screen')
-        if (!screen_json) {
-            // 3. If still negative, report an error
-            reportProblem('No screen ID provided in URL and none found in storage. Please select a screen.', true)
+    try {
+        const stored_screen = JSON.parse(screen_json)
+        screen_id = stored_screen.screen_id
+        configuration_id = stored_screen.configuration_id
+        
+        if (!screen_id) {
+            reportProblem('Invalid screen data in storage. Please select a screen again.', true)
             return
         }
 
-        try {
-            const stored_screen = JSON.parse(screen_json)
-            screen_id = stored_screen.screen_id
-            configuration_id = stored_screen.configuration_id
-            
-            if (!screen_id || !configuration_id) {
-                reportProblem('Invalid screen data in storage. Please select a screen again.', true)
+        // If the configuration_id is null, it means this is the first load after redirect
+        // We need to fetch the configuration from the API
+        if (!configuration_id) {
+            // fetch screen configuration from swpublisher API
+            const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+            try {
+                const sw_configuration = await fetchJSON(u)
+                configuration_id = sw_configuration.configurationEid
+                const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
+                unset.forEach((key) => delete sw_configuration[key])
+                configuration = sw_configuration
+
+                // Update stored screen with configuration_id
+                localStorage.setItem(
+                    'selected_screen',
+                    JSON.stringify({
+                        screen_id: screen_id,
+                        configuration_id: configuration_id,
+                    })
+                )
+                localStorage.setItem(
+                    `swConfiguration_${configuration_id}`, JSON.stringify(configuration)
+                )
+            } catch (error) {
+                reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
+                console.error(error)
                 return
             }
-
+        } else {
+            // We already have configuration_id, so just get configuration from localStorage
             const configuration_json = localStorage.getItem(`swConfiguration_${configuration_id}`)
             if (!configuration_json) {
                 reportProblem('Configuration data missing. Please select a screen again.', true)
@@ -95,11 +112,11 @@ window.onload = async () => {
             }
             
             configuration = JSON.parse(configuration_json)
-        } catch (error) {
-            reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
-            console.error(error)
-            return
         }
+    } catch (error) {
+        reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
+        console.error(error)
+        return
     }
 
     // At this point, we should have valid screen_id, configuration_id, and configuration
@@ -153,11 +170,11 @@ window.onload = async () => {
     // Render the player
     const player_element = document.getElementById('player')
     const player = new EntuScreenWerkPlayer(player_element, configuration)
-    player.play()
+    player.resume() // Using resume() instead of play() as per the player implementation
 }
 
 async function updateServiceWorker() {
-    const registration = await navigator.serviceWorker.register('service-worker.js')
+    const registration = await navigator.serviceWorker.register('/service-worker.js')
     
     if (registration.waiting) {
         // If there's a waiting worker, activate it immediately
