@@ -44,8 +44,8 @@ window.onload = async () => {
         localStorage.setItem(
             'selected_screen',
             JSON.stringify({
-                screen_id: screen_id,
-                configuration_id: null, // Will be filled after reload
+                screen_id: screen_id
+                // No configuration_id - we'll fetch it every time
             })
         )
         
@@ -65,62 +65,52 @@ window.onload = async () => {
         return
     }
 
+    // Parse stored screen data
+    let stored_screen
     try {
-        const stored_screen = JSON.parse(screen_json)
-        screen_id = stored_screen.screen_id
-        configuration_id = stored_screen.configuration_id
-        
-        if (!screen_id) {
-            reportProblem('Invalid screen data in storage. Please select a screen again.', true)
-            return
-        }
-
-        // If the configuration_id is null, it means this is the first load after redirect
-        // We need to fetch the configuration from the API
-        if (!configuration_id) {
-            // fetch screen configuration from swpublisher API
-            const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
-            try {
-                const sw_configuration = await fetchJSON(u)
-                configuration_id = sw_configuration.configurationEid
-                const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
-                unset.forEach((key) => delete sw_configuration[key])
-                configuration = sw_configuration
-
-                // Update stored screen with configuration_id
-                localStorage.setItem(
-                    'selected_screen',
-                    JSON.stringify({
-                        screen_id: screen_id,
-                        configuration_id: configuration_id,
-                    })
-                )
-                localStorage.setItem(
-                    `swConfiguration_${configuration_id}`, JSON.stringify(configuration)
-                )
-            } catch (error) {
-                reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
-                console.error(error)
-                return
-            }
-        } else {
-            // We already have configuration_id, so just get configuration from localStorage
-            const configuration_json = localStorage.getItem(`swConfiguration_${configuration_id}`)
-            if (!configuration_json) {
-                reportProblem('Configuration data missing. Please select a screen again.', true)
-                return
-            }
-            
-            configuration = JSON.parse(configuration_json)
-        }
+        stored_screen = JSON.parse(screen_json)
     } catch (error) {
         reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
         console.error(error)
         return
     }
+    
+    // Extract screen ID and validate
+    screen_id = stored_screen.screen_id
+    if (!screen_id) {
+        reportProblem('Invalid screen data in storage. Please select a screen again.', true)
+        return
+    }
+    
+    // Fetch screen configuration from swpublisher API
+    const u = `${SCREENWERK_PUBLISHER_API}${screen_id}.json`
+    try {
+        const sw_configuration = await fetchJSON(u)
+        configuration_id = sw_configuration.configurationEid
+        
+        // Clean up configuration
+        const unset = ['screenEid', 'configurationEid', 'screenGroupEid']
+        unset.forEach((key) => delete sw_configuration[key])
+        configuration = sw_configuration
+
+        // Store the configuration temporarily for this session
+        try {
+            localStorage.setItem(
+                `swConfiguration_temp`, JSON.stringify(configuration)
+            )
+        } catch (storageError) {
+            debugLog('Warning: Failed to store temporary configuration in localStorage')
+            console.error(storageError)
+            // Continue even if storage fails - we already have the configuration in memory
+        }
+    } catch (fetchError) {
+        reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
+        console.error(fetchError)
+        return
+    }
 
     // At this point, we should have valid screen_id, configuration_id, and configuration
-    if (!screen_id || !configuration_id || !configuration) {
+    if (!screen_id || !configuration) {
         reportProblem('Unable to initialize player. Missing screen data.', true)
         return
     }
