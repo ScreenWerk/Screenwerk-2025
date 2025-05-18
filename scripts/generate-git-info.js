@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { fetchJSON } from '../common/utils/utils.js'
-
 const fs = require('fs')
 const path = require('path')
+
+// Simplified version that doesn't need to import fetchJSON
 
 // Get Git information from Netlify environment variables
 const branch = process.env.BRANCH || 'local-development'
