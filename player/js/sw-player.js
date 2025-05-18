@@ -178,33 +178,66 @@ export class EntuScreenWerkPlayer {
     }
     
     forceNextMedia() {
-        const visibleMedia = this.element.querySelector('.media-element[style*="display: block"]')
+        console.log('Force next media triggered from controls')
+        
+        // First, try to find visible media with the .media class
+        const visibleMedia = this.element.querySelector('.media[style*="display: block"]')
         if (visibleMedia) {
-            // Find parent container with mediaList
-            const container = this.getMediaListContainer(visibleMedia)
-            if (container && container.mediaList) {
-                const mediaList = container.mediaList
+            console.log(`Found visible media: ${visibleMedia.getAttribute('name')}`)
+            
+            // Find parent playlist
+            let playlistContainer = visibleMedia.parentNode
+            while (playlistContainer && !playlistContainer.classList.contains('playlist')) {
+                playlistContainer = playlistContainer.parentNode
+            }
+            
+            if (playlistContainer) {
+                console.log(`Found playlist container: ${playlistContainer.getAttribute('name')}`)
                 
-                // Clean up current media
-                if (visibleMedia.progressInterval) {
-                    clearInterval(visibleMedia.progressInterval)
-                    visibleMedia.progressInterval = null
+                // Get the playlist object from layout
+                if (this.layout && this.layout.playlists) {
+                    // Find matching playlist by id
+                    const playlistId = playlistContainer.id
+                    const playlist = this.layout.playlists.find(p => p.dom_element.id === playlistId)
+                    
+                    if (playlist) {
+                        console.log(`Found playlist object, advancing to next media`)
+                        
+                        // Hide current media
+                        visibleMedia.style.display = 'none'
+                        
+                        // Clean up current media (stop any playing videos or timers)
+                        const currentMedia = playlist.getCurrent()
+                        if (currentMedia) {
+                            currentMedia.pause()
+                        }
+                        
+                        // Advance to next media
+                        const success = playlist.next()
+                        if (success) {
+                            const nextMedia = playlist.getCurrent()
+                            if (nextMedia) {
+                                console.log(`Playing next media: ${nextMedia.name}`)
+                                nextMedia.play()
+                                return true
+                            }
+                        }
+                        
+                        // If next failed, try restarting from beginning
+                        console.log(`Restarting playlist from beginning`)
+                        playlist.moveToBeginning()
+                        const firstMedia = playlist.getCurrent()
+                        if (firstMedia) {
+                            firstMedia.play()
+                            return true
+                        }
+                    }
                 }
-                if (visibleMedia.imageTimeout) {
-                    clearTimeout(visibleMedia.imageTimeout)
-                    visibleMedia.imageTimeout = null
-                }
-                
-                // Advance to next or loop - simplified logic
-                const hasNext = mediaList.next()
-                if (hasNext) {
-                    debugLog('Manually advancing to next media')
-                } else {
-                    debugLog('Manually looping to first media')
-                }
-                mediaList.getCurrent().play()
             }
         }
+        
+        console.error('Could not find visible media or playlist to advance')
+        return false
     }
     
     // Helper to find the container with mediaList

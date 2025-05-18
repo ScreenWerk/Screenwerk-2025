@@ -9,6 +9,10 @@ export class SwPlaylist extends LinkedList {
         this.parent = parent
         this.dom_element = dom_element
         this.medias = []
+        
+        // Store a reference to this playlist in the DOM element for easier access
+        this.dom_element.playlist = this
+        
         while (this.dom_element.firstChild) {
             this.dom_element.removeChild(this.dom_element.firstChild)
         }
@@ -87,6 +91,7 @@ export class SwPlaylist extends LinkedList {
         const currentMedia = this.getCurrent()
         if (currentMedia) {
             console.log(`Starting playback with media: ${currentMedia.name}`)
+            this.debugPrintList() // Add debug info
             currentMedia.play()
         } else {
             console.error('No current media found to play')
@@ -95,6 +100,7 @@ export class SwPlaylist extends LinkedList {
                 const firstMedia = this.getCurrent()
                 if (firstMedia) {
                     console.log('Starting playback with first media')
+                    this.debugPrintList() // Add debug info
                     firstMedia.play()
                 } else {
                     console.error('Failed to get first media after moveToBeginning')
@@ -102,6 +108,34 @@ export class SwPlaylist extends LinkedList {
             } else {
                 console.error('Failed to move to beginning of playlist')
             }
+        }
+    }
+    
+    // Override the next method to add logging
+    next() {
+        if (!this.head) {
+            console.error('LinkedList is empty in next()')
+            return false
+        }
+        
+        if (!this.current) {
+            console.error('No current node in LinkedList in next()')
+            return this.first() // Try to move to first
+        }
+        
+        console.log(`Before next(): Current media is ${this.current.value.name}`)
+        
+        if (this.current.next) {
+            console.log(`Moving to next node: ${this.current.next.value.name}`)
+            this.current = this.current.next
+            console.log(`After next(): Current media is now ${this.current.value.name}`)
+            return true
+        } else {
+            // Loop back to beginning
+            console.log(`Reached end of LinkedList, looping back to beginning`)
+            this.current = this.head
+            console.log(`After looping: Current media is now ${this.current.value.name}`)
+            return true
         }
     }
     resumeMediaElements() {
@@ -133,7 +167,37 @@ export class SwPlaylist extends LinkedList {
     
     moveToBeginning() {
         console.log('Moving playlist to beginning')
+        
+        // Check if the list has any items
+        if (!this.head) {
+            console.error('Cannot move to beginning: playlist is empty')
+            return false
+        }
+        
         // Reset the list to the beginning
         return this.first() // Use the first() method from LinkedList
+    }
+    
+    // Debug method to help with diagnostics
+    debugPrintList() {
+        console.log('--- Playlist Debug Info ---');
+        console.log(`Playlist: ${this.dom_element.getAttribute('name')}`);
+        
+        if (!this.head) {
+            console.log('List is empty');
+            return;
+        }
+        
+        let node = this.head;
+        let count = 0;
+        let currentMarker = '';
+        
+        while (node) {
+            currentMarker = (node === this.current) ? ' (CURRENT)' : '';
+            console.log(`Media ${count++}: ${node.value.name}${currentMarker}`);
+            node = node.next;
+        }
+        
+        console.log('------------------------');
     }
 }

@@ -235,11 +235,32 @@ export class SwMedia {
                 // Setup timeout for next media
                 setTimeout(() => {
                     this.dom_element.style.display = 'none'
-                    const nextMedia = this.parent.next()
-                    if (nextMedia && typeof nextMedia.play === 'function') {
-                        nextMedia.play()
+                    
+                    // Log the current state of the playlist before advancing
+                    if (this.parent && typeof this.parent.debugPrintList === 'function') {
+                        console.log('Playlist state before advancing:');
+                        this.parent.debugPrintList();
+                    }
+                    
+                    // Call next() and get the next media
+                    const success = this.parent.next();
+                    const nextMedia = this.parent.getCurrent();
+                    
+                    if (success && nextMedia && typeof nextMedia.play === 'function') {
+                        console.log(`Playing next media: ${nextMedia.name}`);
+                        nextMedia.play();
                     } else {
-                        debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
+                        debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia);
+                        console.error('Failed to get next media. Trying to restart playlist.');
+                        
+                        // Try to restart playlist from beginning
+                        if (this.parent.moveToBeginning()) {
+                            const firstMedia = this.parent.getCurrent();
+                            if (firstMedia) {
+                                console.log('Restarting playlist from first item');
+                                firstMedia.play();
+                            }
+                        }
                     }
                 }, this.duration * 1000)
                 
@@ -303,6 +324,12 @@ export class SwMedia {
             
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
+                
+                // Log the current state of the playlist before advancing
+                if (this.parent && typeof this.parent.debugPrintList === 'function') {
+                    console.log('Playlist state before advancing from image:');
+                    this.parent.debugPrintList();
+                }
                 
                 // Call .next() on the parent LinkedList
                 const success = this.parent.next()
