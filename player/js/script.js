@@ -62,11 +62,109 @@ const saveScreenIdAndReload = (screen_id) => {
     window.location.href = cleanUrl.toString() // This will reload the page
 }
 
+const promptForScreenId = () => {
+    // Remove any previous prompt
+    let oldPrompt = document.getElementById('screen-id-prompt')
+    if (oldPrompt) oldPrompt.remove()
+
+    // Remove player element if it exists
+    let playerElement = document.getElementById('player')
+    if (playerElement) playerElement.remove()
+
+    // Create a new prompt for screen ID
+    const promptDiv = document.createElement('div')
+    promptDiv.id = 'screen-id-prompt'
+    promptDiv.style.margin = '2em auto'
+    promptDiv.style.maxWidth = '400px'
+    promptDiv.style.padding = '1em'
+    promptDiv.style.background = '#fff'
+    promptDiv.style.border = '1px solid #ccc'
+    promptDiv.style.borderRadius = '8px'
+    promptDiv.style.textAlign = 'center'
+
+    const label = document.createElement('label')
+    label.textContent = 'Enter Screen ID:'
+    label.htmlFor = 'manual-screen-id'
+    label.style.display = 'block'
+    label.style.marginBottom = '0.5em'
+
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.id = 'manual-screen-id'
+    input.placeholder = '24-character screen ID'
+    input.style.width = '90%'
+    input.style.padding = '0.5em'
+    input.style.marginBottom = '0.5em'
+    input.style.border = '1px solid #aaa'
+    input.style.borderRadius = '4px'
+
+    const button = document.createElement('button')
+    button.textContent = 'Submit'
+    button.style.padding = '0.5em 1.5em'
+    button.style.marginLeft = '0.5em'
+    button.style.border = 'none'
+    button.style.background = '#007bff'
+    button.style.color = '#fff'
+    button.style.borderRadius = '4px'
+    button.style.cursor = 'pointer'
+
+    const errorMsg = document.createElement('div')
+    errorMsg.style.color = 'red'
+    errorMsg.style.marginTop = '0.5em'
+    errorMsg.style.fontSize = '0.95em'
+
+    button.onclick = async () => {
+        const val = input.value.trim()
+        const eid_re = /^[0-9a-f]{24}$/
+        if (!val) {
+            errorMsg.textContent = 'Screen ID cannot be empty.'
+            return
+        }
+        if (val.length !== 24) {
+            errorMsg.textContent = 'Screen ID must be exactly 24 characters.'
+            return
+        }
+        if (!/^[0-9a-f]+$/.test(val)) {
+            errorMsg.textContent = 'Screen ID must contain only lowercase hex digits (0-9, a-f).'
+            return
+        }
+        if (!eid_re.test(val)) {
+            errorMsg.textContent = 'Please enter a valid 24-character screen ID.'
+            return
+        }
+        // Check if published
+        errorMsg.textContent = 'Checking if screen is published...'
+        button.disabled = true
+        input.disabled = true
+        try {
+            const u = `${SCREENWERK_PUBLISHER_API}${val}.json`
+            const resp = await fetch(u)
+            if (!resp.ok) {
+                throw new Error('Not published or not found')
+            }
+            // Save and reload
+            localStorage.setItem('selected_screen', JSON.stringify({ screen_id: val }))
+            window.location.reload()
+        } catch (err) {
+            errorMsg.textContent = 'Screen ID is not published or not found. Please check and try again.'
+            button.disabled = false
+            input.disabled = false
+        }
+    }
+
+    promptDiv.appendChild(label)
+    promptDiv.appendChild(input)
+    promptDiv.appendChild(button)
+    promptDiv.appendChild(errorMsg)
+    document.body.appendChild(promptDiv)
+    input.focus()
+}
+
 // Get screen ID from localStorage
 const getScreenIdFromStorage = () => {
     const screen_json = localStorage.getItem('selected_screen')
     if (!screen_json) {
-        reportProblem('No screen ID provided in URL and none found in storage. Please select a screen.', true)
+        promptForScreenId()
         return null
     }
 
@@ -75,13 +173,13 @@ const getScreenIdFromStorage = () => {
         const screen_id = stored_screen.screen_id
         
         if (!screen_id) {
-            reportProblem('Invalid screen data in storage. Please select a screen again.', true)
+            promptForScreenId()
             return null
         }
         
         return screen_id
     } catch (error) {
-        reportProblem('Failed to parse stored screen data. Please select a screen again.', true)
+        promptForScreenId()
         console.error(error)
         return null
     }
@@ -249,7 +347,9 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
     }
     
     console.log(`Starting configuration polling with interval of ${interval/1000} seconds (${interval/60000} minutes)`)
-    
+
+    let countdownTimer = null
+
     configPollingInterval = setInterval(async () => {
         try {
             console.log('Checking for configuration updates...')
@@ -285,10 +385,62 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
             console.error('Error checking for configuration updates:', error)
         }
     }, interval)
-    
+
+    // Add countdown debug for last 5 seconds before polling
+    function scheduleCountdown() {
+        if (countdownTimer) clearTimeout(countdownTimer)
+        let secondsLeft = 5
+        function tick() {
+            if (secondsLeft > 0) {
+                console.debug(`[Polling] Next config update in ${secondsLeft}...`)
+                secondsLeft--
+                countdownTimer = setTimeout(tick, 1000)
+            }
+        }
+        // Start countdown 5 seconds before next poll
+        setTimeout(tick, interval - 5000)
+    }
+    scheduleCountdown()
+    // Re-schedule countdown after each poll
+    const originalSetInterval = configPollingInterval
+    configPollingInterval = setInterval(async () => {
+        try {
+            console.log('Checking for configuration updates...')
+            
+            // Fetch the latest configuration
+            const configData = await fetchConfiguration(screenId)
+            if (!configData) {
+                console.error('Failed to fetch configuration during polling')
+                return
+            }
+            
+            // Compare published timestamps
+            const newPublishedAt = new Date(configData.configuration.publishedAt).getTime()
+            
+            if (newPublishedAt > currentPublishedAt) {
+                console.log(`Configuration update detected!`)
+                console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`)
+                console.log(`New: ${new Date(newPublishedAt).toISOString()}`)
+                
+                // Update UI with new configuration data
+                initializeUI(screenId, configData.configuration)
+                registerMediaForCaching(configData.configuration)
+                
+                // Re-initialize the player with new configuration
+                initializePlayer(configData.configuration)
+                
+                // Show a visual notification of the update
+                showUpdateNotification()
+            } else {
+                console.log('No configuration updates found')
+            }
+        } catch (error) {
+            console.error('Error checking for configuration updates:', error)
+        }
+        scheduleCountdown()
+    }, interval)
     // Store the interval ID in localStorage to ensure it persists across page refreshes
     localStorage.setItem('configPollingIntervalId', configPollingInterval)
-    
     return configPollingInterval
 }
 
