@@ -1,5 +1,5 @@
 const CACHE_NAME = 'media-cache-v1.0.2';
-const MEDIA_URL_RE = new RegExp('[0-9a-f]{24}/[0-9a-f]{24}');
+const MEDIA_URL_RE = new RegExp('(swpublisher|api/swpublisher)/media/[0-9a-f]{24}/[0-9a-f]{24}');
 
 // Service worker install event
 self.addEventListener('install', event => {
@@ -34,7 +34,9 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    const mediaId = event.request.url.match(MEDIA_URL_RE)[0].split('/')[1];
+    // Extract the media ID from either format (direct or proxied URL)
+    const urlParts = event.request.url.split('/');
+    const mediaId = urlParts[urlParts.length - 1];
     
     event.respondWith(
         caches.open(CACHE_NAME).then(cache => {

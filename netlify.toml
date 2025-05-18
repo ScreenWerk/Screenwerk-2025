@@ -4,3 +4,10 @@
 
 [build.environment]
   NODE_VERSION = "18"
+
+# Proxy API requests to avoid CORS issues
+[[redirects]]
+  from = "/api/swpublisher/*"
+  to = "https://swpublisher.entu.eu/:splat"
+  status = 200
+  force = true
