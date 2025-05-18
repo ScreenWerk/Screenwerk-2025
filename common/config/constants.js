@@ -51,7 +51,7 @@ export const UI_VISIBILITY = {
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
     showProgress: false,              // Show/hide the media progress bar
-    showScreenInfo: true,             // Show/hide the screen info panel (top right)
+    showScreenInfo: true,             // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: false,    // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   },
@@ -60,7 +60,7 @@ export const UI_VISIBILITY = {
     showDebugPanel: true,             // Show/hide the main debug panel overlay
     showDevBanner: true,              // Show/hide the developer environment banner
     showProgress: true,               // Show/hide the media progress bar
-    showScreenInfo: true,             // Show/hide the screen info panel (top right)
+    showScreenInfo: true,             // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: true,     // Show/hide the configuration/settings panel
     showMediaDebugInfo: true          // Show/hide .media-debug-info overlays on media elements
   },
@@ -69,7 +69,7 @@ export const UI_VISIBILITY = {
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
     showProgress: false,              // Show/hide the media progress bar
-    showScreenInfo: false,            // Show/hide the screen info panel (top right)
+    showScreenInfo: true,            // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: true,     // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   }
