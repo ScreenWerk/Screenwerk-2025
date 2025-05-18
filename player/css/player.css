@@ -21,16 +21,35 @@
 }
 
 /* Media element */
-.media-element {
+.media-element, .media {
     display: none;
     width: 100%;
     height: 100%;
     position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
 }
 
 /* Media element when active */
-.media-element.active {
+.media-element.active, .media[style*="display: block"] {
     display: block;
+}
+
+/* Image and video styles */
+.media img, .media video, .media-element img, .media-element video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    object-fit: contain; /* Default to contain, can be overridden */
+}
+
+/* Fill mode for media (stretching) */
+.media.stretch img, .media.stretch video, 
+.media-element.stretch img, .media-element.stretch video {
+    object-fit: cover; /* Fills the container completely, may crop */
 }
 
 /* Progress container */

@@ -14,7 +14,7 @@ export class SwLayout {
         this.render(configuration)
     }
     render(configuration) {
-        // console.log('rendering layout', configuration)
+        console.log('Rendering layout', configuration)
         this.dom_element.id = configuration.layoutEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.layoutEid}`)
@@ -28,12 +28,13 @@ export class SwLayout {
         this.dom_element.style.width = '100%'
         this.dom_element.style.height = '100%'
         this.dom_element.style.overflow = 'hidden'
+        this.dom_element.style.backgroundColor = '#000' // Ensure black background
 
         // Append the layout container to the parent
         if (this.parent.dom_element) {
             this.parent.dom_element.appendChild(this.dom_element)
         } else if (this.parent.element) {
-            // Fallback for when parent is EntuScreenWerkPlayer
+            this.parent.element.appendChild(this.dom_element)
         }
 
         configuration.layoutPlaylists.forEach(layout_playlist => {

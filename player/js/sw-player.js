@@ -33,7 +33,7 @@ export class EntuScreenWerkPlayer {
         this.currentScheduleIndex = 0
         this.mediaElements = {}
         this.isPlaying = false // Player needs to be started later intentionally
-        this.debugMode = true // Enable debug mode
+        this.debugMode = window.debugMode || false // Enable debug mode
         
         // Set the configuration ID on the mini-player element
         if (configuration._id) {
@@ -46,6 +46,36 @@ export class EntuScreenWerkPlayer {
         this.mediaHandlers = {
             Image: new ImageMediaHandler(DEFAULTS),
             Video: new VideoMediaHandler()
+        }
+        
+        // Instrument the element to catch rendering issues
+        this.element.style.position = 'relative'
+        this.element.style.width = '100%'
+        this.element.style.height = '100%'
+        this.element.style.overflow = 'hidden'
+        this.element.style.backgroundColor = '#000'
+        this.element.style.aspectRatio = '16/9'
+        
+        // Add a debug message for initialization
+        if (this.debugMode) {
+            const debugMsg = document.createElement('div')
+            debugMsg.style.position = 'absolute'
+            debugMsg.style.top = '10px'
+            debugMsg.style.left = '10px'
+            debugMsg.style.padding = '5px'
+            debugMsg.style.backgroundColor = 'rgba(0,0,0,0.7)'
+            debugMsg.style.color = 'white'
+            debugMsg.style.zIndex = '9999'
+            debugMsg.textContent = 'Player initializing...'
+            this.element.appendChild(debugMsg)
+            this.debugInitMsg = debugMsg
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (debugMsg.parentNode) {
+                    debugMsg.parentNode.removeChild(debugMsg)
+                }
+            }, 5000)
         }
         
         this.initialize()
@@ -79,9 +109,34 @@ export class EntuScreenWerkPlayer {
 
         // Create layout container using SwLayout component
         const layoutContainerElement = document.createElement('div')
+        
+        // Ensure we have schedules and they have data
+        if (!this.configuration.schedules || this.configuration.schedules.length === 0) {
+            this.showError('No schedules found in configuration')
+            return
+        }
+        
         const current_schedule = this.configuration.schedules[this.currentScheduleIndex]
+        
+        // Check if current_schedule has layout playlists
+        if (!current_schedule.layoutPlaylists || current_schedule.layoutPlaylists.length === 0) {
+            this.showError(`Schedule found but it has no layout playlists`)
+            return
+        }
+        
+        // Log what we're about to render
+        console.log(`Rendering layout with ${current_schedule.layoutPlaylists.length} playlists`)
+        current_schedule.layoutPlaylists.forEach((playlist, idx) => {
+            console.log(`Playlist ${idx+1}: ${playlist.name} with ${playlist.playlistMedias ? playlist.playlistMedias.length : 0} media items`)
+        })
+        
         this.layout = new SwLayout(this, layoutContainerElement, current_schedule)
         this.element.appendChild(layoutContainerElement)
+        
+        // Update debug message if it exists
+        if (this.debugInitMsg) {
+            this.debugInitMsg.textContent = `Player initialized with ${current_schedule.layoutPlaylists.length} playlists`
+        }
     }
 
     addDebugControls() {

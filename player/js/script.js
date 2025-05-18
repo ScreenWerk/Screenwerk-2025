@@ -7,6 +7,9 @@ import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
 import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 
+// Enable debug mode globally for development/troubleshooting
+window.debugMode = true
+
 const reportProblem = (message, with_link = false) => {
     console.error(message)
     document.getElementById('error').textContent = message
@@ -141,6 +144,27 @@ const registerMediaForCaching = (configuration) => {
 // Initialize the player with configuration
 const initializePlayer = (configuration) => {
     const player_element = document.getElementById('player')
+    
+    // Add debug information about what's being loaded
+    console.log('Initializing player with configuration:', configuration)
+    
+    // Check if configuration contains media files
+    if (configuration.schedules) {
+        console.log(`Found ${configuration.schedules.length} schedules`)
+        
+        // Log details about playlists and media
+        const mediaItems = configuration.schedules
+            .flatMap((schedule) => schedule.layoutPlaylists)
+            .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
+            
+        console.log(`Total media items found: ${mediaItems.length}`)
+        
+        // Log the first few media items to check their structure
+        if (mediaItems.length > 0) {
+            console.log('Sample media item:', mediaItems[0])
+        }
+    }
+    
     const player = new EntuScreenWerkPlayer(player_element, configuration)
     player.resume() // Using resume() instead of play() as per the player implementation
 }
