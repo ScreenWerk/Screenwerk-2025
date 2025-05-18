@@ -135,10 +135,14 @@ export class SwMedia {
                 video.loop = false  // Changed to false since we handle looping ourselves
                 video.autoplay = false  // Changed to false for explicit control
                 video.playsInline = true // Important for mobile devices
+                video.crossOrigin = 'anonymous' // Add crossorigin for CORS media
+                
+                console.log(`Creating video element in render() with source: ${this.fileDO}`)
                 
                 // Add error/load handlers
                 video.onerror = (e) => {
-                    console.error(`Error loading video ${this.name}: ${e.target.error}`)
+                    console.error(`Error loading video ${this.name}: ${e.target.error ? e.target.error.code : 'unknown error'}`)
+                    console.log(`Video element details: src=${video.src}, readyState=${video.readyState}, networkState=${video.networkState}`)
                     loadingIndicator.textContent = `Error loading video: ${this.name}`
                     loadingIndicator.style.color = 'red'
                 }
@@ -147,6 +151,16 @@ export class SwMedia {
                     console.log(`Video loaded successfully: ${this.name}`)
                     loadingIndicator.style.display = 'none'
                 }
+                
+                // Add canplay event for additional debugging
+                video.addEventListener('canplay', () => {
+                    console.log(`Video can play: ${this.name}, duration: ${video.duration}s`)
+                })
+                
+                // Add stalled event for debugging network issues
+                video.addEventListener('stalled', () => {
+                    console.warn(`Video download stalled: ${this.name}`)
+                })
                 
                 // Set up the ended event listener during initialization
                 video.addEventListener('ended', () => {
@@ -277,6 +291,7 @@ export class SwMedia {
                     this.progressBar.start(video_div.duration * 1000)
                 }).catch(error => {
                     console.error(`Autoplay failed for ${this.dom_element.id}: ${error}`)
+                    console.log(`Video details: src=${video_div.src}, type=${this.type}, fileURL=${this.fileDO}`)
                     
                     // Create a play button for user interaction if autoplay fails
                     const playButton = document.createElement('button')
@@ -288,12 +303,40 @@ export class SwMedia {
                     playButton.style.zIndex = '100'
                     
                     playButton.onclick = () => {
+                        console.log(`Manual play attempt for: ${video_div.src}`)
                         video_div.play()
                             .then(() => {
                                 playButton.remove()
                                 this.progressBar.start(video_div.duration * 1000)
                             })
-                            .catch(e => console.error(`Play failed after button click: ${e}`))
+                            .catch(e => {
+                                console.error(`Play failed after button click: ${e}`)
+                                
+                                // Show more diagnostic information for the video error
+                                const errorType = e.name || 'Unknown error';
+                                const videoDetails = {
+                                    error: video_div.error ? `code: ${video_div.error.code}, message: ${video_div.error.message}` : 'No error details',
+                                    networkState: video_div.networkState,
+                                    readyState: video_div.readyState,
+                                    src: video_div.src,
+                                    type: this.type
+                                };
+                                console.log(`Video error details: ${errorType}`, videoDetails);
+                                
+                                // Add visual error message to the player
+                                const errorMsg = document.createElement('div');
+                                errorMsg.className = 'media-error';
+                                errorMsg.style.position = 'absolute';
+                                errorMsg.style.top = '60%';
+                                errorMsg.style.left = '50%';
+                                errorMsg.style.transform = 'translateX(-50%)';
+                                errorMsg.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                                errorMsg.style.color = 'red';
+                                errorMsg.style.padding = '10px';
+                                errorMsg.style.borderRadius = '5px';
+                                errorMsg.textContent = `Video cannot be played (${errorType})`;
+                                this.dom_element.appendChild(errorMsg);
+                            })
                     }
                     
                     this.dom_element.appendChild(playButton)
