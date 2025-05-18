@@ -3,4 +3,21 @@
   publish = "/"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
+  ENVIRONMENT = "dev"
+
+# Proxy API requests to avoid CORS issues
+[[redirects]]
+  from = "/api/swpublisher/*"
+  to = "https://swpublisher.entu.eu/:splat"
+  status = 200
+  force = true
+
+[context.production.environment]
+ENVIRONMENT = "live"
+
+[context.branch-deploy.environment]
+ENVIRONMENT = "dev"
+
+[context.deploy-preview.environment]
+ENVIRONMENT = "dev"

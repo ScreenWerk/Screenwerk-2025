@@ -7,8 +7,8 @@
 // ])
 
 // Import later from @breejs/later - this is the updated, maintained version
-// import later from '@breejs/later' // <-- REMOVE THIS LINE FOR BROWSER
-// Use the global 'later' variable provided by later.min.js
+import later from '@breejs/later'
+
 
 class Cron {
     constructor(schedules) {

@@ -8,21 +8,29 @@
         <link href='./css/style.css' rel='stylesheet' />
         <link href='./css/player.css' rel='stylesheet' /> <!-- Added player.css -->
         <script src="/later.min.js"></script>
-        <script src="/cron.js"></script>
+        <script type="module" src="/cron.js"></script>
         <script src='/config.js' type="module"></script>
     </head>
 
     <body>
         <pre id='error' style='display: none'></pre>
-        <h1>Entu ScreenWerk Player</h1>
-        <div>Screen on Entu: <a id='screenId' href=''></a></div>
-        <!-- <p>Screen name: <span id='screenName'></span></p> -->
-        <div>Published at: <span id='published'></span></div>
-        <div id='player'></div>
-        <div>
-        Configuration:
-        <pre id='configuration'></pre>
+        <div id="screen-info">
+            <h1>Entu ScreenWerk Player</h1>
+            <div>Screen on Entu: <a id='screenId' href=''></a></div>
+            <div>Published at: <span id='published'></span></div>
+            <pre id="git-info-container">
+                <span id="branch-info">Branch: loading...</span>
+                <span id="commit-info">Commit: loading...</span>
+                <span id="build-time">Build: loading...</span>
+            </pre>
+            <div class="netlify-status">
+                <a href="https://app.netlify.com/sites/screenwerk/deploys" target="_blank">
+                    <img src="https://api.netlify.com/api/v1/badges/29505512-9769-4b72-aab5-239a0fd6b888/deploy-status" alt="Netlify Status"/>
+                </a>
+            </div>
         </div>
+        <div id='player'></div>
+        <pre id='configuration'></pre>
         <button id="fullscreenButton" style="display: none;">Enter Fullscreen</button>
     </body>
 

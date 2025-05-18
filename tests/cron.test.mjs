@@ -1,4 +1,4 @@
-const { default: Cron } = require('../cron.mjs')
+import Cron from '../cron.mjs'
 
 describe('Cron', () => {
   describe('current', () => {

@@ -2,6 +2,7 @@
 
 import { LinkedList } from '../../../common/utils/linked-list.js'
 import { SwMedia } from './SwMedia.js'
+import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
 
 export class SwPlaylist extends LinkedList {
     constructor(parent, dom_element, configuration) {
@@ -46,7 +47,10 @@ export class SwPlaylist extends LinkedList {
         this.parent.dom_element.appendChild(this.dom_element)
 
         // Create a debug overlay for this playlist
-        if (window.debugMode) {
+        const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
+            ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+            : { showDebugPanel: true }
+        if (window.debugMode && ui.showDebugPanel) {
             const debugOverlay = document.createElement('div')
             debugOverlay.className = 'playlist-debug'
             debugOverlay.style.position = 'absolute'
