@@ -84,7 +84,25 @@ export class SwPlaylist extends LinkedList {
         })
     }
     play() {
-        this.current.play()
+        const currentMedia = this.getCurrent()
+        if (currentMedia) {
+            console.log(`Starting playback with media: ${currentMedia.name}`)
+            currentMedia.play()
+        } else {
+            console.error('No current media found to play')
+            // Try to move to first item
+            if (this.moveToBeginning()) {
+                const firstMedia = this.getCurrent()
+                if (firstMedia) {
+                    console.log('Starting playback with first media')
+                    firstMedia.play()
+                } else {
+                    console.error('Failed to get first media after moveToBeginning')
+                }
+            } else {
+                console.error('Failed to move to beginning of playlist')
+            }
+        }
     }
     resumeMediaElements() {
         console.log(`Resuming media elements in playlist ${this.dom_element.id}`)
@@ -116,10 +134,6 @@ export class SwPlaylist extends LinkedList {
     moveToBeginning() {
         console.log('Moving playlist to beginning')
         // Reset the list to the beginning
-        if (this.items.length > 0) {
-            this.current = this.items[0]
-            return true
-        }
-        return false
+        return this.first() // Use the first() method from LinkedList
     }
 }

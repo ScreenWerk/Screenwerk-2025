@@ -153,7 +153,29 @@ export class SwMedia {
                     const elapsed_ms = new Date().getTime() - this.dom_element.start_ms
                     console.log(`Video ${this.dom_element.id} ended after ${elapsed_ms} ms`)
                     this.dom_element.style.display = 'none'
-                    this.parent.next().play()
+                    
+                    // Call .next() on the parent LinkedList 
+                    const success = this.parent.next()
+                    
+                    // Get the current media after moving to next
+                    const nextMedia = this.parent.getCurrent()
+                    
+                    if (success && nextMedia && typeof nextMedia.play === 'function') {
+                        console.log(`Playing next media: ${nextMedia.name}`)
+                        nextMedia.play()
+                    } else {
+                        debugLog('[SwMedia] Video ended but no next media to play')
+                        console.error('Failed to get next media element after video. Attempting to restart playlist.')
+                        
+                        // Try to restart from beginning
+                        if (this.parent.moveToBeginning()) {
+                            const firstMedia = this.parent.getCurrent()
+                            if (firstMedia) {
+                                console.log('Restarting playlist from first item after video')
+                                firstMedia.play()
+                            }
+                        }
+                    }
                 })
                 
                 this.dom_element.appendChild(video)
@@ -281,11 +303,28 @@ export class SwMedia {
             
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
-                const nextMedia = this.parent.next()
-                if (nextMedia && typeof nextMedia.play === 'function') {
+                
+                // Call .next() on the parent LinkedList
+                const success = this.parent.next()
+                
+                // Get the current media after moving to next
+                const nextMedia = this.parent.getCurrent()
+                
+                if (success && nextMedia && typeof nextMedia.play === 'function') {
+                    console.log(`Playing next media: ${nextMedia.name}`)
                     nextMedia.play()
                 } else {
                     debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
+                    console.error('Failed to get next media element. Attempting to restart playlist.')
+                    
+                    // Try to restart from beginning
+                    if (this.parent.moveToBeginning()) {
+                        const firstMedia = this.parent.getCurrent()
+                        if (firstMedia) {
+                            console.log('Restarting playlist from first item')
+                            firstMedia.play()
+                        }
+                    }
                 }
             }, this.duration * 1000)
         } else {
@@ -313,9 +352,28 @@ export class SwMedia {
             // Skip to next media after duration
             setTimeout(() => {
                 this.dom_element.style.display = 'none'
-                const nextMedia = this.parent.next()
-                if (nextMedia && typeof nextMedia.play === 'function') {
+                
+                // Call .next() on the parent LinkedList
+                const success = this.parent.next()
+                
+                // Get the current media after moving to next
+                const nextMedia = this.parent.getCurrent()
+                
+                if (success && nextMedia && typeof nextMedia.play === 'function') {
+                    console.log(`Playing next media: ${nextMedia.name}`)
                     nextMedia.play()
+                } else {
+                    debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
+                    console.error('Failed to get next media element. Attempting to restart playlist.')
+                    
+                    // Try to restart from beginning
+                    if (this.parent.moveToBeginning()) {
+                        const firstMedia = this.parent.getCurrent()
+                        if (firstMedia) {
+                            console.log('Restarting playlist from first item')
+                            firstMedia.play()
+                        }
+                    }
                 }
             }, this.duration * 1000)
         }
