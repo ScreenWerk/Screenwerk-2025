@@ -1,12 +1,39 @@
 // Environment detection (works in Node.js and browser)
-export const ENVIRONMENT =
-  typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT
-    ? process.env.ENVIRONMENT
-    : (typeof window !== 'undefined' && window.ENVIRONMENT)
-      ? window.ENVIRONMENT
-      : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
-        ? 'local'
-        : 'dev'; // fallback
+function detectEnvironment() {
+  // Node.js (Netlify, server, etc)
+  if (typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT) {
+    console.log('ENV: Detected from process.env.ENVIRONMENT:', process.env.ENVIRONMENT)
+    return process.env.ENVIRONMENT
+  }
+  // Browser: explicit global
+  if (typeof window !== 'undefined' && window.ENVIRONMENT) {
+    console.log('ENV: Detected from window.ENVIRONMENT:', window.ENVIRONMENT)
+    return window.ENVIRONMENT
+  }
+  // Browser: localhost
+  if (typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  )) {
+    console.log('ENV: Detected from window.location.hostname:', window.location.hostname)
+    return 'local'
+  }
+  // Browser: try gitInfo branch
+  if (typeof window !== 'undefined' && window.gitInfo && window.gitInfo.branch) {
+    const branch = window.gitInfo.branch
+    if (branch === 'main' || branch === 'master') {
+      console.log('ENV: Detected from gitInfo.branch:', branch, '(live)')
+      return 'live'
+    }
+    console.log('ENV: Detected from gitInfo.branch:', branch, '(dev)')
+    return 'dev'
+  }
+  // Default
+  console.log('ENV: Defaulting to dev environment')
+  return 'dev'
+}
+
+export const ENVIRONMENT = detectEnvironment()
 
 export const HOSTNAME = "entu.app"
 export const ACCOUNT = "piletilevi"
