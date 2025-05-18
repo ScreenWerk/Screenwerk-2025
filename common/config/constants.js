@@ -2,8 +2,19 @@ export const HOSTNAME = "entu.app"
 export const ACCOUNT = "piletilevi"
 export const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
-export const SCREENWERK_PUBLISHER_API = '/api/swpublisher/screen/'
-export const PUBLISHER_FILES_API_BASE = '/api/swpublisher/media/'
+
+// Detect if running locally (localhost or 127.0.0.1)
+const isLocalhost = typeof window !== 'undefined' && (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+)
+
+export const SCREENWERK_PUBLISHER_API = isLocalhost
+  ? 'https://swpublisher.entu.eu/screen/'
+  : '/api/swpublisher/screen/'
+
+export const PUBLISHER_FILES_API_BASE = isLocalhost
+  ? 'https://swpublisher.entu.eu/media/'
+  : '/api/swpublisher/media/'
 
 /**
  * Generates the PUBLISHER_FILES_API URL by appending the media and file IDs.
