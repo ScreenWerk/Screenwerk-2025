@@ -3,7 +3,7 @@
   publish = "/"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
 
 # Proxy API requests to avoid CORS issues
 [[redirects]]

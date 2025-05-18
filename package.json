@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "later": "^1.2.0"
+    "@breejs/later": "^4.2.0",
+    "dotenv": "^16.4.5"
   },
   "scripts": {
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config=jest.config.cjs",
     "generate-git-info": "node scripts/generate-git-info.js",
     "build": "echo \"No build step required - static site ready to deploy\""
   },
@@ -13,10 +13,5 @@
     "@babel/preset-env": "^7.26.0",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.m?js$": "babel-jest"
-    }
   }
 }
