@@ -1,20 +1,28 @@
+// Environment detection (works in Node.js and browser)
+export const ENVIRONMENT =
+  typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT
+    ? process.env.ENVIRONMENT
+    : (typeof window !== 'undefined' && window.ENVIRONMENT)
+      ? window.ENVIRONMENT
+      : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+        ? 'local'
+        : 'dev'; // fallback
+
 export const HOSTNAME = "entu.app"
 export const ACCOUNT = "piletilevi"
 export const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
-// Detect if running locally (localhost or 127.0.0.1)
-const isLocalhost = typeof window !== 'undefined' && (
-  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-)
+// API endpoints: use Netlify proxy in dev/live, direct API in local
+export const SCREENWERK_PUBLISHER_API =
+  ENVIRONMENT === 'local'
+    ? 'https://swpublisher.entu.eu/screen/'
+    : '/api/swpublisher/screen/'
 
-export const SCREENWERK_PUBLISHER_API = isLocalhost
-  ? 'https://swpublisher.entu.eu/screen/'
-  : '/api/swpublisher/screen/'
-
-export const PUBLISHER_FILES_API_BASE = isLocalhost
-  ? 'https://swpublisher.entu.eu/media/'
-  : '/api/swpublisher/media/'
+export const PUBLISHER_FILES_API_BASE =
+  ENVIRONMENT === 'local'
+    ? 'https://swpublisher.entu.eu/media/'
+    : '/api/swpublisher/media/'
 
 /**
  * Generates the PUBLISHER_FILES_API URL by appending the media and file IDs.
@@ -39,10 +47,3 @@ export const UNICODE_ICONS = {
 // Configuration polling interval in milliseconds
 // Default: 5 minutes (300000ms)
 export const CONFIG_POLLING_INTERVAL = 300000
-
-export const ENVIRONMENT =
-  typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT
-    ? process.env.ENVIRONMENT
-    : (typeof window !== 'undefined' && window.ENVIRONMENT)
-      ? window.ENVIRONMENT
-      : 'dev'; // fallback
