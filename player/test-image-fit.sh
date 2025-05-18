@@ -17,6 +17,8 @@ if command -v python3 &> /dev/null; then
     echo "Navigate to one of these test pages:"
     echo "- http://localhost:8000/player/test-image-fit.html (Basic test)"
     echo "- http://localhost:8000/player/advanced-image-test.html (Advanced test)"
+    echo "- http://localhost:8000/player/player-image-test.html (Player test)"
+    echo "- http://localhost:8000/player/aspect-ratio-test.html (16:9 Aspect Ratio & Fill test)"
     echo
     echo -e "${YELLOW}Press Ctrl+C to stop the server when done testing${NC}"
     cd /home/michelek/Documents/github/sw25
