@@ -93,16 +93,8 @@ window.onload = async () => {
         unset.forEach((key) => delete sw_configuration[key])
         configuration = sw_configuration
 
-        // Store the configuration temporarily for this session
-        try {
-            localStorage.setItem(
-                `swConfiguration_temp`, JSON.stringify(configuration)
-            )
-        } catch (storageError) {
-            debugLog('Warning: Failed to store temporary configuration in localStorage')
-            console.error(storageError)
-            // Continue even if storage fails - we already have the configuration in memory
-        }
+        // No need to store configuration in localStorage
+        // We're always fetching it fresh on each page load
     } catch (fetchError) {
         reportProblem(`Failed to fetch configuration for screen ID: ${screen_id}`, true)
         console.error(fetchError)
