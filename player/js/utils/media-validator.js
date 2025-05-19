@@ -90,7 +90,7 @@ export async function checkMediaUrl(url, type) {
 export function displayMediaDebugInfo(element, mediaInfo) {
     // Only show if allowed by UI_VISIBILITY
     const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
-        ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+        ? UI_VISIBILITY
         : { showMediaDebugInfo: true }
     if (!ui.showMediaDebugInfo) return
 

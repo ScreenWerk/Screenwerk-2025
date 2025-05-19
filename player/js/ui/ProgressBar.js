@@ -47,7 +47,7 @@ export class ProgressBar {
         
         // Make progress visible immediately
         this.ensureVisible()
-        debugLog(`Progress bar initialized for ${parent.id || 'element'}`)
+        // debugLog(`Progress bar initialized for ${parent.id || 'element'}`)
     }
     
     setProgress(percent) {
@@ -61,13 +61,13 @@ export class ProgressBar {
         
         // Log every 5% to avoid too many logs
         if (Math.abs(boundedPercent - this.lastProgress) >= 5) {
-            debugLog(`Progress updated to ${boundedPercent.toFixed(1)}%`)
+            // debugLog(`Progress updated to ${boundedPercent.toFixed(1)}%`)
             this.lastProgress = boundedPercent
         }
     }
     
     reset() {
-        debugLog('Progress bar reset')
+        // debugLog('Progress bar reset')
         this.bar.style.width = '0%'
         this.lastProgress = 0
     }

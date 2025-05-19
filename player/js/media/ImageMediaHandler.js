@@ -17,7 +17,7 @@ export class ImageMediaHandler {
         
         // Add loading handler
         img.onload = () => {
-            console.log(`Image loaded successfully: ${mediaItem.name}`)
+            // console.log(`Image loaded successfully: ${mediaItem.name}`)
         }
         
         // Add error handler

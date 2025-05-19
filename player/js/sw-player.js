@@ -27,7 +27,7 @@ export class EntuScreenWerkPlayer {
      * @param {Object} configuration - The player configuration containing schedules and media
      */
     constructor(element, configuration) {
-        console.log('EntuScreenWerkPlayer initialized', configuration)
+        // console.log('EntuScreenWerkPlayer initialized', configuration)
         this.element = element
         this.configuration = configuration
         this.currentScheduleIndex = 0
@@ -97,7 +97,7 @@ export class EntuScreenWerkPlayer {
         this.element.style.aspectRatio = 16/9
 
         // Do not start playlists automatically
-        debugLog('Player initialized without starting playlists')
+        // debugLog('Player initialized without starting playlists')
 
         // Clear previous content
         this.element.innerHTML = ''
@@ -125,9 +125,9 @@ export class EntuScreenWerkPlayer {
         }
         
         // Log what we're about to render
-        console.log(`Rendering layout with ${current_schedule.layoutPlaylists.length} playlists`)
+        // console.log(`Rendering layout with ${current_schedule.layoutPlaylists.length} playlists`)
         current_schedule.layoutPlaylists.forEach((playlist, idx) => {
-            console.log(`Playlist ${idx+1}: ${playlist.name} with ${playlist.playlistMedias ? playlist.playlistMedias.length : 0} media items`)
+            // console.log(`Playlist ${idx+1}: ${playlist.name} with ${playlist.playlistMedias ? playlist.playlistMedias.length : 0} media items`)
         })
         
         this.layout = new SwLayout(this, layoutContainerElement, current_schedule)
@@ -178,12 +178,12 @@ export class EntuScreenWerkPlayer {
     }
     
     forceNextMedia() {
-        console.log('Force next media triggered from controls')
+        // console.log('Force next media triggered from controls')
         
         // First, try to find visible media with the .media class
         const visibleMedia = this.element.querySelector('.media[style*="display: block"]')
         if (visibleMedia) {
-            console.log(`Found visible media: ${visibleMedia.getAttribute('name')}`)
+            // console.log(`Found visible media: ${visibleMedia.getAttribute('name')}`)
             
             // Find parent playlist
             let playlistContainer = visibleMedia.parentNode
@@ -192,7 +192,7 @@ export class EntuScreenWerkPlayer {
             }
             
             if (playlistContainer) {
-                console.log(`Found playlist container: ${playlistContainer.getAttribute('name')}`)
+                // console.log(`Found playlist container: ${playlistContainer.getAttribute('name')}`)
                 
                 // Get the playlist object from layout
                 if (this.layout && this.layout.playlists) {
@@ -201,7 +201,7 @@ export class EntuScreenWerkPlayer {
                     const playlist = this.layout.playlists.find(p => p.dom_element.id === playlistId)
                     
                     if (playlist) {
-                        console.log(`Found playlist object, advancing to next media`)
+                        // console.log(`Found playlist object, advancing to next media`)
                         
                         // Hide current media
                         visibleMedia.style.display = 'none'
@@ -217,14 +217,14 @@ export class EntuScreenWerkPlayer {
                         if (success) {
                             const nextMedia = playlist.getCurrent()
                             if (nextMedia) {
-                                console.log(`Playing next media: ${nextMedia.name}`)
+                                // console.log(`Playing next media: ${nextMedia.name}`)
                                 nextMedia.play()
                                 return true
                             }
                         }
                         
                         // If next failed, try restarting from beginning
-                        console.log(`Restarting playlist from beginning`)
+                        // console.log(`Restarting playlist from beginning`)
                         playlist.moveToBeginning()
                         const firstMedia = playlist.getCurrent()
                         if (firstMedia) {
@@ -263,7 +263,7 @@ export class EntuScreenWerkPlayer {
             return false
         }
         this.isPlaying = true
-        debugLog('Player resumed')
+        // debugLog('Player resumed')
         if (this.layout) {
             this.layout.resumeMediaElements()
         }
@@ -273,11 +273,11 @@ export class EntuScreenWerkPlayer {
 
     pause() {
         if (!this.isPlaying) {
-            debugLog('Player already paused')
+            // debugLog('Player already paused')
             return false
         }
         this.isPlaying = false
-        debugLog('Player pause() called')
+        // debugLog('Player pause() called')
         if (this.layout) {
             this.layout.pauseMediaElements()
         }
