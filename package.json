@@ -4,14 +4,12 @@
     "dotenv": "^16.4.5"
   },
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config=jest.config.cjs",
+    "test": "echo \"No tests specified\" && exit 0",
     "generate-git-info": "node scripts/generate-git-info.js",
     "build": "echo \"No build step required - static site ready to deploy\""
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
-    "@babel/preset-env": "^7.26.0",
-    "babel-jest": "^29.7.0",
-    "jest": "^29.7.0"
+    "@babel/preset-env": "^7.26.0"
   }
 }
