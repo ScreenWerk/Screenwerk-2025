@@ -95,7 +95,7 @@ const promptForScreenId = () => {
     input.style.width = '90%'
     input.style.padding = '0.5em'
     input.style.marginBottom = '0.5em'
-    input.style.border = '1px solid '#aaa'
+    input.style.border = '1px solid #aaa'
     input.style.borderRadius = '4px'
 
     const button = document.createElement('button')
