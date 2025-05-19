@@ -14,6 +14,7 @@
     <script src="/common/validators/validator.js" type="module"></script> <!-- Updated path -->
     <script src="/player/js/sw-player.js" type="module"></script> <!-- Updated path -->
     <script defer src="/dashboard/js/script.js" type="module"></script> <!-- Updated path -->
+    <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
 </head>
 <body>
     <header class="build-info">
@@ -29,12 +30,24 @@
     <footer class="build-info">
         <div id="build-info-container-footer">
             <span>Build: <span id="build-time-footer"></span></span>
-            <span class="netlify-status">
-                <a href="https://app.netlify.com/sites/screenwerk/deploys" target="_blank">
-                    <img src="https://api.netlify.com/api/v1/badges/29505512-9769-4b72-aab5-239a0fd6b888/deploy-status" alt="Netlify Status"/>
-                </a>
-            </span>
         </div>
     </footer>
+    <script>
+    // Fill build info fields if available
+    if (window.buildInfo) {
+        const build = document.getElementById('build-time')
+        if (build) {
+            const utc = window.buildInfo.buildTime
+            const local = new Date(utc).toLocaleString()
+            build.textContent = 'Build: ' + local
+        }
+        const buildFooter = document.getElementById('build-time-footer')
+        if (buildFooter) {
+            const utc = window.buildInfo.buildTime
+            const local = new Date(utc).toLocaleString()
+            buildFooter.textContent = local
+        }
+    }
+    </script>
 </body>
 </html>

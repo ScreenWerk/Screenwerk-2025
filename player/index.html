@@ -9,8 +9,8 @@
         <link href='./css/player.css' rel='stylesheet' /> <!-- Added player.css -->
         <script src="/common/later.min.js"></script>
         <script type="module" src="/common/cron.js"></script>
-        <script src='/config.js' type="module"></script>
         <script src="/build-info.js"></script>
+        <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
     </head>
 
     <body>
@@ -19,9 +19,7 @@
             <h1>Entu ScreenWerk Player</h1>
             <div>Screen on Entu: <a id='screenId' href=''></a></div>
             <div>Published at: <span id='published'></span></div>
-            <pre id="git-info-container">
-                <span id="branch-info">Branch: loading...</span>
-                <span id="commit-info">Commit: loading...</span>
+            <pre id="build-info-container">
                 <span id="build-time">Build: loading...</span>
             </pre>
             <div class="netlify-status">
@@ -39,12 +37,12 @@
     <script>
     // Fill build info fields if available
     if (window.buildInfo) {
-        const branch = document.getElementById('branch-info')
-        const commit = document.getElementById('commit-info')
         const build = document.getElementById('build-time')
-        if (branch) branch.textContent = 'Branch: ' + window.buildInfo.branch
-        if (commit) commit.textContent = 'Commit: ' + window.buildInfo.commit
-        if (build) build.textContent = 'Build: ' + window.buildInfo.buildTime
+        if (build) {
+            const utc = window.buildInfo.buildTime
+            const local = new Date(utc).toLocaleString()
+            build.textContent = 'Build: ' + local
+        }
     }
     </script>
 </html>
