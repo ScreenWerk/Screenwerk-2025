@@ -95,7 +95,7 @@ const promptForScreenId = () => {
     input.style.width = '90%'
     input.style.padding = '0.5em'
     input.style.marginBottom = '0.5em'
-    input.style.border = '1px solid #aaa'
+    input.style.border = '1px solid '#aaa'
     input.style.borderRadius = '4px'
 
     const button = document.createElement('button')
@@ -350,42 +350,6 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
 
     let countdownTimer = null
 
-    configPollingInterval = setInterval(async () => {
-        try {
-            console.log('Checking for configuration updates...')
-            
-            // Fetch the latest configuration
-            const configData = await fetchConfiguration(screenId)
-            if (!configData) {
-                console.error('Failed to fetch configuration during polling')
-                return
-            }
-            
-            // Compare published timestamps
-            const newPublishedAt = new Date(configData.configuration.publishedAt).getTime()
-            
-            if (newPublishedAt > currentPublishedAt) {
-                console.log(`Configuration update detected!`)
-                console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`)
-                console.log(`New: ${new Date(newPublishedAt).toISOString()}`)
-                
-                // Update UI with new configuration data
-                initializeUI(screenId, configData.configuration)
-                registerMediaForCaching(configData.configuration)
-                
-                // Re-initialize the player with new configuration
-                initializePlayer(configData.configuration)
-                
-                // Show a visual notification of the update
-                showUpdateNotification()
-            } else {
-                console.log('No configuration updates found')
-            }
-        } catch (error) {
-            console.error('Error checking for configuration updates:', error)
-        }
-    }, interval)
-
     // Add countdown debug for last 5 seconds before polling
     function scheduleCountdown() {
         if (countdownTimer) clearTimeout(countdownTimer)
@@ -400,9 +364,6 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
         // Start countdown 5 seconds before next poll
         setTimeout(tick, interval - 5000)
     }
-    scheduleCountdown()
-    // Re-schedule countdown after each poll
-    const originalSetInterval = configPollingInterval
     configPollingInterval = setInterval(async () => {
         try {
             console.log('Checking for configuration updates...')
@@ -439,8 +400,7 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
         }
         scheduleCountdown()
     }, interval)
-    // Store the interval ID in localStorage to ensure it persists across page refreshes
-    localStorage.setItem('configPollingIntervalId', configPollingInterval)
+    scheduleCountdown()
     return configPollingInterval
 }
 
