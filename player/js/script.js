@@ -95,7 +95,7 @@ const promptForScreenId = () => {
     input.style.width = '90%'
     input.style.padding = '0.5em'
     input.style.marginBottom = '0.5em'
-    input.style.border = '1px solid #aaa'
+    input.style.border = '1px solid '#aaa'
     input.style.borderRadius = '4px'
 
     const button = document.createElement('button')
@@ -401,8 +401,6 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
         scheduleCountdown()
     }, interval)
     scheduleCountdown()
-    // Store the interval ID in localStorage to ensure it persists across page refreshes
-    localStorage.setItem('configPollingIntervalId', configPollingInterval)
     return configPollingInterval
 }
 
