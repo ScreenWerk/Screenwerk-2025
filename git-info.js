@@ -1,8 +1,8 @@
 
 // This file is auto-generated during build
 window.gitInfo = {
-  branch: 'N/A',
-  commit: 'live',
+  branch: 'live',
+  commit: 'N/A',
   buildTime: 'N/A',
   deployUrl: 'N/A'
 }
