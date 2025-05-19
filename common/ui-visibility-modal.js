@@ -17,12 +17,40 @@ const TOGGLE_HOTKEYS = [
   'z','x','c','v','b','n','m'
 ]
 
+/**
+ * Gets the current UI visibility settings.
+ * - Retrieves from localStorage if available
+ * - Filters for only valid keys that exist in defaults
+ * - Falls back to environment defaults if nothing in storage
+ * 
+ * @returns {Object} The current UI visibility settings
+ */
 function getSettings() {
   try {
+    // Get environment and defaults
+    const env = window.ENVIRONMENT || 'dev'
+    const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : UI_VISIBILITY
+    const defaultKeys = defaults ? Object.keys(defaults) : []
+    
+    // Try to get stored settings
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) return JSON.parse(stored)
-  } catch {}
-  return UI_VISIBILITY
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      
+      // Filter for only valid keys that exist in defaults
+      const settings = {}
+      defaultKeys.forEach(key => {
+        settings[key] = parsed[key] !== undefined ? parsed[key] : defaults[key]
+      })
+      return settings
+    }
+    
+    // No stored settings, use defaults
+    return defaults
+  } catch (err) {
+    console.warn('[UI Visibility] Error getting settings:', err)
+    return UI_VISIBILITY
+  }
 }
 
 function saveSettings(settings) {
@@ -43,6 +71,47 @@ function openModal(modalId, reloadOnChange) {
   form.innerHTML = ''
   const settings = getSettings()
   const keys = Object.keys(settings)
+  // Add 'Restore Defaults' as the first toggle (hotkey 0)
+  // (Do NOT add name='__restore_defaults__' to the checkbox, so it is never picked up by form.elements)
+  const env = window.ENVIRONMENT || 'dev'
+  const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : undefined
+  const defaultKeys = defaults ? Object.keys(defaults) : []
+  let isDefault = true
+  if (defaults) {
+    for (const key of keys) {
+      if (settings[key] !== defaults[key]) {
+        isDefault = false
+        break
+      }
+    }
+  }
+  const restoreLabel = document.createElement('label')
+  restoreLabel.style.display = 'block'
+  restoreLabel.innerHTML = `<u>[0]</u> `
+  const restoreCheckbox = document.createElement('input')
+  restoreCheckbox.type = 'checkbox'
+  // Do NOT set restoreCheckbox.name = '__restore_defaults__'
+  restoreCheckbox.setAttribute('data-hotkey', '0')
+  restoreCheckbox.tabIndex = 0
+  restoreCheckbox.checked = false
+  restoreCheckbox.disabled = isDefault
+  restoreCheckbox.onclick = function(e) {
+    e.preventDefault()
+    if (restoreCheckbox.disabled) return
+    if (defaults) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
+      window.location.reload()
+    } else {
+      alert('Failed to restore defaults: DEFAULT_UI_VISIBILITY not found on window')
+    }
+  }
+  restoreLabel.appendChild(restoreCheckbox)
+  restoreLabel.appendChild(document.createTextNode(' Restore Defaults'))
+  if (isDefault) {
+    restoreLabel.title = 'Already at default settings'
+    restoreLabel.style.opacity = '0.5'
+  }
+  form.appendChild(restoreLabel)
   keys.forEach((key, idx) => {
     const label = document.createElement('label')
     label.style.display = 'block'
@@ -57,9 +126,18 @@ function openModal(modalId, reloadOnChange) {
       label.innerHTML = `<u>[${hotkey.toUpperCase()}]</u> `
     }
     label.appendChild(checkbox)
-    label.appendChild(document.createTextNode(' ' + key))
+    // Mark if different from default
+    if (defaults && settings[key] !== defaults[key]) {
+      label.appendChild(document.createTextNode(' ' + key + ' *'))
+      label.title = 'Modified from default'
+      label.style.fontWeight = 'bold'
+      label.style.color = '#b00'
+    } else {
+      label.appendChild(document.createTextNode(' ' + key))
+    }
     form.appendChild(label)
   })
+  // No restore button, handled by hotkey now
 }
 
 function closeModal(modalId) {
@@ -82,6 +160,11 @@ function closeModal(modalId) {
  */
 export function setupUIVisibilityModal({ reloadOnChange = true } = {}) {
   function registerListeners() {
+    // Get environment and defaults (need this here for the event handlers)
+    const env = window.ENVIRONMENT || 'dev'
+    const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : undefined
+    const defaultKeys = defaults ? Object.keys(defaults) : []
+    
     console.debug('[UI Visibility Modal] Registering keyboard event for Alt+U')
     document.addEventListener('keydown', (e) => {
       if (e.altKey && e.key.toLowerCase() === 'u') {
@@ -89,12 +172,20 @@ export function setupUIVisibilityModal({ reloadOnChange = true } = {}) {
         e.preventDefault()
         openModal(MODAL_ID, reloadOnChange)
       }
-      // Modal open: handle toggle hotkeys and Esc
+      // Modal open: handle toggle hotkeys, Esc, and 0 for restore
       const modal = document.getElementById(MODAL_ID)
       if (modal && modal.style.display === 'flex') {
         if (e.key === 'Escape') {
           console.debug('[UI Visibility Modal] Escape pressed - closing modal')
           closeModal(MODAL_ID)
+        } else if (e.key === '0') {
+          // Restore defaults for current environment (no dynamic import needed)
+          if (defaults) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
+            window.location.reload()
+          } else {
+            alert('Failed to restore defaults: DEFAULT_UI_VISIBILITY not found on window')
+          }
         } else {
           // Check if key matches a toggle
           const form = document.getElementById(FORM_ID)
@@ -106,7 +197,11 @@ export function setupUIVisibilityModal({ reloadOnChange = true } = {}) {
               cb.checked = !cb.checked
               // Save and apply
               const newSettings = {}
-              checkboxes.forEach(function(c) { newSettings[c.name] = c.checked })
+              checkboxes.forEach(function(c) { 
+                if (c.name && defaultKeys.includes(c.name)) {
+                  newSettings[c.name] = c.checked
+                }
+              })
               saveSettings(newSettings)
               applySettings(newSettings, reloadOnChange)
             }
@@ -121,7 +216,13 @@ export function setupUIVisibilityModal({ reloadOnChange = true } = {}) {
       const form = e.target
       const newSettings = {}
       Array.from(form.elements).forEach((el) => {
-        if (el.type === 'checkbox') newSettings[el.name] = el.checked
+        if (
+          el.type === 'checkbox' &&
+          el.name &&
+          defaultKeys.includes(el.name)
+        ) {
+          newSettings[el.name] = el.checked
+        }
       })
       saveSettings(newSettings)
       applySettings(newSettings, reloadOnChange)
@@ -132,7 +233,13 @@ export function setupUIVisibilityModal({ reloadOnChange = true } = {}) {
       const form = e.target.form
       const newSettings = {}
       Array.from(form.elements).forEach((el) => {
-        if (el.type === 'checkbox') newSettings[el.name] = el.checked
+        if (
+          el.type === 'checkbox' &&
+          el.name &&
+          defaultKeys.includes(el.name)
+        ) {
+          newSettings[el.name] = el.checked
+        }
       })
       saveSettings(newSettings)
       applySettings(newSettings, reloadOnChange)

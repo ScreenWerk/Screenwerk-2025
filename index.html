@@ -11,6 +11,7 @@
     nav { margin-bottom: 2em; }
     nav a { margin-right: 1.5em; color: #007bff; text-decoration: none; font-weight: bold; }
     nav a:hover { text-decoration: underline; }
+    .kbd { display: inline-block; border: 1px solid #ccc; border-radius: 4px; padding: 0.1em 0.5em; margin: 0 0.2em; background: #f8f8f8; font-family: monospace; font-size: 0.9em; box-shadow: 0 1px 2px #0002; }
   </style>
 </head>
 <body>
@@ -18,7 +19,22 @@
     <a href="./player/index.html">Player</a>
     <a href="./dashboard/index.html">Dashboard</a>
     <a href="./README.md">README</a>
+    <span style="float: right; font-size: 0.9em; color: #666;">Press <span class="kbd">Alt</span>+<span class="kbd">U</span> to toggle UI visibility</span>
   </nav>
+  
+  <!-- UI Visibility Modal -->
+  <div id="ui-visibility-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:2em; border-radius:8px; max-width:400px; width:90%;">
+      <h3>UI Visibility Settings</h3>
+      <p>Toggle which UI elements should be visible.</p>
+      <form id="ui-visibility-form">
+        <!-- Checkboxes will be inserted here dynamically -->
+      </form>
+      <button id="ui-visibility-close" style="margin-top:1em; padding:0.5em 1em; float:right;">Close</button>
+      <div style="clear:both;"></div>
+    </div>
+  </div>
+  
   <div id="markdown-doc">Loading documentation...</div>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
@@ -36,6 +52,26 @@
     window.buildInfo = {
       buildTime: '...'
     }
+  </script>
+  <script type="module">
+    // Import and setup UI visibility modal
+    import { setupUIVisibilityModal } from './common/ui-visibility-modal.js'
+    
+    // Set up default visibility settings for main index page
+    window.ENVIRONMENT = 'local'
+    window.DEFAULT_UI_VISIBILITY = {
+      local: {
+        showMediaControls: false,
+        showDebugPanel: false,
+        showDevBanner: false,
+        showProgress: true,
+        showScreenInfo: true,
+        showConfigurationPanel: true,
+        showMediaDebugInfo: false
+      }
+    }
+    
+    setupUIVisibilityModal({ reloadOnChange: false })
   </script>
 </body>
 </html>
