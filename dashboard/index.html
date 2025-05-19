@@ -9,17 +9,15 @@
     <!-- Load non-module scripts first -->
     <script src="/common/later.min.js"></script>
     <script type="module" src="/common/cron.js"></script>
-    <script src="./git-info.js"></script>
+    <script src="/build-info.js"></script>
     <!-- Load module scripts after -->
     <script src="/common/validators/validator.js" type="module"></script> <!-- Updated path -->
     <script src="/player/js/sw-player.js" type="module"></script> <!-- Updated path -->
     <script defer src="/dashboard/js/script.js" type="module"></script> <!-- Updated path -->
 </head>
 <body>
-    <header class="git-info">
-        <div id="git-info-container">
-            <span id="branch-info">Branch: loading...</span>
-            <span id="commit-info">Commit: loading...</span>
+    <header class="build-info">
+        <div id="build-info-container">
             <span id="build-time">Build: loading...</span>
         </div>
     </header>
@@ -28,17 +26,15 @@
     <div id="accordion"></div>
     <div id="progress-bar-placeholder"></div>
     
-    <footer class="git-info">
-        <div id="git-info-container-footer">
-            <span>Branch: <span id="branch-info-footer"></span></span>
-            <span>Commit: <span id="commit-info-footer"></span></span>
+    <footer class="build-info">
+        <div id="build-info-container-footer">
             <span>Build: <span id="build-time-footer"></span></span>
             <span class="netlify-status">
                 <a href="https://app.netlify.com/sites/screenwerk/deploys" target="_blank">
                     <img src="https://api.netlify.com/api/v1/badges/29505512-9769-4b72-aab5-239a0fd6b888/deploy-status" alt="Netlify Status"/>
                 </a>
             </span>
-            </div>
+        </div>
     </footer>
 </body>
 </html>

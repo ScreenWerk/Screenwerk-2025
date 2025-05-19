@@ -1,4 +1,3 @@
-
 // This file is auto-generated during build
 window.gitInfo = {
   branch: 'local-development',

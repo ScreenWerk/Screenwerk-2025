@@ -1,28 +1,24 @@
-# sw25
+# Build Info Generation for Deployments
 
-## Git Info Generation for Deployments
+This project auto-generates a `build-info.js` file at build time to expose the build time to the frontend (for display in the dashboard and player UIs).
 
-This project auto-generates a `git-info.js` file at build time to expose branch, commit, build time, and deploy URL information to the frontend (for display in the dashboard and player UIs).
+## Netlify Deployments
 
-### Netlify Deployments
-
-- Uses the script: `scripts/generate-git-info-netlify.js`
-- Run with: `npm run generate-git-info-netlify`
-- Environment variables used: `BRANCH`, `COMMIT_REF`, `DEPLOY_URL`
+- Uses the script: `scripts/generate-build-info-netlify.js`
+- Run with: `npm run generate-build-info-netlify`
 - Automatically run via the Netlify build command in `netlify.toml`.
 
-### DigitalOcean App Platform Deployments
+## DigitalOcean App Platform Deployments
 
-- Uses the script: `scripts/generate-git-info-digitalocean.js`
-- Run with: `npm run generate-git-info-digitalocean`
-- Environment variables used: `DOA_BRANCH`, `DOA_COMMIT_SHA`, `DOA_DEPLOYMENT_URL` (falls back to Netlify-style vars if not set)
-- Add this script to your DigitalOcean App Platform build command to generate `git-info.js` before deployment.
+- Uses the script: `scripts/generate-build-info-digitalocean.js`
+- Run with: `npm run generate-build-info-digitalocean`
+- Add this script to your DigitalOcean App Platform build command to generate `build-info.js` before deployment.
 
-### Local Development
+## Local Development
 
-- If neither script is run, `git-info.js` will not be updated and may show default or outdated values.
-- You can run either script locally to generate a fresh `git-info.js` for testing.
+- If neither script is run, `build-info.js` will not be updated and may show default or outdated values.
+- You can run either script locally to generate a fresh `build-info.js` for testing.
 
 ---
 
-**Note:** The generated `git-info.js` is loaded by the dashboard and player UIs to optionally display build and deployment information in the footer/header.
+**Note:** The generated `build-info.js` is loaded by the dashboard and player UIs to display build information in the footer/header.

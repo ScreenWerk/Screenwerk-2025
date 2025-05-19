@@ -10,7 +10,7 @@
         <script src="/common/later.min.js"></script>
         <script type="module" src="/common/cron.js"></script>
         <script src='/config.js' type="module"></script>
-        <script src="/git-info.js"></script>
+        <script src="/build-info.js"></script>
     </head>
 
     <body>
@@ -37,14 +37,14 @@
 
     <script src='/player/js/script.js' type="module"></script>
     <script>
-    // Fill git info fields if available
-    if (window.gitInfo) {
+    // Fill build info fields if available
+    if (window.buildInfo) {
         const branch = document.getElementById('branch-info')
         const commit = document.getElementById('commit-info')
         const build = document.getElementById('build-time')
-        if (branch) branch.textContent = 'Branch: ' + window.gitInfo.branch
-        if (commit) commit.textContent = 'Commit: ' + window.gitInfo.commit
-        if (build) build.textContent = 'Build: ' + window.gitInfo.buildTime
+        if (branch) branch.textContent = 'Branch: ' + window.buildInfo.branch
+        if (commit) commit.textContent = 'Commit: ' + window.buildInfo.commit
+        if (build) build.textContent = 'Build: ' + window.buildInfo.buildTime
     }
     </script>
 </html>
