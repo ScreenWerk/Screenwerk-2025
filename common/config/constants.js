@@ -58,7 +58,7 @@ export const UNICODE_ICONS = {
 
 // UI visibility matrix: control which UI elements are shown/hidden in each environment
 // Loads from browser storage if available, otherwise uses defaults and saves them
-const DEFAULT_UI_VISIBILITY = {
+export const DEFAULT_UI_VISIBILITY = {
   live: {
     showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
     showDebugPanel: false,            // Show/hide the main debug panel overlay

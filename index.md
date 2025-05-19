@@ -21,6 +21,7 @@ Welcome to the ScreenWerk '25 project
   - [Documentation](#documentation)
   - [How to use the Player](#how-to-use-the-player)
   - [How to use the Dashboard](#how-to-use-the-dashboard)
+  - [UI Visibility Settings](#ui-visibility-settings)
   - [Environment Configuration](#environment-configuration)
 
 ---
@@ -36,6 +37,41 @@ Welcome to the ScreenWerk '25 project
 1. Open the [Dashboard UI](./dashboard/index.html).
 2. Browse, edit, or validate screen configurations.
 3. Use the dashboard to monitor deployments and screen status.
+
+## UI Visibility Settings
+
+The UI visibility settings allow you to customize which interface elements are displayed in both the Player and Dashboard:
+
+### Accessing the Settings
+
+- Press **Alt+U** at any time to open the UI visibility settings modal
+- Press **Esc** to close the modal without submitting changes
+
+### Available Settings
+
+- **showMediaControls**: Toggle media control buttons (play, pause, etc.)
+- **showDebugPanel**: Toggle the main debug panel overlay
+- **showDevBanner**: Toggle the developer environment banner
+- **showProgress**: Toggle the media progress bar
+- **showScreenInfo**: Toggle the screen info panel (top right)
+- **showConfigurationPanel**: Toggle the configuration/settings panel
+- **showMediaDebugInfo**: Toggle debug info overlays on media elements
+
+### Using the Settings Modal
+
+- Each setting has an assigned hotkey (shown in brackets, e.g., **[Q]**)
+- Press the corresponding key to toggle a setting while the modal is open
+- Modified settings are marked with an asterisk (*) and shown in bold red
+- Press **0** to restore all settings to the environment defaults
+- Settings are saved to your browser's localStorage automatically
+
+### Environment-Specific Defaults
+
+Different environments (dev, live, local) have different default visibility settings to support various use cases:
+
+- **Development**: Most UI elements enabled for debugging
+- **Live**: Minimal UI for production displays
+- **Local**: Balanced settings for local testing
 
 ## Environment Configuration
 

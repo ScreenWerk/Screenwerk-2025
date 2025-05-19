@@ -2,7 +2,7 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL, ENVIRONMENT, UI_VISIBILITY } from '../../common/config/constants.js' 
+import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL, ENVIRONMENT, UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../../common/config/constants.js' 
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
 import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
@@ -13,6 +13,7 @@ window.debugMode = true
 
 window.UI_VISIBILITY = UI_VISIBILITY
 window.ENVIRONMENT = ENVIRONMENT
+window.DEFAULT_UI_VISIBILITY = DEFAULT_UI_VISIBILITY
 
 const reportProblem = (message, with_link = false) => {
     console.error(message)
