@@ -57,13 +57,14 @@ export const UNICODE_ICONS = {
 }
 
 // UI visibility matrix: control which UI elements are shown/hidden in each environment
-export const UI_VISIBILITY = {
+// Loads from browser storage if available, otherwise uses defaults and saves them
+const DEFAULT_UI_VISIBILITY = {
   live: {
     showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
     showProgress: false,              // Show/hide the media progress bar
-    showScreenInfo: false,             // Show/hide the screen info panel (top right) and git info section
+    showScreenInfo: false,            // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: false,    // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   },
@@ -80,12 +81,36 @@ export const UI_VISIBILITY = {
     showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
-    showProgress: true,              // Show/hide the media progress bar
-    showScreenInfo: true,            // Show/hide the screen info panel (top right) and git info section
+    showProgress: true,               // Show/hide the media progress bar
+    showScreenInfo: true,             // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: true,     // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   }
 }
+
+function getUIVisibility() {
+  // Only use localStorage in browser
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = window.localStorage.getItem('UI_VISIBILITY')
+      if (stored) {
+        return JSON.parse(stored)
+      } else {
+        // Save only relevant part to storage (current env)
+        const relevant = DEFAULT_UI_VISIBILITY[ENVIRONMENT]
+        window.localStorage.setItem('UI_VISIBILITY', JSON.stringify(relevant))
+        return relevant
+      }
+    } catch (e) {
+      console.warn('UI_VISIBILITY: Failed to read/write localStorage, using defaults', e)
+      return DEFAULT_UI_VISIBILITY[ENVIRONMENT]
+    }
+  }
+  // Not in browser, return only relevant part
+  return DEFAULT_UI_VISIBILITY[ENVIRONMENT]
+}
+
+export const UI_VISIBILITY = getUIVisibility()
 
 // Configuration polling interval in milliseconds
 // Default: 1 minute (60000ms)
