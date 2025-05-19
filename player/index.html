@@ -5,8 +5,10 @@
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>Entu ScreenWerk Player</title>
         <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-        <link href='./css/style.css' rel='stylesheet' />
-        <link href='./css/player.css' rel='stylesheet' /> <!-- Added player.css -->
+        <link href='/player/css/style.css' rel='stylesheet' />
+        <link href='/player/css/player.css' rel='stylesheet' />
+        <!-- <link href='./css/style.css' rel='stylesheet' /> TODO: Why are relative paths failing in DO?
+        <link href='./css/player.css' rel='stylesheet' /> -->
         <script src="/common/later.min.js"></script>
         <script type="module" src="/common/cron.js"></script>
         <script src="/build-info.js"></script>
@@ -22,11 +24,6 @@
             <pre id="build-info-container">
                 <span id="build-time">Build: loading...</span>
             </pre>
-            <div class="netlify-status">
-                <a href="https://app.netlify.com/sites/screenwerk/deploys" target="_blank">
-                    <img src="https://api.netlify.com/api/v1/badges/29505512-9769-4b72-aab5-239a0fd6b888/deploy-status" alt="Netlify Status"/>
-                </a>
-            </div>
         </div>
         <div id='player'></div>
         <pre id='configuration'></pre>
