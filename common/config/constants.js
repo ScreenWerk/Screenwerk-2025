@@ -40,16 +40,16 @@ export const ACCOUNT = "piletilevi"
 export const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
-// API endpoints: use Netlify proxy in dev/live, direct API in local
+// API endpoints: use Netlify proxy only in dev, direct API in live/local
 export const SCREENWERK_PUBLISHER_API =
-  ENVIRONMENT === 'local'
-    ? 'https://swpublisher.entu.eu/screen/'
-    : '/api/swpublisher/screen/'
+  ENVIRONMENT === 'dev'
+    ? '/api/swpublisher/screen/'
+    : 'https://swpublisher.entu.eu/screen/'
 
 export const PUBLISHER_FILES_API_BASE =
-  ENVIRONMENT === 'local'
-    ? 'https://swpublisher.entu.eu/media/'
-    : '/api/swpublisher/media/'
+  ENVIRONMENT === 'dev'
+    ? '/api/swpublisher/media/'
+    : 'https://swpublisher.entu.eu/media/'
 
 /**
  * Generates the PUBLISHER_FILES_API URL by appending the media and file IDs.
@@ -95,7 +95,7 @@ export const UI_VISIBILITY = {
     showMediaControls: false,         // Show/hide media control buttons (play, pause, etc)
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
-    showProgress: false,              // Show/hide the media progress bar
+    showProgress: true,              // Show/hide the media progress bar
     showScreenInfo: true,            // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: true,     // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
