@@ -63,7 +63,7 @@ export const UI_VISIBILITY = {
     showDebugPanel: false,            // Show/hide the main debug panel overlay
     showDevBanner: false,             // Show/hide the developer environment banner
     showProgress: false,              // Show/hide the media progress bar
-    showScreenInfo: true,             // Show/hide the screen info panel (top right) and git info section
+    showScreenInfo: false,             // Show/hide the screen info panel (top right) and git info section
     showConfigurationPanel: false,    // Show/hide the configuration/settings panel
     showMediaDebugInfo: false         // Show/hide .media-debug-info overlays on media elements
   },
@@ -88,5 +88,5 @@ export const UI_VISIBILITY = {
 }
 
 // Configuration polling interval in milliseconds
-// Default: 5 minutes (300000ms)
-export const CONFIG_POLLING_INTERVAL = 300000
+// Default: 1 minute (60000ms)
+export const CONFIG_POLLING_INTERVAL = 60000
