@@ -1,3 +1,6 @@
+// NOTE: This module requires 'later.min.js' to be loaded globally before this script.
+// 'later' will be available as a global variable. See /common/later.min.js.
+
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 //
 // Example input:
@@ -7,8 +10,8 @@
 // ])
 
 // Import later from @breejs/later - this is the updated, maintained version
-import later from '@breejs/later'
-
+// import later from '@breejs/later' // <-- REMOVE THIS LINE FOR BROWSER
+// Use the global 'later' variable provided by later.min.js
 
 class Cron {
     constructor(schedules) {
