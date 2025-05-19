@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SW25 Project Index</title>
+  <link rel="stylesheet" href="./player/css/style.css">
+  <style>
+    body { max-width: 800px; margin: 2em auto; font-family: system-ui, Arial, sans-serif; background: #fafbfc; }
+    #markdown-doc { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    nav { margin-bottom: 2em; }
+    nav a { margin-right: 1.5em; color: #007bff; text-decoration: none; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="./player/index.html">Player</a>
+    <a href="./dashboard/index.html">Dashboard</a>
+    <a href="./README.md">README</a>
+  </nav>
+  <div id="markdown-doc">Loading documentation...</div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    fetch('./index.md')
+      .then(resp => resp.text())
+      .then(md => {
+        document.getElementById('markdown-doc').innerHTML = marked.parse(md)
+      })
+      .catch(() => {
+        document.getElementById('markdown-doc').textContent = 'Failed to load documentation.'
+      })
+  </script>
+</body>
+</html>
