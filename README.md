@@ -1,7 +1,5 @@
 # sw25
 
----
-
 ## Git Info Generation for Deployments
 
 This project auto-generates a `git-info.js` file at build time to expose branch, commit, build time, and deploy URL information to the frontend (for display in the dashboard and player UIs).
