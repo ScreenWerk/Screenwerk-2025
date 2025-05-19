@@ -1,5 +1,5 @@
 [build]
-  command = "npm run generate-git-info-netlify && npm run build"
+  command = "npm run generate-build-info-netlify && npm run build"
   publish = "/"
 
 [build.environment]

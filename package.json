@@ -5,8 +5,8 @@
   },
   "scripts": {
     "test": "echo \"No tests specified\" && exit 0",
-    "generate-git-info-netlify": "node scripts/generate-git-info-netlify.js",
-    "generate-git-info-digitalocean": "node scripts/generate-git-info-digitalocean.js",
+    "generate-build-info-netlify": "node scripts/generate-build-info-netlify.js",
+    "generate-build-info-digitalocean": "node scripts/generate-build-info-digitalocean.js",
     "build": "echo \"No build step required - static site ready to deploy\""
   },
   "devDependencies": {

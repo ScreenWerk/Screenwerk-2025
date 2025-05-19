@@ -1,34 +1,19 @@
 // Environment detection (works in Node.js and browser)
 function detectEnvironment() {
-  // Node.js (Netlify, server, etc)
-  if (typeof process !== 'undefined' && process.env && process.env.ENVIRONMENT) {
-    console.log('ENV: Detected from process.env.ENVIRONMENT:', process.env.ENVIRONMENT)
-    return process.env.ENVIRONMENT
+  // DigitalOcean live deployment (screenwerk.entu.ee)
+  if (typeof window !== 'undefined' && window.location && window.location.hostname === 'screenwerk.entu.ee') {
+    console.log('ENV: Detected DigitalOcean live deployment at screenwerk.entu.ee (live)')
+    return 'live'
   }
-  // Browser: explicit global
-  if (typeof window !== 'undefined' && window.ENVIRONMENT) {
-    console.log('ENV: Detected from window.ENVIRONMENT:', window.ENVIRONMENT)
-    return window.ENVIRONMENT
-  }
-  // Browser: localhost
+  // Localhost or 127.0.0.1
   if (typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1'
   )) {
-    console.log('ENV: Detected from window.location.hostname:', window.location.hostname, '(local)')
+    console.log('ENV: Detected local deployment:', window.location.hostname, '(local)')
     return 'local'
   }
-  // Browser: try gitInfo branch
-  if (typeof window !== 'undefined' && window.gitInfo && window.gitInfo.branch) {
-    const branch = window.gitInfo.branch
-    if (branch === 'main' || branch === 'master') {
-      console.log('ENV: Detected from gitInfo.branch:', branch, '(live)')
-      return 'live'
-    }
-    console.log('ENV: Detected from gitInfo.branch:', branch, '(dev)')
-    return 'dev'
-  }
-  // Default
+  // Everything else is dev
   console.log('ENV: Defaulting to dev environment')
   return 'dev'
 }
