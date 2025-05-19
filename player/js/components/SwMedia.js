@@ -118,7 +118,7 @@ export class SwMedia {
                 }
                 
                 img.onload = () => {
-                    console.log(`Image loaded successfully: ${this.name}`)
+                    // console.log(`Image loaded successfully: ${this.name}`)
                     loadingIndicator.style.display = 'none'
                 }
                 
@@ -138,7 +138,7 @@ export class SwMedia {
                 video.playsInline = true // Important for mobile devices
                 video.crossOrigin = 'anonymous' // Add crossorigin for CORS media
                 
-                console.log(`Creating video element in render() with source: ${this.fileDO}`)
+                // console.log(`Creating video element in render() with source: ${this.fileDO}`)
                 
                 // Add error/load handlers
                 video.onerror = (e) => {
@@ -149,7 +149,7 @@ export class SwMedia {
                 }
                 
                 video.onloadeddata = () => {
-                    console.log(`Video loaded successfully: ${this.name}`)
+                    // console.log(`Video loaded successfully: ${this.name}`)
                     loadingIndicator.style.display = 'none'
                 }
                 
@@ -211,7 +211,7 @@ export class SwMedia {
         })
         // Hide progress bar if not allowed by UI_VISIBILITY
         const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
-            ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+            ? UI_VISIBILITY
             : { showProgress: true }
         if (!ui.showProgress) {
             const bars = this.dom_element.querySelectorAll('.media-progress-container')
@@ -219,10 +219,10 @@ export class SwMedia {
         }
     }
     play() {
-        console.log(`Playing media: ${this.name}, type: ${this.type}`)
+        // console.log(`Playing media: ${this.name}, type: ${this.type}`)
         this.dom_element.style.display = 'block'
         this.dom_element.start_ms = new Date().getTime()
-        debugLog(`[SwMedia] play() called for ${this.name}, type: ${this.type}`)
+        // debugLog(`[SwMedia] play() called for ${this.name}, type: ${this.type}`)
         
         // Default to image if type is still undefined at this point
         if (!this.type) {
@@ -296,7 +296,7 @@ export class SwMedia {
             const promise = video_div.play()
             if (promise !== undefined) {
                 promise.then(_ => {
-                    debugLog(`[SwMedia] ProgressBar.start called for video with duration: ${video_div.duration * 1000}`)
+                    // debugLog(`[SwMedia] ProgressBar.start called for video with duration: ${video_div.duration * 1000}`)
                     this.progressBar.start(video_div.duration * 1000)
                 }).catch(error => {
                     console.error(`Autoplay failed for ${this.dom_element.id}: ${error}`)
@@ -352,7 +352,7 @@ export class SwMedia {
                 })
             }
         } else if (this.type === 'Image') {
-            debugLog(`[SwMedia] ProgressBar.start called for image with duration: ${this.duration * 1000}`)
+            // debugLog(`[SwMedia] ProgressBar.start called for image with duration: ${this.duration * 1000}`)
             this.progressBar.start(this.duration * 1000)
             
             // Ensure the image is visible
@@ -439,7 +439,7 @@ export class SwMedia {
                 const nextMedia = this.parent.getCurrent()
                 
                 if (success && nextMedia && typeof nextMedia.play === 'function') {
-                    console.log(`Playing next media: ${nextMedia.name}`)
+                    // console.log(`Playing next media: ${nextMedia.name}`)
                     nextMedia.play()
                 } else {
                     debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
@@ -459,10 +459,11 @@ export class SwMedia {
     }
     resume() {
         this.dom_element.style.display = 'block'
-        debugLog(`[SwMedia] resume() called for ${this.name}, type: ${this.type}`)
+        // debugLog(`[SwMedia] resume() called for ${this.name}, type: ${this.type}`)
         
         // Default to image if type is still undefined
         if (!this.type) {
+            // TODO: false positive
             console.log(`No type defined for media ${this.name} during resume, defaulting to Image`)
             this.type = 'Image'
             this.duration = DEFAULTS.IMAGE_PLAYBACK_DURATION
@@ -509,14 +510,14 @@ export class SwMedia {
                 parseFloat(this.progressBar.bar.style.width) : 0
                 
             if (isHidden || progress === 0) {
-                debugLog(`[SwMedia] resume() restarting play() for image: ${this.name}`)
+                // debugLog(`[SwMedia] resume() restarting play() for image: ${this.name}`)
                 this.play()
             } else {
-                console.log(`Resuming image: ${this.name}`)
+                // console.log(`Resuming image: ${this.name}`)
                 this.progressBar.resume()
             }
         } else {
-            console.log(`Defaulting to Image type for ${this.name} during resume`)
+            // console.log(`Defaulting to Image type for ${this.name} during resume`)
             this.type = 'Image'
             this.duration = DEFAULTS.IMAGE_PLAYBACK_DURATION
             this.play()
@@ -530,7 +531,7 @@ export class SwMedia {
                 this.progressBar.pause()
             }
         } else if (this.type === 'Image') {
-            console.log(`Pausing image: ${this.name}`)
+            // console.log(`Pausing image: ${this.name}`)
             this.progressBar.pause()
         }
     }

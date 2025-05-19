@@ -27,6 +27,19 @@
     <div id="accordion"></div>
     <div id="progress-bar-placeholder"></div>
     
+    <!-- UI Visibility Settings Modal -->
+    <div id="ui-visibility-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
+      <div style="background:#fff; padding:2em; border-radius:8px; min-width:300px; max-width:90vw;">
+        <h2>UI Visibility Settings</h2>
+        <form id="ui-visibility-form">
+          <!-- Checkboxes will be injected here by JS -->
+        </form>
+        <div style="margin-top:1em; text-align:right;">
+          <button type="button" id="ui-visibility-close">Close (Esc)</button>
+        </div>
+      </div>
+    </div>
+
     <footer class="build-info">
         <div id="build-info-container-footer">
             <span>Build: <span id="build-time-footer"></span></span>
@@ -49,5 +62,6 @@
         }
     }
     </script>
+    <script src="/common/ui-visibility-modal.js"></script>
 </body>
 </html>

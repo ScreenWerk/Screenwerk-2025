@@ -61,7 +61,7 @@ export class DebugPanel {
         debugPanel.appendChild(infoDisplay)
         
         // Hide the panel if not allowed in this environment
-        const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev
+        const ui = UI_VISIBILITY
         if (!ui.showDebugPanel) {
             debugPanel.style.display = 'none'
         }

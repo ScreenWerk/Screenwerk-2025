@@ -20,7 +20,7 @@ export class SwPlaylist extends LinkedList {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('Rendering playlist', configuration)
+        // console.log('Rendering playlist', configuration)
         this.dom_element.id = configuration.playlistEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.playlistEid}`)
@@ -48,7 +48,7 @@ export class SwPlaylist extends LinkedList {
 
         // Create a debug overlay for this playlist
         const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
-            ? (UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev)
+            ? UI_VISIBILITY
             : { showDebugPanel: true }
         if (window.debugMode && ui.showDebugPanel) {
             const debugOverlay = document.createElement('div')
@@ -143,7 +143,7 @@ export class SwPlaylist extends LinkedList {
         }
     }
     resumeMediaElements() {
-        console.log(`Resuming media elements in playlist ${this.dom_element.id}`)
+        // console.log(`Resuming media elements in playlist ${this.dom_element.id}`)
         const currentMedia = this.getCurrent()
         if (currentMedia) {
             console.log(`Found current media to resume: ${currentMedia.name}`)

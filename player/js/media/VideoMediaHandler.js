@@ -19,7 +19,7 @@ export class VideoMediaHandler {
         video.crossOrigin = 'anonymous' // Add crossorigin for CORS media
         
         // Log the video source for debugging
-        console.log(`Creating video element with source: ${mediaItem.source}`)
+        // console.log(`Creating video element with source: ${mediaItem.source}`)
         
         // Set src after handlers to catch errors
         video.src = mediaItem.source

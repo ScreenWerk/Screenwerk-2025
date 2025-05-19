@@ -28,18 +28,21 @@
         <div id='player'></div>
         <pre id='configuration'></pre>
         <button id="fullscreenButton" style="display: none;">Enter Fullscreen</button>
+
+        <!-- UI Visibility Settings Modal -->
+        <div id="ui-visibility-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
+          <div style="background:#fff; padding:2em; border-radius:8px; min-width:300px; max-width:90vw;">
+            <h2>UI Visibility Settings</h2>
+            <form id="ui-visibility-form">
+              <!-- Checkboxes will be injected here by JS -->
+            </form>
+            <div style="margin-top:1em; text-align:right;">
+              <button type="button" id="ui-visibility-close">Close (Esc)</button>
+            </div>
+          </div>
+        </div>
     </body>
 
     <script src='/player/js/script.js' type="module"></script>
-    <script>
-    // Fill build info fields if available
-    if (window.buildInfo) {
-        const build = document.getElementById('build-time')
-        if (build) {
-            const utc = window.buildInfo.buildTime
-            const local = new Date(utc).toLocaleString()
-            build.textContent = 'Build: ' + local
-        }
-    }
-    </script>
+    <!-- Build info initialization is handled in /player/js/script.js as a module. -->
 </html>

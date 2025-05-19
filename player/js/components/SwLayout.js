@@ -14,7 +14,7 @@ export class SwLayout {
         this.render(configuration)
     }
     render(configuration) {
-        console.log('Rendering layout', configuration)
+        // console.log('Rendering layout', configuration)
         this.dom_element.id = configuration.layoutEid
         this.dom_element.setAttribute('name', configuration.name)
         this.dom_element.setAttribute('entu', `https://entu.app/piletilevi/${configuration.layoutEid}`)

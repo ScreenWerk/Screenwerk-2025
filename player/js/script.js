@@ -6,6 +6,7 @@ import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL, ENVIRONMENT, UI_VISI
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
 import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
+import { setupUIVisibilityModal } from '/common/ui-visibility-modal.js' // Ensure modal logic is initialized in player
 
 // Enable debug mode globally for development/troubleshooting
 window.debugMode = true
@@ -252,26 +253,26 @@ const initializePlayer = (configuration) => {
     const player_element = document.getElementById('player')
     
     // Add debug information about what's being loaded
-    console.log('Initializing player with configuration:', configuration)
+    // console.log('Initializing player with configuration:', configuration)
     
     // Store the current publishedAt timestamp for comparison in polling
     currentPublishedAt = new Date(configuration.publishedAt).getTime()
-    console.log(`Current configuration published at: ${configuration.publishedAt}`)
+    // console.log(`Current configuration published at: ${configuration.publishedAt}`)
     
     // Check if configuration contains media files
     if (configuration.schedules) {
-        console.log(`Found ${configuration.schedules.length} schedules`)
+        // console.log(`Found ${configuration.schedules.length} schedules`)
         
         // Log details about playlists and media
         const mediaItems = configuration.schedules
             .flatMap((schedule) => schedule.layoutPlaylists)
             .flatMap((layoutPlaylist) => layoutPlaylist.playlistMedias)
             
-        console.log(`Total media items found: ${mediaItems.length}`)
+        // console.log(`Total media items found: ${mediaItems.length}`)
         
         // Log the first few media items to check their structure
         if (mediaItems.length > 0) {
-            console.log('Sample media item:', mediaItems[0])
+            // console.log('Sample media item:', mediaItems[0])
         }
     }
     
@@ -311,6 +312,7 @@ window.onload = async () => {
     registerMediaForCaching(configData.configuration)
     initializePlayer(configData.configuration)
     startConfigPolling(storedScreenId, CONFIG_POLLING_INTERVAL) // Start polling with defined interval
+    setupUIVisibilityModal({ reloadOnChange: true }) // Ensure modal logic is initialized in player
 }
 
 async function updateServiceWorker() {
@@ -431,7 +433,7 @@ const showUpdateNotification = () => {
 
 // Hide media controls and debug panel in live environment
 document.addEventListener('DOMContentLoaded', () => {
-    const ui = UI_VISIBILITY[ENVIRONMENT] || UI_VISIBILITY.dev
+    const ui = UI_VISIBILITY
 
     // Debug panels should be controlled on creation
 
