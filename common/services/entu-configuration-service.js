@@ -346,9 +346,9 @@ async function processPlaylistMedia(rawPlaylistMedia, result) {
         if (transformedMedia.file) playlistMedia.fileDO = getPublisherFilesApiUrl(transformedMedia._id, transformedMedia.file[0]._id)
         if (transformedMedia.fileName) playlistMedia.fileName = transformedMedia.fileName
         
-        // Rename type to mediaType for clarity
+        // Keep original type property for consistency
         if (transformedMedia.type) {
-            playlistMedia.mediaType = transformedMedia.type
+            playlistMedia.type = transformedMedia.type
         }
         
         // Add any other relevant media properties
