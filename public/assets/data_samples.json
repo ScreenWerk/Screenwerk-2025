@@ -382,7 +382,7 @@
                 "mediaEid": "5bfbcbc24ecca5c17a5963a8",
                 "name": "VLN 4E tere tulemast valge mustal",
                 "fileDO": "https://swpublisher.entu.eu/media/5bfbcbc24ecca5c17a5963a8/5bfbcbd44ecca5c17a5bd5dc",
-                "mediaType": "Image"
+                "type": "Image"
               },
               {
                 "_id": "67e41186a0c5b80a74f69713",
@@ -393,7 +393,7 @@
                 "mediaEid": "67e40e4da0c5b80a74f696ea",
                 "name": "VLN_Suur_veeuputus_26.03.2025",
                 "fileDO": "https://swpublisher.entu.eu/media/67e40e4da0c5b80a74f696ea/67e40e4da0c5b80a74f696eb",
-                "mediaType": "Image"
+                "type": "Image"
               },
               {
                 "_id": "67e51b8ba0c5b80a74f69fae",
@@ -404,7 +404,7 @@
                 "mediaEid": "67e51b4fa0c5b80a74f69f93",
                 "name": "VLN_IgapaevaSumfoonia_03.2025",
                 "fileDO": "https://swpublisher.entu.eu/media/67e51b4fa0c5b80a74f69f93/67e51b6ca0c5b80a74f69fac",
-                "mediaType": "Image"
+                "type": "Image"
               },
               {
                 "_id": "67e51bdca0c5b80a74f69fda",
@@ -415,7 +415,7 @@
                 "mediaEid": "67e51b1ea0c5b80a74f69f89",
                 "name": "VLN_UnistusteSaar_03.2025",
                 "fileDO": "https://swpublisher.entu.eu/media/67e51b1ea0c5b80a74f69f89/67e51b2ba0c5b80a74f69f92",
-                "mediaType": "Image"
+                "type": "Image"
               }
             ]
           }

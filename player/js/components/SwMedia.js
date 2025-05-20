@@ -13,7 +13,7 @@ export class SwMedia {
     constructor(parent, dom_element, configuration) {
         this.parent = parent
         this.dom_element = dom_element
-        this.type = configuration.mediaType
+        this.type = configuration.type
         
         // Debug logging for media initialization
         console.log(`Initializing media: ${configuration.name}, Type: ${this.type || 'undefined'}, File: ${configuration.fileDO || 'undefined'}`)
@@ -226,6 +226,7 @@ export class SwMedia {
         
         // Default to image if type is still undefined at this point
         if (!this.type) {
+            // This might occur in rare cases where type wasn't set in configuration
             console.log(`No type defined for media ${this.name}, defaulting to Image`)
             this.type = 'Image'
             this.duration = DEFAULTS.IMAGE_PLAYBACK_DURATION
@@ -463,7 +464,7 @@ export class SwMedia {
         
         // Default to image if type is still undefined
         if (!this.type) {
-            // TODO: false positive
+            // This might occur in rare cases where type wasn't set in configuration
             console.log(`No type defined for media ${this.name} during resume, defaulting to Image`)
             this.type = 'Image'
             this.duration = DEFAULTS.IMAGE_PLAYBACK_DURATION
