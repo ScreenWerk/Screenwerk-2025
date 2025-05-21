@@ -47,16 +47,7 @@ export class EntuScreenWerkPlayer {
             Image: new ImageMediaHandler(DEFAULTS),
             Video: new VideoMediaHandler()
         }
-        
-        // Instrument the element to catch rendering issues
-        // (Style assignments moved to initialize())
-        // this.element.style.position = 'relative'
-        // this.element.style.width = '100%'
-        // this.element.style.height = '100%'
-        // this.element.style.overflow = 'hidden'
-        // this.element.style.backgroundColor = '#000'
-        // this.element.style.aspectRatio = '16/9'
-        
+       
         // Add a debug message for initialization
         if (this.debugMode) {
             const debugMsg = document.createElement('div')
