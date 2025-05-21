@@ -138,6 +138,30 @@ function openModal(modalId, reloadOnChange) {
     form.appendChild(label)
   })
   // No restore button, handled by hotkey now
+
+  // Add 'Clear Cache' button next to Close button
+  const closeDiv = modal.querySelector('div[style*="text-align:right"]')
+  if (closeDiv) {
+    const clearCacheBtn = document.createElement('button')
+    clearCacheBtn.type = 'button'
+    clearCacheBtn.textContent = 'Clear Cache'
+    clearCacheBtn.style.marginLeft = '1em'
+    clearCacheBtn.onclick = async function() {
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations()
+        for (const reg of regs) await reg.unregister()
+      }
+      // Delete all caches
+      if ('caches' in window) {
+        const names = await caches.keys()
+        for (const name of names) await caches.delete(name)
+      }
+      alert('Cache cleared! The page will now reload.')
+      window.location.reload()
+    }
+    closeDiv.appendChild(clearCacheBtn)
+  }
 }
 
 function closeModal(modalId) {
