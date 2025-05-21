@@ -13,6 +13,13 @@
         <script type="module" src="/common/cron.js"></script>
         <script src="/build-info.js"></script>
         <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
+        <script>
+        setTimeout(function() {
+          if (typeof window.plausible === "undefined") {
+            alert("Analytics is being blocked by your browser or an extension. Please consider disabling your ad blocker for full functionality.");
+          }
+        }, 2000);
+        </script>
     </head>
 
     <body>
@@ -45,4 +52,22 @@
 
     <script src='/player/js/script.js' type="module"></script>
     <!-- Build info initialization is handled in /player/js/script.js as a module. -->
+    <script>
+    // Fill build info fields if available
+    if (window.buildInfo) {
+        const build = document.getElementById('build-time')
+        if (build) {
+            const utc = window.buildInfo.buildTime
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = 'Build: ' + new Date(utc).toLocaleString()
+            }
+            build.textContent = local
+        }
+    }
+    </script>
 </html>

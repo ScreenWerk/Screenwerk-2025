@@ -15,6 +15,13 @@
     <script src="/player/js/sw-player.js" type="module"></script> <!-- Updated path -->
     <script defer src="/dashboard/js/script.js" type="module"></script> <!-- Updated path -->
     <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
+    <script>
+    setTimeout(function() {
+      if (typeof window.plausible === "undefined") {
+        alert("Analytics is being blocked by your browser or an extension. Please consider disabling your ad blocker for full functionality.");
+      }
+    }, 2000);
+    </script>
 </head>
 <body>
     <header class="build-info">
@@ -51,17 +58,31 @@
         const build = document.getElementById('build-time')
         if (build) {
             const utc = window.buildInfo.buildTime
-            const local = new Date(utc).toLocaleString()
-            build.textContent = 'Build: ' + local
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = 'Build: ' + new Date(utc).toLocaleString()
+            }
+            build.textContent = local
         }
         const buildFooter = document.getElementById('build-time-footer')
         if (buildFooter) {
             const utc = window.buildInfo.buildTime
-            const local = new Date(utc).toLocaleString()
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = new Date(utc).toLocaleString()
+            }
             buildFooter.textContent = local
         }
     }
     </script>
-    <script src="/common/ui-visibility-modal.js"></script>
+    <!-- No need to import /common/ui-visibility-modal.js here; it is loaded as a module in script.js -->
 </body>
 </html>
