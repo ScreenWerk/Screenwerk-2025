@@ -3,6 +3,8 @@
 // Used in: dashboard/index.html
 
 import { displayConfigurations } from './display.js'
+import { setupUIVisibilityModal } from '/common/ui-visibility-modal.js'
+import { ENVIRONMENT, UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../../common/config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
@@ -34,3 +36,11 @@ function populateGitInfo() {
 
 // Call the function when the DOM is loaded
 document.addEventListener('DOMContentLoaded', populateGitInfo)
+
+window.UI_VISIBILITY = UI_VISIBILITY
+window.ENVIRONMENT = ENVIRONMENT
+window.DEFAULT_UI_VISIBILITY = DEFAULT_UI_VISIBILITY
+
+window.onload = () => {
+  setupUIVisibilityModal({ reloadOnChange: true })
+}
