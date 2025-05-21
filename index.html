@@ -74,5 +74,26 @@
     
     setupUIVisibilityModal({ reloadOnChange: false })
   </script>
+  <footer class="build-info" style="margin-top:2em; text-align:right; color:#888;">
+    <span id="build-time">Build: loading...</span>
+  </footer>
+  <script>
+    // Fill build info fields if available
+    if (window.buildInfo) {
+      const build = document.getElementById('build-time')
+      if (build) {
+        const utc = window.buildInfo.buildTime
+        let local
+        if (utc === 'local live view') {
+          local = 'Local Live View'
+        } else if (!utc || isNaN(new Date(utc).getTime())) {
+          local = 'Development Build'
+        } else {
+          local = 'Build: ' + new Date(utc).toLocaleString()
+        }
+        build.textContent = local
+      }
+    }
+  </script>
 </body>
 </html>
