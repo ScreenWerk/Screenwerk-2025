@@ -46,6 +46,14 @@
       buildTime: '...'
     }
   </script>
+  <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
+  <script>
+    setTimeout(function() {
+      if (typeof window.plausible === "undefined") {
+        alert("Analytics is being blocked by your browser or an extension. Please consider disabling your ad blocker for full functionality.");
+      }
+    }, 2000);
+  </script>
   <script type="module">
     // Import and setup UI visibility modal
     import { setupUIVisibilityModal } from './common/ui-visibility-modal.js'

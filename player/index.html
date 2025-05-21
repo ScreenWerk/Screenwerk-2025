@@ -13,6 +13,13 @@
         <script type="module" src="/common/cron.js"></script>
         <script src="/build-info.js"></script>
         <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
+        <script>
+        setTimeout(function() {
+          if (typeof window.plausible === "undefined") {
+            alert("Analytics is being blocked by your browser or an extension. Please consider disabling your ad blocker for full functionality.");
+          }
+        }, 2000);
+        </script>
     </head>
 
     <body>
