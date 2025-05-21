@@ -58,13 +58,27 @@
         const build = document.getElementById('build-time')
         if (build) {
             const utc = window.buildInfo.buildTime
-            const local = new Date(utc).toLocaleString()
-            build.textContent = 'Build: ' + local
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = 'Build: ' + new Date(utc).toLocaleString()
+            }
+            build.textContent = local
         }
         const buildFooter = document.getElementById('build-time-footer')
         if (buildFooter) {
             const utc = window.buildInfo.buildTime
-            const local = new Date(utc).toLocaleString()
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = new Date(utc).toLocaleString()
+            }
             buildFooter.textContent = local
         }
     }

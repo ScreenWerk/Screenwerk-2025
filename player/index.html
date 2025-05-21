@@ -58,7 +58,14 @@
         const build = document.getElementById('build-time')
         if (build) {
             const utc = window.buildInfo.buildTime
-            const local = utc === '...' ? 'Development Build' : 'Build: ' + new Date(utc).toLocaleString()
+            let local
+            if (utc === 'local live view') {
+                local = 'Local Live View'
+            } else if (!utc || isNaN(new Date(utc).getTime())) {
+                local = 'Development Build'
+            } else {
+                local = 'Build: ' + new Date(utc).toLocaleString()
+            }
             build.textContent = local
         }
     }
