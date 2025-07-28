@@ -1,7 +1,6 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
 import { SwPlaylist } from './SwPlaylist.js'
-import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
 
 export class SwLayout {
     constructor(parent, dom_element, configuration) {

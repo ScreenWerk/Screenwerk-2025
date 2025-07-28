@@ -53,7 +53,7 @@ fetch(list_q, {
         'Accept-Encoding': 'deflate'
       }
     })
-    .then(response => {
+    .then(_response => {
       queue_counter--
       processed_counter++
       if (queue_counter < low_trshold && paused) {

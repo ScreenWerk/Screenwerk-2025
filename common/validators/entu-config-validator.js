@@ -1,4 +1,4 @@
-class EntuValidator {
+class _EntuValidator {
     constructor(entu_object, entity_type, entu_model) {
         this.entu_object = entu_object || {}
         if (!this.entu_object || Object.keys(this.entu_object).length === 0) {
@@ -71,135 +71,14 @@ class EntuValidator {
     }
 }
 
-const fetchFromEntu = async (eid) => {
+const _fetchFromEntu = async (eid) => {
     const u = `${ENTU_ENTITY_URL}/${eid}`
     const entity = (await fetchJSON(u)).entity
     return entity
 }
 
-const fetchChildsOf = async (eid, child_type) => {
+const _fetchChildsOf = async (eid, child_type) => {
     const url = `${ENTU_ENTITY_URL}?_type.string=${child_type}&_parent.reference=${eid}`
     const childs = (await fetchJSON(url)).entities
     return childs
-}
-
-class EntuDeepValidator {
-    constructor() {
-        this.model = {
-            sw_screen_group: {
-                fields: [], 
-                properties: ['name'], 
-                relations: ['configuration']
-            },
-            sw_configuration: {
-                fields: [], 
-                properties: ['name'], 
-                childs: ['sw_schedule']
-            },
-            sw_schedule: {
-                fields: [], 
-                properties: ['crontab'], 
-                relations: ['layout']
-            },
-            sw_layout: {
-                fields: [], 
-                properties: ['name'], 
-                childs: ['sw_layout_playlist']
-            },
-            sw_layout_playlist: {
-                fields: [], 
-                properties: ['name','left','top','width','height'], 
-                relations: ['playlist']
-            },
-            sw_playlist: {
-                fields: [], 
-                properties: ['name'], 
-                childs: ['sw_playlist_media']
-            },
-            sw_playlist_media: {
-                fields: [], 
-                properties: [], 
-                relations: ['media']
-            },
-            sw_media: {
-                fields: [], 
-                properties: ['name', 'file', 'type']
-            }
-        }
-        this.errors = []
-        this.warnings = []
-    }
-
-    async validate(eid) {
-        try {
-            const entity = await fetchFromEntu(eid)
-            if (!entity) {
-                return {
-                    isValid: false,
-                    errors: [`Failed to fetch entity: ${eid}`],
-                    warnings: []
-                }
-            }
-
-            if (!entity._type?.[0]?.string) {
-                return {
-                    isValid: false,
-                    errors: [`Entity ${eid} has invalid or missing type`],
-                    warnings: []
-                }
-            }
-
-            const entity_type = entity._type[0].string
-            const model = this.model[entity_type]
-            
-            if (!model) {
-                return {
-                    isValid: false,
-                    errors: [`Unknown entity type: ${entity_type}`],
-                    warnings: []
-                }
-            }
-            
-            // Process child entities
-            if (model.childs) {
-                for (const child_type of model.childs) {
-                    const childs = await fetchChildsOf(eid, child_type) || []
-                    for (const child of childs) {
-                        await this.validate(child._id)
-                    }
-                }
-            }
-
-            // Process relations
-            if (model.relations) {
-                for (const rel of model.relations) {
-                    const relation = entity[rel]?.[0]?.reference
-                    if (relation) {
-                        await this.validate(relation)
-                    } else {
-                        this.errors.push(`Missing required relation: ${rel}`)
-                    }
-                }
-            }
-
-            const validator = new EntuValidator(entity, entity_type, model)
-            const result = await validator.validate()
-            this.errors.push(...(result.errors || []))
-            this.warnings.push(...(result.warnings || []))
-            
-        } catch (error) {
-            console.error(`Error validating entity ${eid}:`, error)
-            this.errors.push(`Validation error for ${eid}: ${error.message}`)
-        }
-        
-        return this.getResult()
-    }
-
-    getResult() {
-        return {
-            isValid: this.errors.length === 0,
-            errors: this.errors,
-            warnings: this.warnings
-        }
-    }
 }

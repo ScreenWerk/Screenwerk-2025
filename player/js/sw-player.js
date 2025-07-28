@@ -118,7 +118,7 @@ export class EntuScreenWerkPlayer {
         
         // Log what we're about to render
         // console.log(`Rendering layout with ${current_schedule.layoutPlaylists.length} playlists`)
-        current_schedule.layoutPlaylists.forEach((playlist, idx) => {
+        current_schedule.layoutPlaylists.forEach((_playlist, _idx) => {
             // console.log(`Playlist ${idx+1}: ${playlist.name} with ${playlist.playlistMedias ? playlist.playlistMedias.length : 0} media items`)
         })
         

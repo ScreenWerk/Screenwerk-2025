@@ -21,16 +21,15 @@ export async function displayConfigurations() {
     const grouped_customers = await groupEntities()
 
     const accordion = document.getElementById('accordion')
-    let totalScreens = 0
     for (const customer_id in grouped_customers) {
         for (const config_id in grouped_customers[customer_id].configurations) {
             for (const screen_group_id in grouped_customers[customer_id].configurations[config_id].screenGroups) {
-                totalScreens += grouped_customers[customer_id].configurations[config_id].screenGroups[screen_group_id].screens.length
+                // Count total screens for reference
+                grouped_customers[customer_id].configurations[config_id].screenGroups[screen_group_id].screens.length
             }
         }
     }
 
-    let loadedScreens = 0
     for (const customer_id in grouped_customers) {
         const customerSectionE = document.createElement('section')
         customerSectionE.className = 'customer-section'

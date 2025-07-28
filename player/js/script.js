@@ -5,7 +5,6 @@ import { fetchJSON } from '../../common/utils/utils.js'
 import { SCREENWERK_PUBLISHER_API, CONFIG_POLLING_INTERVAL, ENVIRONMENT, UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../../common/config/constants.js' 
 import { EntuScreenWerkPlayer } from './sw-player.js'
 import { toDateTimeString } from '../../common/utils/common.js'
-import { debugLog } from '../../common/utils/debug-utils.js' // Updated path
 import { setupUIVisibilityModal } from '/common/ui-visibility-modal.js' // Ensure modal logic is initialized in player
 
 // Enable debug mode globally for development/troubleshooting
@@ -147,7 +146,7 @@ const promptForScreenId = () => {
             // Save and reload
             localStorage.setItem('selected_screen', JSON.stringify({ screen_id: val }))
             window.location.reload()
-        } catch (err) {
+        } catch {
             errorMsg.textContent = 'Screen ID is not published or not found. Please check and try again.'
             button.disabled = false
             input.disabled = false

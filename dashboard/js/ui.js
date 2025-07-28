@@ -1,5 +1,3 @@
-import { fetchJSON } from '../../common/utils/utils.js'
-import { toDateTimeString } from '../../common/utils/common.js'
 import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../../common/config/constants.js'
 
 /**

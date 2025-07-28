@@ -1,7 +1,5 @@
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
-import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
-
 export class ProgressBar {
     constructor(parent, options = {}) {
         this.parent = parent

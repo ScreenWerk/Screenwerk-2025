@@ -36,12 +36,12 @@ export class ImageMediaHandler {
         return mediaItem.duration || this.defaults.IMAGE_PLAYBACK_DURATION
     }
     
-    handlePlay(mediaElement, options) {
+    handlePlay(_mediaElement, _options) {
         // Image playback is handled by the player via timeout
         return true
     }
     
-    handlePause(mediaElement) {
+    handlePause(_mediaElement) {
         // Images don't need special pause handling
         return true
     }

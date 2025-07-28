@@ -1,5 +1,6 @@
 export default [
     {
+        ignores: ['**/*.min.js'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
@@ -16,7 +17,7 @@ export default [
             }
         },
         rules: {
-            'no-unused-vars': 'warn',
+            'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
             'no-console': 'off',
             'semi': ['error', 'never'],
             'quotes': ['error', 'single']

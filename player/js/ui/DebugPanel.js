@@ -1,5 +1,4 @@
-import { debugLog } from '../../../common/utils/debug-utils.js' // Updated path
-import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
+import { UI_VISIBILITY } from '../../../common/config/constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 

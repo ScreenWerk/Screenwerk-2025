@@ -61,7 +61,7 @@ function applySettings(settings, reloadOnChange) {
   if (reloadOnChange) window.location.reload()
 }
 
-function openModal(modalId, reloadOnChange) {
+function openModal(modalId, _reloadOnChange) {
   if (!modalId) throw new Error('openModal: modalId is required')
   const modal = document.getElementById(modalId)
   if (!modal) throw new Error(`openModal: No modal found with id '${modalId}'`)
@@ -75,7 +75,6 @@ function openModal(modalId, reloadOnChange) {
   // (Do NOT add name='__restore_defaults__' to the checkbox, so it is never picked up by form.elements)
   const env = window.ENVIRONMENT || 'dev'
   const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : undefined
-  const defaultKeys = defaults ? Object.keys(defaults) : []
   let isDefault = true
   if (defaults) {
     for (const key of keys) {

@@ -1,4 +1,3 @@
-import { fetchJSON } from '../utils/utils.js'
 import { ENTU_ENTITY_URL, ENTU_FRONTEND_URL } from '../config/constants.js' // Added import
 
 class ConfigValidator {
@@ -50,7 +49,7 @@ class ConfigValidator {
             return
         }
 
-        this.configuration.schedules.forEach((schedule, index) => {
+        this.configuration.schedules.forEach((schedule, _index) => {
             // Check required schedule fields
             const required = ['eid', 'crontab', 'layoutEid', 'layoutPlaylists']
             required.forEach(field => {
@@ -182,7 +181,7 @@ class ConfigValidator {
                     return
                 }
 
-                playlist.playlistMedias.forEach((media, mediaIndex) => {
+                playlist.playlistMedias.forEach((media, _mediaIndex) => {
                     // Check required media fields
                     const required = ['playlistMediaEid', 'mediaEid', 'file', 'type']
                     required.forEach(field => {
@@ -210,7 +209,7 @@ class ConfigValidator {
             const schedule_eid = schedule.eid
             schedule.layoutPlaylists.forEach((playlist) => {
                 const playlist_eid = playlist.eid
-                playlist.playlistMedias.forEach((media, mediaIndex) => {
+                playlist.playlistMedias.forEach((media, _mediaIndex) => {
                     if (media.validFrom && !this.isValidDate(media.validFrom)) {
                         this.errors.push(`Schedule ${this.formatEntityLink(schedule_eid, schedule_eid)}, Playlist ${this.formatEntityLink(playlist_eid, playlist_eid)}, Media ${this.formatEntityLink(media.mediaEid, media.mediaEid)}: Invalid validFrom date: ${media.validFrom}`)
                     }
@@ -239,7 +238,7 @@ class ConfigValidator {
         try {
             new URL(string)
             return true
-        } catch (_) {
+        } catch {
             return false
         }
     }
