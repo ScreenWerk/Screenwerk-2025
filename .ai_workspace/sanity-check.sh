@@ -3,7 +3,7 @@
 # SW25 Sanity Check Script
 # Validates code quality before commit approval
 
-set -e
+# set -e
 
 # Get current timestamp
 get_timestamp() {
