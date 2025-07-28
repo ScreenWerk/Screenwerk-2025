@@ -46,7 +46,8 @@ The restructuring recognizes that the project contains two equal applications - 
 │   ├── /css                      # Global CSS
 │   └── /assets                   # Other assets
 ├── /scripts                      # Build/utility scripts
-│   └── generate-git-info.js      # Git info generation
+│   ├── generate-git-info.js      # Git info generation
+│   └── fetch-sw-entities.js      # Entu API data model generation
 ├── /tests                        # Test files for both apps
 │   └── cron.test.js              # Tests for cron functionality
 ├── service-worker.js             # Service worker for offline support
@@ -55,6 +56,9 @@ The restructuring recognizes that the project contains two equal applications - 
 ├── package.json                  # Project dependencies
 ├── babel.config.js               # Babel configuration
 ├── README.md                     # Project documentation
+├── /docs                         # Project documentation
+│   ├── data-model.md             # Comprehensive entity relationship documentation with ER diagrams
+│   └── sw-entities.json          # Generated entity definitions from Entu API
 └── LICENSE                       # License information
 ```
 
@@ -124,6 +128,11 @@ The dashboard application for configuration management.
 
 - **`/scripts`**: Build and utility scripts
   - `generate-git-info.js`: Script to generate git information
+  - `fetch-sw-entities.js`: Script to fetch entity definitions from Entu API
+
+- **`/docs`**: Project documentation
+  - `data-model.md`: Comprehensive entity relationship documentation including multiple ER diagram perspectives (administrative, player, content management, system admin views)
+  - `sw-entities.json`: Generated JSON file containing complete entity definitions, field metadata, and relationship information from Entu API
 
 - **`/tests`**: Test files for both applications
   - `cron.test.js`: Tests for cron functionality
