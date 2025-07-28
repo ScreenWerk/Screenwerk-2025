@@ -3,97 +3,137 @@
 import { ENVIRONMENT, UI_VISIBILITY } from '../../../common/config/constants.js'
 
 /**
+ * Detects media type from content-type header
+ * @param {string} contentType - The content-type header value
+ * @returns {string|null} - The detected media type or null
+ */
+function detectTypeFromContentType(contentType) {
+    if (!contentType) return null
+    
+    if (contentType.startsWith('image/')) {
+        return 'Image'
+    }
+    if (contentType.startsWith('video/')) {
+        return 'Video'
+    }
+    return null
+}
+
+/**
+ * Detects media type from URL file extension
+ * @param {string} url - The URL to analyze
+ * @returns {string|null} - The detected media type or null
+ */
+function detectTypeFromUrl(url) {
+    const fileUrl = url.toLowerCase()
+    
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi']
+    
+    if (imageExtensions.some(ext => fileUrl.endsWith(ext))) {
+        return 'Image'
+    }
+    if (videoExtensions.some(ext => fileUrl.endsWith(ext))) {
+        return 'Video'
+    }
+    return null
+}
+
+/**
+ * Determines the final media type using multiple detection methods
+ * @param {string} url - The URL being checked
+ * @param {string} providedType - The type provided by caller
+ * @param {string} contentType - The content-type header from response
+ * @returns {string} - The determined media type
+ */
+function determineMediaType(url, providedType, contentType) {
+    console.log(`Content-Type for ${url}: ${contentType || 'none'}`)
+    
+    let detectedType = providedType || detectTypeFromContentType(contentType) || detectTypeFromUrl(url)
+    
+    if (!detectedType) {
+        console.log(`No media type detected for ${url}, defaulting to Image`)
+        detectedType = 'Image'
+    }
+    
+    console.log(`Detected media type for ${url}: ${detectedType}`)
+    return detectedType
+}
+
+/**
+ * Handles validation for successful HTTP response
+ * @param {Response} response - The fetch response object
+ * @param {string} url - The URL being checked
+ * @param {string} type - The provided media type
+ * @returns {Promise<{isValid: boolean, detectedType: string}>}
+ */
+async function handleSuccessfulResponse(response, url, type) {
+    console.log(`URL ${url} is accessible (status ${response.status})`)
+    
+    const contentType = response.headers.get('content-type')
+    const detectedType = determineMediaType(url, type, contentType)
+    
+    // For videos, do an additional check to verify format support
+    if (detectedType === 'Video') {
+        console.log(`Checking video format support for ${url}...`)
+        const videoCheck = await checkVideoSupport(url)
+        
+        if (!videoCheck.isSupported) {
+            console.warn(`Video format not supported: ${url}`, videoCheck.details)
+            // We still return isValid true since the URL is accessible, but we'll log the format issue
+        }
+    }
+    
+    return { isValid: true, detectedType }
+}
+
+/**
+ * Handles errors that occur during URL validation
+ * @param {Error} error - The error that occurred
+ * @param {string} url - The URL being checked
+ * @param {string} type - The provided media type
+ * @returns {{isValid: boolean, detectedType: string|null}}
+ */
+function handleValidationError(error, url, type) {
+    console.error(`Error checking URL ${url}: ${error}`)
+    
+    // For cross-origin errors, we'll still try to proceed if we have a known type
+    if (error.name === 'TypeError' && error.message.includes('cross-origin') && type) {
+        console.log(`URL ${url} has cross-origin issues but we'll still try with type: ${type}`)
+        return { isValid: true, detectedType: type }
+    }
+    
+    return { isValid: false, detectedType: null }
+}
+
+/**
  * Checks if a media URL exists and is accessible
  * @param {string} url - The URL to check
  * @param {string} type - The media type ('Image' or 'Video')
  * @returns {Promise<{isValid: boolean, detectedType: string}>} - Whether the URL is valid and its detected type
  */
 export async function checkMediaUrl(url, type) {
-    return new Promise(async (resolve) => {
-        console.log(`Checking media URL: ${url}, type: ${type || 'undefined'}`)
+    console.log(`Checking media URL: ${url}, type: ${type || 'undefined'}`)
+    
+    try {
+        const response = await fetch(url, { method: 'HEAD' })
         
-        // For both image and video, we'll use fetch with HEAD request first
-        try {
-            const response = await fetch(url, { method: 'HEAD' })
-            
-            if (response.ok) {
-                console.log(`URL ${url} is accessible (status ${response.status})`)
-                
-                // Try to detect type from content-type header
-                const contentType = response.headers.get('content-type')
-                let detectedType = type
-                
-                if (!detectedType && contentType) {
-                    console.log(`Content-Type for ${url}: ${contentType}`)
-                    if (contentType.startsWith('image/')) {
-                        detectedType = 'Image'
-                    } else if (contentType.startsWith('video/')) {
-                        detectedType = 'Video'
-                    }
-                }
-                
-                // If still no type, try to infer from URL extension
-                if (!detectedType) {
-                    const fileUrl = url.toLowerCase()
-                    if (fileUrl.endsWith('.jpg') || fileUrl.endsWith('.jpeg') || 
-                        fileUrl.endsWith('.png') || fileUrl.endsWith('.gif') || 
-                        fileUrl.endsWith('.webp')) {
-                        detectedType = 'Image'
-                    } else if (fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm') || 
-                            fileUrl.endsWith('.mov') || fileUrl.endsWith('.avi')) {
-                        detectedType = 'Video'
-                    }
-                }
-                
-                // Default to image if still undefined
-                if (!detectedType) {
-                    console.log(`No media type detected for ${url}, defaulting to Image`)
-                    detectedType = 'Image'
-                }
-                
-                console.log(`Detected media type for ${url}: ${detectedType}`)
-                
-                // For videos, do an additional check to verify format support
-                if (detectedType === 'Video') {
-                    console.log(`Checking video format support for ${url}...`)
-                    const videoCheck = await checkVideoSupport(url)
-                    
-                    if (!videoCheck.isSupported) {
-                        console.warn(`Video format not supported: ${url}`, videoCheck.details)
-                        // We still return isValid true since the URL is accessible, but we'll log the format issue
-                    }
-                }
-                
-                resolve({ isValid: true, detectedType })
-            } else {
-                console.error(`URL ${url} returned status ${response.status}`)
-                resolve({ isValid: false, detectedType: null })
-            }
-        } catch (error) {
-            console.error(`Error checking URL ${url}: ${error}`)
-            // For cross-origin errors, we'll still try to proceed if we have a known type
-            if (error.name === 'TypeError' && error.message.includes('cross-origin') && type) {
-                console.log(`URL ${url} has cross-origin issues but we'll still try with type: ${type}`)
-                resolve({ isValid: true, detectedType: type })
-            } else {
-                resolve({ isValid: false, detectedType: null })
-            }
+        if (response.ok) {
+            return await handleSuccessfulResponse(response, url, type)
+        } else {
+            console.error(`URL ${url} returned status ${response.status}`)
+            return { isValid: false, detectedType: null }
         }
-    })
+    } catch (error) {
+        return handleValidationError(error, url, type)
+    }
 }
 
 /**
- * Displays debug information about a media element
- * @param {HTMLElement} element - The media element to debug
- * @param {Object} mediaInfo - Information about the media
+ * Creates styled debug info element
+ * @returns {HTMLDivElement} - The styled debug info element
  */
-export function displayMediaDebugInfo(element, mediaInfo) {
-    // Only show if allowed by UI_VISIBILITY
-    const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
-        ? UI_VISIBILITY
-        : { showMediaDebugInfo: true }
-    if (!ui.showMediaDebugInfo) return
-
+function createDebugInfoElement() {
     const debugInfo = document.createElement('div')
     debugInfo.className = 'media-debug-info'
     debugInfo.style.position = 'absolute'
@@ -104,14 +144,49 @@ export function displayMediaDebugInfo(element, mediaInfo) {
     debugInfo.style.padding = '5px'
     debugInfo.style.fontSize = '10px'
     debugInfo.style.zIndex = '1000'
+    return debugInfo
+}
+
+/**
+ * Generates debug info HTML content
+ * @param {Object} mediaInfo - Information about the media
+ * @returns {string} - The HTML content for debug info
+ */
+function generateDebugInfoContent(mediaInfo) {
+    const name = mediaInfo.name || 'Unknown'
+    const type = mediaInfo.type || 'Unknown'
+    const size = `${mediaInfo.width || '?'} x ${mediaInfo.height || '?'}`
+    const url = mediaInfo.url ? (mediaInfo.url.substring(0, 30) + '...') : 'None'
     
-    debugInfo.innerHTML = `
-        <div>Name: ${mediaInfo.name || 'Unknown'}</div>
-        <div>Type: ${mediaInfo.type || 'Unknown'}</div>
-        <div>Size: ${mediaInfo.width || '?'} x ${mediaInfo.height || '?'}</div>
-        <div>URL: ${mediaInfo.url ? (mediaInfo.url.substring(0, 30) + '...') : 'None'}</div>
+    return `
+        <div>Name: ${name}</div>
+        <div>Type: ${type}</div>
+        <div>Size: ${size}</div>
+        <div>URL: ${url}</div>
     `
-    
+}
+
+/**
+ * Checks if debug info should be displayed
+ * @returns {boolean} - Whether to show debug info
+ */
+function shouldShowDebugInfo() {
+    const ui = (typeof UI_VISIBILITY !== 'undefined' && typeof ENVIRONMENT !== 'undefined')
+        ? UI_VISIBILITY
+        : { showMediaDebugInfo: true }
+    return ui.showMediaDebugInfo
+}
+
+/**
+ * Displays debug information about a media element
+ * @param {HTMLElement} element - The media element to debug
+ * @param {Object} mediaInfo - Information about the media
+ */
+export function displayMediaDebugInfo(element, mediaInfo) {
+    if (!shouldShowDebugInfo()) return
+
+    const debugInfo = createDebugInfoElement()
+    debugInfo.innerHTML = generateDebugInfoContent(mediaInfo)
     element.appendChild(debugInfo)
 }
 

@@ -7,7 +7,14 @@
 - **Never commit directly to `main`** - main branch is protected
 - **Always work on feature branches** - even for small changes
 - **One feature per branch** - keep changes focused and reviewable
-- **Clean merge strategy** - prefer fast-forward merges when possible
+- **Squash merge strategy** - compress feature branch commits into single commit on main
+
+### Squash Merge Benefits
+
+- **Clean main history** - one commit per feature makes main branch linear and readable
+- **Preserve development history** - detailed commit history remains on feature branches until deletion
+- **Easier reverts** - can revert entire feature with single commit
+- **Better release notes** - main commits represent complete features, not implementation steps
 
 ### Branch Naming Convention
 
@@ -86,8 +93,8 @@ Our preferred development style emphasizes:
 7. Log activity
 8. Iterate with micro-commits, updating documentation as we go, running sanity checks after each significant change
 9. **Before each commit**: `git status` → `git diff` → `git add` → `git commit`
-10. Merge to main
-11. Log merge
+10. **Squash merge to main** - `git checkout main && git merge --squash [branch-name] && git commit`
+11. **Log merge immediately** with `./log-activity.sh "merged [feature-name] - brief description"`
 12. Delete feature branch
 
 ## Code Style Agreements

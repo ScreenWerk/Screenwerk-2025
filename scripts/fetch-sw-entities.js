@@ -29,33 +29,58 @@ async function fetchJSON(url) {
   return res.json()
 }
 
+/**
+ * Filters entity definitions for ScreenWerk entities
+ * @param {Object} def - Entity definition
+ * @returns {boolean} True if definition should be included
+ */
+function isScreenWerkEntity(def) {
+  const name = extractStringValue(def.name)
+  const addFrom = extractStringValue(def.add_from)
+  return name.startsWith('sw_') && addFrom !== ''
+}
+
+/**
+ * Extracts string value from entity field
+ * @param {Object} field - Entity field object
+ * @returns {string} Extracted string value or empty string
+ */
+function extractStringValue(field) {
+  return field?.[0]?.string || ''
+}
+
+/**
+ * Maps field entity to simplified field object
+ * @param {Object} f - Field entity from API
+ * @returns {Object} Simplified field object
+ */
+function mapFieldEntity(f) {
+  return {
+    id: f._id,
+    name: extractStringValue(f.name),
+    type: extractStringValue(f.type),
+    reference_query: extractStringValue(f.reference_query)
+  }
+}
+
 async function main() {
   // 1. Fetch all entity definitions (stored as type 'entity') and filter for 'sw_' prefix
   const defsUrl = `${BASE_URL}/entity?_type.string=entity&limit=100&props=name.string,add_from.string`
   const defsData = await fetchJSON(defsUrl)
   console.log('DEBUG: entityDefinition response:', JSON.stringify(defsData, null, 2))
-  const swDefs = defsData.entities.filter(def => {
-    const name = def.name?.[0]?.string || ''
-    const addFrom = def.add_from?.[0]?.string || ''
-    return name.startsWith('sw_') && addFrom !== ''
-  })
+  const swDefs = defsData.entities.filter(isScreenWerkEntity)
 
   const result = {}
   for (const def of swDefs) {
     const defId = def._id
     const defName = def.name[0].string
-    const addFrom = def.add_from?.[0]?.string || ''
+    const addFrom = extractStringValue(def.add_from)
     // 2. Fetch property definitions for this entity (type 'property')
     // 2. Fetch field definitions for this entity (fields stored as type 'property')
     // Fetch property definitions for this entity, including type and reference_query
     const fieldsUrl = `${BASE_URL}/entity?_type.string=property&_parent.reference=${defId}&limit=100&props=name.string,type.string,reference_query.string`
     const fieldsData = await fetchJSON(fieldsUrl)
-    const fields = fieldsData.entities.map(f => ({
-      id: f._id,
-      name: f.name?.[0]?.string || '',
-      type: f.type?.[0]?.string || '',
-      reference_query: f.reference_query?.[0]?.string || ''
-    }))
+    const fields = fieldsData.entities.map(mapFieldEntity)
     result[defName] = {
       add_from: addFrom,
       fields: fields

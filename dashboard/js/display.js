@@ -16,105 +16,122 @@ function showProgressBar() {
     document.body.insertBefore(progressBarContainer, document.getElementById('accordion'))
 }
 
-export async function displayConfigurations() {
-    showProgressBar()
-    const grouped_customers = await groupEntities()
+/**
+ * Creates customer section with configurations
+ * @param {string} customer_id - Customer ID
+ * @param {Object} customer - Customer data
+ * @returns {HTMLElement} Customer section element
+ */
+function createCustomerSection(customer_id, customer) {
+    const customerSectionE = document.createElement('section')
+    customerSectionE.className = 'customer-section'
 
-    const accordion = document.getElementById('accordion')
-    for (const customer_id in grouped_customers) {
-        for (const config_id in grouped_customers[customer_id].configurations) {
-            for (const screen_group_id in grouped_customers[customer_id].configurations[config_id].screenGroups) {
-                // Count total screens for reference
-                grouped_customers[customer_id].configurations[config_id].screenGroups[screen_group_id].screens.length
-            }
+    const customerTitleE = document.createElement('button')
+    customerTitleE.className = 'accordion'
+    customerTitleE.textContent = `${customer.customerName} (${Object.keys(customer.configurations).length})`
+    customerSectionE.appendChild(customerTitleE)
+
+    const configListE = document.createElement('div')
+    configListE.className = 'panel'
+
+    for (const config_id in customer.configurations) {
+        const configSection = createConfigSection(config_id, customer.configurations[config_id], customer.configurations)
+        configListE.appendChild(configSection)
+    }
+
+    customerSectionE.appendChild(configListE)
+    return customerSectionE
+}
+
+/**
+ * Creates configuration section with screen groups
+ * @param {string} config_id - Configuration ID
+ * @param {Object} configuration - Configuration data
+ * @param {Object} allConfigurations - All configurations for validation
+ * @returns {HTMLElement} Configuration section element
+ */
+function createConfigSection(config_id, configuration, allConfigurations) {
+    const configSectionE = document.createElement('section')
+    configSectionE.className = 'config-section'
+
+    const configTitleE = document.createElement('button')
+    configTitleE.className = 'accordion'
+    configTitleE.innerHTML = `
+        ${configuration.configName} 
+        (${Object.keys(configuration.screenGroups).length}) 
+        ${toolbarSnippet(config_id, '', '', configuration.validation_errors, Object.values(allConfigurations))}
+    `
+    configSectionE.appendChild(configTitleE)
+
+    const screenGroupListE = document.createElement('div')
+    screenGroupListE.className = 'panel'
+
+    for (const screen_group_id in configuration.screenGroups) {
+        const screenGroupSection = createScreenGroupSection(screen_group_id, configuration.screenGroups[screen_group_id], configuration)
+        screenGroupListE.appendChild(screenGroupSection)
+    }
+
+    configSectionE.appendChild(screenGroupListE)
+    return configSectionE
+}
+
+/**
+ * Creates screen group section with mini player
+ * @param {string} screen_group_id - Screen group ID
+ * @param {Object} screen_group - Screen group data
+ * @param {Object} configuration - Configuration data
+ * @returns {HTMLElement} Screen group section element
+ */
+function createScreenGroupSection(screen_group_id, screen_group, configuration) {
+    const screenGroupSectionE = document.createElement('section')
+    screenGroupSectionE.className = 'screen-group-section'
+
+    const screenGroupTitleE = document.createElement('button')
+    screenGroupTitleE.className = 'accordion'
+    screenGroupTitleE.innerHTML = `
+        ${screen_group.screen_group_name} 
+        (${screen_group.screens.length}) 
+        ${toolbarSnippet(screen_group_id, screen_group.published)}
+    `
+    screenGroupSectionE.appendChild(screenGroupTitleE)
+
+    const playerElementE = document.createElement('div')
+    playerElementE.className = 'mini-player'
+    const playerPanelE = document.createElement('div')
+    playerPanelE.className = 'panel'
+    playerPanelE.appendChild(playerElementE)
+    screenGroupSectionE.appendChild(playerPanelE)
+
+    initializePlayer(playerElementE, playerPanelE, screen_group_id, configuration)
+
+    return screenGroupSectionE
+}
+
+/**
+ * Initializes player for screen group
+ * @param {HTMLElement} playerElementE - Player element
+ * @param {HTMLElement} playerPanelE - Player panel element
+ * @param {string} screen_group_id - Screen group ID
+ * @param {Object} configuration - Configuration data
+ */
+function initializePlayer(playerElementE, playerPanelE, screen_group_id, configuration) {
+    if (configuration) {
+        try {
+            playerElementE.SwPlayer = new EntuScreenWerkPlayer(playerElementE, configuration)
+            console.log(`Player initialized for screen group: ${screen_group_id}`)
+        } catch (error) {
+            console.error(`Error initializing player for screen group: ${screen_group_id}`, error)
         }
+    } else {
+        console.warn(`Configuration not available for screen group: ${screen_group_id}`)
+        playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
     }
+}
 
-    for (const customer_id in grouped_customers) {
-        const customerSectionE = document.createElement('section')
-        customerSectionE.className = 'customer-section'
-
-        const customerTitleE = document.createElement('button')
-        customerTitleE.className = 'accordion'
-        customerTitleE.textContent = `${grouped_customers[customer_id].customerName} (${Object.keys(grouped_customers[customer_id].configurations).length})`
-        customerSectionE.appendChild(customerTitleE)
-
-        const configListE = document.createElement('div')
-        configListE.className = 'panel'
-
-        for (const config_id in grouped_customers[customer_id].configurations) {
-            const configuration = grouped_customers[customer_id].configurations[config_id]
-            const configSectionE = document.createElement('section')
-            // configSectionE.dataset.config = JSON.stringify(configuration)
-            configSectionE.className = 'config-section'
-
-            const configTitleE = document.createElement('button')
-            configTitleE.className = 'accordion'
-            const config = grouped_customers[customer_id].configurations[config_id]
-            configTitleE.innerHTML = `
-                ${config.configName} 
-                (${Object.keys(config.screenGroups).length}) 
-                ${toolbarSnippet(config_id, '', '', config.validation_errors, Object.values(grouped_customers[customer_id].configurations))}
-            `
-            configSectionE.appendChild(configTitleE)
-
-            const screenGroupListE = document.createElement('div')
-            screenGroupListE.className = 'panel'
-
-            for (const screen_group_id in config.screenGroups) {
-                const screenGroupSectionE = document.createElement('section')
-                screenGroupSectionE.className = 'screen-group-section'
-
-                const screenGroupTitleE = document.createElement('button')
-                screenGroupTitleE.className = 'accordion'
-                const screen_group = config.screenGroups[screen_group_id]
-                screenGroupTitleE.innerHTML = `
-                    ${screen_group.screen_group_name} 
-                    (${screen_group.screens.length}) 
-                    ${toolbarSnippet(screen_group_id, screen_group.published)}
-                `
-                screenGroupSectionE.appendChild(screenGroupTitleE)
-
-                const playerElementE = document.createElement('div')
-                playerElementE.className = 'mini-player'
-                const playerPanelE = document.createElement('div')
-                playerPanelE.className = 'panel'
-                playerPanelE.appendChild(playerElementE)
-                screenGroupSectionE.appendChild(playerPanelE)
-                const screen_group_config = configuration
-                // console.log(`Processing screen group: ${screen_group_id}`)
-                // console.log(`Screen group configuration:`, screen_group_config)
-
-                if (screen_group_config) {
-                    try {
-                        // Initialize the player with the screen group configuration
-                        // and bind it to the playerElementE
-                        playerElementE.SwPlayer = new EntuScreenWerkPlayer(playerElementE, screen_group_config)
-                        console.log(`Player initialized for screen group: ${screen_group_id}`)
-                    } catch (error) {
-                        console.error(`Error initializing player for screen group: ${screen_group_id}`, error)
-                    }
-                } else {
-                    console.warn(`Configuration not available for screen group: ${screen_group_id}`)
-                    playerPanelE.innerHTML = '<div class="error">Configuration not available</div>'
-                }
-
-                screenGroupListE.appendChild(screenGroupSectionE)
-            }
-
-            configSectionE.appendChild(screenGroupListE)
-            configListE.appendChild(configSectionE)
-        }
-
-        customerSectionE.appendChild(configListE)
-        accordion.appendChild(customerSectionE)
-    }
-
-    const progressBarContainer = document.querySelector('.progress-bar-container')
-    if (progressBarContainer) {
-        progressBarContainer.remove()
-    }
-
+/**
+ * Sets up accordion functionality for all accordion elements
+ */
+function setupAccordionListeners() {
     const accordions = document.getElementsByClassName('accordion')
     for (let i = 0; i < accordions.length; i++) {
         const accordion = accordions[i]
@@ -140,6 +157,28 @@ export async function displayConfigurations() {
             }
         })
     }
+}
+
+export async function displayConfigurations() {
+    showProgressBar()
+    const grouped_customers = await groupEntities()
+
+    const accordion = document.getElementById('accordion')
+    
+    // Process and render all customer sections
+    for (const customer_id in grouped_customers) {
+        const customerSection = createCustomerSection(customer_id, grouped_customers[customer_id])
+        accordion.appendChild(customerSection)
+    }
+
+    // Remove progress bar
+    const progressBarContainer = document.querySelector('.progress-bar-container')
+    if (progressBarContainer) {
+        progressBarContainer.remove()
+    }
+
+    // Setup accordion interactions
+    setupAccordionListeners()
 }
 
 function togglePanelVisibility(panel) {

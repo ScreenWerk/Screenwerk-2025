@@ -1,39 +1,53 @@
 import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../../common/config/constants.js'
 
 /**
- * Creates a toolbar with controls for configuration items
- * @param {string} id - The entity ID
- * @param {string} publishedAt - Publication timestamp
- * @param {string} screenId - Screen ID if available
- * @param {Array} validation_errors - Validation errors if any
+ * Creates toolbar UI snippet
+ * @param {string} id - Entity ID
+ * @param {string} publishedAt - Published timestamp
+ * @param {string} screenId - Screen ID for links
+ * @param {Array} validation_errors - Array of validation errors
  * @param {Array} configurations - Configuration objects
  * @returns {string} HTML for the toolbar
  */
-export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
-    const toolbar = document.createElement('div')
-    toolbar.className = 'toolbar'
-    
-    // Published timestamp
+
+/**
+ * Creates published timestamp element
+ * @param {string} publishedAt - Published timestamp
+ * @returns {HTMLElement} Timestamp element
+ */
+function createTimestamp(publishedAt) {
     const timestamp = document.createElement('span')
     timestamp.className = 'published-timestamp'
     timestamp.title = publishedAt
     timestamp.textContent = publishedAt ? new Date(publishedAt).toLocaleString() : ''
-    toolbar.appendChild(timestamp)
+    return timestamp
+}
+
+/**
+ * Creates screen link element if screen ID is provided
+ * @param {string} screenId - Screen ID
+ * @returns {HTMLElement|null} Screen link element or null
+ */
+function createScreenLink(screenId) {
+    if (!screenId) return null
     
-    // Screen link if available
-    if (screenId) {
-        const screenLink = document.createElement('a')
-        screenLink.href = `/?screen_id=${screenId}`
-        screenLink.target = '_blank'
-        const screenIcon = document.createElement('img')
-        screenIcon.src = '/images/monitor.png'
-        screenIcon.className = 'screen-link-icon'
-        screenIcon.alt = 'Screen Link'
-        screenLink.appendChild(screenIcon)
-        toolbar.appendChild(screenLink)
-    }
-    
-    // Entu link
+    const screenLink = document.createElement('a')
+    screenLink.href = `/?screen_id=${screenId}`
+    screenLink.target = '_blank'
+    const screenIcon = document.createElement('img')
+    screenIcon.src = '/images/monitor.png'
+    screenIcon.className = 'screen-link-icon'
+    screenIcon.alt = 'Screen Link'
+    screenLink.appendChild(screenIcon)
+    return screenLink
+}
+
+/**
+ * Creates Entu link element
+ * @param {string} id - Entity ID
+ * @returns {HTMLElement} Entu link element
+ */
+function createEntuLink(id) {
     const entuLink = document.createElement('a')
     entuLink.href = `${ENTU_FRONTEND_URL}/${id}`
     entuLink.target = '_blank'
@@ -42,22 +56,37 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
     entuLogo.className = 'entu-logo'
     entuLogo.alt = 'Entu'
     entuLink.appendChild(entuLogo)
-    toolbar.appendChild(entuLink)
+    return entuLink
+}
+
+/**
+ * Creates error icon if validation errors exist
+ * @param {string} id - Entity ID
+ * @param {Array} validation_errors - Validation errors
+ * @param {Array} configurations - Configuration objects
+ * @returns {HTMLElement|null} Error icon element or null
+ */
+function createErrorIcon(id, validation_errors, configurations) {
+    if (!validation_errors || validation_errors.length === 0) return null
     
-    // Error icon if there are validation errors
-    if (validation_errors && validation_errors.length > 0) {
-        const errorIcon = document.createElement('span')
-        errorIcon.className = 'error-icon'
-        errorIcon.title = 'Validation Errors'
-        errorIcon.innerHTML = UNICODE_ICONS.warning
-        errorIcon.onclick = (event) => {
-            event.stopPropagation()
-            showErrors(id, configurations)
-        }
-        toolbar.appendChild(errorIcon)
+    const errorIcon = document.createElement('span')
+    errorIcon.className = 'error-icon'
+    errorIcon.title = 'Validation Errors'
+    errorIcon.innerHTML = UNICODE_ICONS.warning
+    errorIcon.onclick = (event) => {
+        event.stopPropagation()
+        showErrors(id, configurations)
     }
-    
-    // Info icon
+    return errorIcon
+}
+
+/**
+ * Creates info icon
+ * @param {string} id - Entity ID
+ * @param {Array} configurations - Configuration objects
+ * @returns {HTMLElement} Info icon element
+ */
+function createInfoIcon(id, configurations) {
     const infoIcon = document.createElement('span')
     infoIcon.className = 'info-icon'
     infoIcon.title = 'Configuration Info'
@@ -66,57 +95,71 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
         event.stopPropagation()
         showConfigInfo(id, configurations)
     }
-    toolbar.appendChild(infoIcon)
+    return infoIcon
+}
+
+export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_errors = [], configurations = []) => {
+    const toolbar = document.createElement('div')
+    toolbar.className = 'toolbar'
+    
+    // Add all toolbar elements
+    toolbar.appendChild(createTimestamp(publishedAt))
+    
+    const screenLink = createScreenLink(screenId)
+    if (screenLink) toolbar.appendChild(screenLink)
+    
+    toolbar.appendChild(createEntuLink(id))
+    
+    const errorIcon = createErrorIcon(id, validation_errors, configurations)
+    if (errorIcon) toolbar.appendChild(errorIcon)
+    
+    toolbar.appendChild(createInfoIcon(id, configurations))
     
     return toolbar.outerHTML
 }
 
 /**
- * Shows a popup with error or info content
- * @param {string} id - Entity ID to show information for
- * @param {string|Array} configurations - Configuration objects
- * @param {string} type - 'errors' or 'info'
+ * Parses configurations from string to object if needed
+ * @param {string|Array} configurations - Configuration data
+ * @returns {Array|null} Parsed configurations or null on error
  */
-function showPopup(id, configurations, type = 'errors') {
-    if (!configurations) {
-        console.error('Configurations parameter is undefined')
-        return
-    }
-    
-    // Parse configurations if it's a string
+function parseConfigurations(configurations) {
     if (typeof configurations === 'string') {
         try {
-            configurations = JSON.parse(configurations)
+            return JSON.parse(configurations)
         } catch (e) {
             console.error('Failed to parse configurations JSON:', e)
-            return
+            return null
         }
     }
-    
-    // Find the specific configuration
-    const configuration = configurations.find(config => config._id === id)
-    if (!configuration) return
-    
-    // Create appropriate content based on type
-    const popupContent = type === 'errors' 
-        ? createErrorContent(configuration) 
-        : createInfoContent(configuration)
-    
-    if (!popupContent && type === 'errors') return
-    
-    // Create and append popup
+    return configurations
+}
+
+/**
+ * Creates popup element with content
+ * @param {string} type - 'errors' or 'info'
+ * @param {string} content - HTML content for popup
+ * @returns {HTMLElement} The popup element
+ */
+function createPopupElement(type, content) {
     const popupElement = document.createElement('div')
     popupElement.className = `${type}-popup`
     popupElement.innerHTML = `
         <div class="${type}-popup-content">
             <span class="close">&times;</span>
             <h2>${type === 'errors' ? 'Validation Errors' : 'Configuration Info'}</h2>
-            ${popupContent}
+            ${content}
         </div>
     `
-    document.body.appendChild(popupElement)
-    
-    // Set up close handlers
+    return popupElement
+}
+
+/**
+ * Sets up popup event handlers
+ * @param {HTMLElement} popupElement - The popup element
+ * @param {string} type - Popup type for CSS class targeting
+ */
+function setupPopupHandlers(popupElement, type) {
     const closePopup = () => {
         popupElement.remove()
         document.removeEventListener('keydown', handleEscKey)
@@ -138,6 +181,41 @@ function showPopup(id, configurations, type = 'errors') {
     document.querySelector(`.${type}-popup .close`).addEventListener('click', closePopup)
     document.addEventListener('keydown', handleEscKey)
     document.addEventListener('click', handleClickOutside)
+}
+
+/**
+ * Shows a popup with error or info content
+ * @param {string} id - Entity ID to show information for
+ * @param {string|Array} configurations - Configuration objects
+ * @param {string} type - 'errors' or 'info'
+ */
+function showPopup(id, configurations, type = 'errors') {
+    if (!configurations) {
+        console.error('Configurations parameter is undefined')
+        return
+    }
+    
+    // Parse configurations if needed
+    const parsedConfigurations = parseConfigurations(configurations)
+    if (!parsedConfigurations) return
+    
+    // Find the specific configuration
+    const configuration = parsedConfigurations.find(config => config._id === id)
+    if (!configuration) return
+    
+    // Create appropriate content based on type
+    const popupContent = type === 'errors' 
+        ? createErrorContent(configuration) 
+        : createInfoContent(configuration)
+    
+    if (!popupContent && type === 'errors') return
+    
+    // Create and display popup
+    const popupElement = createPopupElement(type, popupContent)
+    document.body.appendChild(popupElement)
+    
+    // Set up event handlers
+    setupPopupHandlers(popupElement, type)
 }
 
 /**

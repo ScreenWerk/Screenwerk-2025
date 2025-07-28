@@ -79,13 +79,77 @@ export async function fetchEntuConfigurations() {
 }
 
 /**
+ * Initializes a customer entry in the grouped structure
+ * @param {Object} grouped_customers - The grouped customers object
+ * @param {string} customerId - The customer ID
+ * @param {string} customerName - The customer name
+ */
+function initializeCustomer(grouped_customers, customerId, customerName) {
+    if (!grouped_customers[customerId]) {
+        grouped_customers[customerId] = {
+            customerName: customerName,
+            configurations: {}
+        }
+    }
+}
+
+/**
+ * Initializes a configuration entry for a customer
+ * @param {Object} customer - The customer object
+ * @param {Object} configuration - The configuration object
+ */
+function initializeConfiguration(customer, configuration) {
+    if (!customer.configurations[configuration._id]) {
+        customer.configurations[configuration._id] = {
+            configName: configuration.name,
+            screenGroups: {},
+            ...configuration
+        }
+    }
+}
+
+/**
+ * Processes screen groups for a configuration
+ * @param {Object} configurationEntry - The configuration entry in grouped structure
+ * @param {Object} referringScreenGroups - The referring screen groups object
+ */
+function processScreenGroups(configurationEntry, referringScreenGroups) {
+    if (!referringScreenGroups) return
+    
+    Object.keys(referringScreenGroups).forEach(screenGroupId => {
+        const screenGroup = referringScreenGroups[screenGroupId]
+        
+        configurationEntry.screenGroups[screenGroupId] = {
+            screen_group_name: screenGroup.name,
+            published: screenGroup.published,
+            screens: []  // Will be populated later if needed
+        }
+    })
+}
+
+/**
+ * Validates and extracts customer information from configuration
+ * @param {Object} configuration - The configuration object
+ * @returns {Object|null} Customer info or null if invalid
+ */
+function extractCustomerInfo(configuration) {
+    const { _id: customerId, name: customerName = 'Unknown Customer' } = configuration.customer || {}
+    
+    if (!customerId) {
+        console.warn('Missing customer ID for configuration:', configuration._id)
+        return null
+    }
+    
+    return { customerId, customerName }
+}
+
+/**
  * Groups entities by customer, configuration, and screen group
  * 
  * @returns {Promise<Object>} Hierarchical structure of customers, configurations, and screen groups
  * @throws {Error} If the API request fails
  */
 export async function groupEntities() {
-    // Fetch customers with their screen groups and configurations
     const configurations = await fetchEntuConfigurations()
     
     if (DEBUG.ENABLE_LOGGING) {
@@ -97,45 +161,21 @@ export async function groupEntities() {
     for (const config of configurations) {
         if (!config || !config.configuration) continue
         
-        // Extract customer information
         const configuration = config.configuration
-        const { _id: customerId, name: customerName = 'Unknown Customer' } = configuration.customer || {}
+        const customerInfo = extractCustomerInfo(configuration)
+        if (!customerInfo) continue
         
-        if (!customerId) {
-            console.warn('Missing customer ID for configuration:', configuration._id)
-            continue
-        }
+        const { customerId, customerName } = customerInfo
         
-        // Initialize customer entry if it doesn't exist
-        if (!grouped_customers[customerId]) {
-            grouped_customers[customerId] = {
-                customerName: customerName,
-                configurations: {}
-            }
-        }
+        // Initialize customer and configuration entries
+        initializeCustomer(grouped_customers, customerId, customerName)
+        initializeConfiguration(grouped_customers[customerId], configuration)
         
-        // Initialize configuration entry if it doesn't exist
-        if (!grouped_customers[customerId].configurations[configuration._id]) {
-            grouped_customers[customerId].configurations[configuration._id] = {
-                configName: configuration.name,
-                screenGroups: {},
-                ...configuration
-            }
-        }
-        
-        // Process screen groups using referringScreenGroups which is an object, not an array
-        if (configuration.referringScreenGroups) {
-            // Iterate over object keys
-            Object.keys(configuration.referringScreenGroups).forEach(screenGroupId => {
-                const screenGroup = configuration.referringScreenGroups[screenGroupId]
-                
-                grouped_customers[customerId].configurations[configuration._id].screenGroups[screenGroupId] = {
-                    screen_group_name: screenGroup.name,
-                    published: screenGroup.published,
-                    screens: []  // Will be populated later if needed
-                }
-            })
-        }
+        // Process screen groups
+        processScreenGroups(
+            grouped_customers[customerId].configurations[configuration._id],
+            configuration.referringScreenGroups
+        )
     }
     
     if (DEBUG.ENABLE_LOGGING) {

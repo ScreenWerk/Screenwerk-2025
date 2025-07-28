@@ -20,7 +20,8 @@ export default [
             'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
             'no-console': 'off',
             'semi': ['error', 'never'],
-            'quotes': ['error', 'single']
+            'quotes': ['error', 'single'],
+            'complexity': ['warn', { max: 8 }]
         }
     }
 ]

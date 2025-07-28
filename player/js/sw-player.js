@@ -73,51 +73,48 @@ export class EntuScreenWerkPlayer {
         this.initialize()
     }
     
-    initialize() {
-        // Validate configuration
+    /**
+     * Validates player configuration
+     * @returns {boolean} True if configuration is valid
+     */
+    validateConfiguration() {
         if (!this.configuration || !this.configuration.schedules) {
             this.showError('Invalid configuration: missing schedules')
-            return
+            return false
         }
         
-        // Setup the player container
-        this.element.style.position = 'relative'
-        // this.element.style.width = '100%'
-        // this.element.style.height = '100%'
-        this.element.style.overflow = 'hidden'
-        this.element.style.backgroundColor = '#000'
-        // this.element.style.aspectRatio = 16/9
-
-        // Do not start playlists automatically
-        // debugLog('Player initialized without starting playlists')
-
-        // Clear previous content
-        this.element.innerHTML = ''
-
-        // Add debug controls if in debug mode
-        if (this.debugMode) {
-            this.addDebugControls()
-        }
-
-        // Create layout container using SwLayout component
-        const layoutContainerElement = document.createElement('div')
-        
-        // Ensure we have schedules and they have data
         if (!this.configuration.schedules || this.configuration.schedules.length === 0) {
             this.showError('No schedules found in configuration')
-            return
+            return false
         }
         
         const current_schedule = this.configuration.schedules[this.currentScheduleIndex]
-        
-        // Check if current_schedule has layout playlists
         if (!current_schedule.layoutPlaylists || current_schedule.layoutPlaylists.length === 0) {
             this.showError('Schedule found but it has no layout playlists')
-            return
+            return false
         }
         
-        // Log what we're about to render
-        // console.log(`Rendering layout with ${current_schedule.layoutPlaylists.length} playlists`)
+        return true
+    }
+    
+    /**
+     * Sets up player container styles
+     */
+    setupPlayerContainer() {
+        this.element.style.position = 'relative'
+        this.element.style.overflow = 'hidden'
+        this.element.style.backgroundColor = '#000'
+        this.element.innerHTML = ''
+    }
+    
+    /**
+     * Creates and renders the layout
+     */
+    createLayout() {
+        const layoutContainerElement = document.createElement('div')
+        const current_schedule = this.configuration.schedules[this.currentScheduleIndex]
+        
+        // Log playlist information
         current_schedule.layoutPlaylists.forEach((_playlist, _idx) => {
             // console.log(`Playlist ${idx+1}: ${playlist.name} with ${playlist.playlistMedias ? playlist.playlistMedias.length : 0} media items`)
         })
@@ -129,6 +126,24 @@ export class EntuScreenWerkPlayer {
         if (this.debugInitMsg) {
             this.debugInitMsg.textContent = `Player initialized with ${current_schedule.layoutPlaylists.length} playlists`
         }
+    }
+
+    initialize() {
+        // Validate configuration
+        if (!this.validateConfiguration()) {
+            return
+        }
+        
+        // Setup the player container
+        this.setupPlayerContainer()
+        
+        // Add debug controls if in debug mode
+        if (this.debugMode) {
+            this.addDebugControls()
+        }
+        
+        // Create and render layout
+        this.createLayout()
     }
 
     addDebugControls() {
@@ -169,67 +184,98 @@ export class EntuScreenWerkPlayer {
         })
     }
     
-    forceNextMedia() {
-        // console.log('Force next media triggered from controls')
+    /**
+     * Finds visible media element in the player
+     * @returns {Element|null} The visible media element or null
+     */
+    findVisibleMedia() {
+        return this.element.querySelector('.media[style*="display: block"]')
+    }
+
+    /**
+     * Finds the playlist container for a given media element
+     * @param {Element} mediaElement - The media element
+     * @returns {Element|null} The playlist container or null
+     */
+    findPlaylistContainer(mediaElement) {
+        let playlistContainer = mediaElement.parentNode
+        while (playlistContainer && !playlistContainer.classList.contains('playlist')) {
+            playlistContainer = playlistContainer.parentNode
+        }
+        return playlistContainer
+    }
+
+    /**
+     * Finds the playlist object from layout by container ID
+     * @param {string} playlistId - The playlist container ID
+     * @returns {Object|null} The playlist object or null
+     */
+    findPlaylistObject(playlistId) {
+        if (!this.layout || !this.layout.playlists) return null
+        return this.layout.playlists.find(p => p.dom_element.id === playlistId)
+    }
+
+    /**
+     * Advances playlist to next media or restarts from beginning
+     * @param {Object} playlist - The playlist object
+     * @param {Element} visibleMedia - The currently visible media element
+     * @returns {boolean} Success status
+     */
+    advancePlaylist(playlist, visibleMedia) {
+        // Hide current media
+        visibleMedia.style.display = 'none'
         
-        // First, try to find visible media with the .media class
-        const visibleMedia = this.element.querySelector('.media[style*="display: block"]')
-        if (visibleMedia) {
-            // console.log(`Found visible media: ${visibleMedia.getAttribute('name')}`)
-            
-            // Find parent playlist
-            let playlistContainer = visibleMedia.parentNode
-            while (playlistContainer && !playlistContainer.classList.contains('playlist')) {
-                playlistContainer = playlistContainer.parentNode
-            }
-            
-            if (playlistContainer) {
-                // console.log(`Found playlist container: ${playlistContainer.getAttribute('name')}`)
-                
-                // Get the playlist object from layout
-                if (this.layout && this.layout.playlists) {
-                    // Find matching playlist by id
-                    const playlistId = playlistContainer.id
-                    const playlist = this.layout.playlists.find(p => p.dom_element.id === playlistId)
-                    
-                    if (playlist) {
-                        // console.log(`Found playlist object, advancing to next media`)
-                        
-                        // Hide current media
-                        visibleMedia.style.display = 'none'
-                        
-                        // Clean up current media (stop any playing videos or timers)
-                        const currentMedia = playlist.getCurrent()
-                        if (currentMedia) {
-                            currentMedia.pause()
-                        }
-                        
-                        // Advance to next media
-                        const success = playlist.next()
-                        if (success) {
-                            const nextMedia = playlist.getCurrent()
-                            if (nextMedia) {
-                                // console.log(`Playing next media: ${nextMedia.name}`)
-                                nextMedia.play()
-                                return true
-                            }
-                        }
-                        
-                        // If next failed, try restarting from beginning
-                        // console.log(`Restarting playlist from beginning`)
-                        playlist.moveToBeginning()
-                        const firstMedia = playlist.getCurrent()
-                        if (firstMedia) {
-                            firstMedia.play()
-                            return true
-                        }
-                    }
-                }
+        // Clean up current media (stop any playing videos or timers)
+        const currentMedia = playlist.getCurrent()
+        if (currentMedia) {
+            currentMedia.pause()
+        }
+        
+        // Advance to next media
+        const success = playlist.next()
+        if (success) {
+            const nextMedia = playlist.getCurrent()
+            if (nextMedia) {
+                nextMedia.play()
+                return true
             }
         }
         
-        console.error('Could not find visible media or playlist to advance')
+        // If next failed, try restarting from beginning
+        playlist.moveToBeginning()
+        const firstMedia = playlist.getCurrent()
+        if (firstMedia) {
+            firstMedia.play()
+            return true
+        }
+        
         return false
+    }
+
+    forceNextMedia() {
+        // Find visible media with the .media class
+        const visibleMedia = this.findVisibleMedia()
+        if (!visibleMedia) {
+            console.error('Could not find visible media to advance')
+            return false
+        }
+        
+        // Find parent playlist container
+        const playlistContainer = this.findPlaylistContainer(visibleMedia)
+        if (!playlistContainer) {
+            console.error('Could not find playlist container')
+            return false
+        }
+        
+        // Get the playlist object from layout
+        const playlist = this.findPlaylistObject(playlistContainer.id)
+        if (!playlist) {
+            console.error('Could not find playlist object')
+            return false
+        }
+        
+        // Advance the playlist
+        return this.advancePlaylist(playlist, visibleMedia)
     }
     
     // Helper to find the container with mediaList

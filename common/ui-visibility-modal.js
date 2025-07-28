@@ -61,39 +61,41 @@ function applySettings(settings, reloadOnChange) {
   if (reloadOnChange) window.location.reload()
 }
 
-function openModal(modalId, _reloadOnChange) {
-  if (!modalId) throw new Error('openModal: modalId is required')
-  const modal = document.getElementById(modalId)
-  if (!modal) throw new Error(`openModal: No modal found with id '${modalId}'`)
-  const form = document.getElementById(FORM_ID)
-  modal.style.display = 'flex'
-  // Clear form
-  form.innerHTML = ''
-  const settings = getSettings()
+/**
+ * Checks if current settings match defaults
+ * @param {Object} settings - Current settings
+ * @param {Object} defaults - Default settings
+ * @returns {boolean} True if settings match defaults
+ */
+function isDefaultSettings(settings, defaults) {
+  if (!defaults) return true
   const keys = Object.keys(settings)
-  // Add 'Restore Defaults' as the first toggle (hotkey 0)
-  // (Do NOT add name='__restore_defaults__' to the checkbox, so it is never picked up by form.elements)
-  const env = window.ENVIRONMENT || 'dev'
-  const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : undefined
-  let isDefault = true
-  if (defaults) {
-    for (const key of keys) {
-      if (settings[key] !== defaults[key]) {
-        isDefault = false
-        break
-      }
+  for (const key of keys) {
+    if (settings[key] !== defaults[key]) {
+      return false
     }
   }
+  return true
+}
+
+/**
+ * Creates restore defaults checkbox element
+ * @param {boolean} isDefault - Whether current settings are default
+ * @param {Object} defaults - Default settings object
+ * @returns {HTMLElement} The restore label element
+ */
+function createRestoreCheckbox(isDefault, defaults) {
   const restoreLabel = document.createElement('label')
   restoreLabel.style.display = 'block'
   restoreLabel.innerHTML = '<u>[0]</u> '
+  
   const restoreCheckbox = document.createElement('input')
   restoreCheckbox.type = 'checkbox'
-  // Do NOT set restoreCheckbox.name = '__restore_defaults__'
   restoreCheckbox.setAttribute('data-hotkey', '0')
   restoreCheckbox.tabIndex = 0
   restoreCheckbox.checked = false
   restoreCheckbox.disabled = isDefault
+  
   restoreCheckbox.onclick = function(e) {
     e.preventDefault()
     if (restoreCheckbox.disabled) return
@@ -104,63 +106,118 @@ function openModal(modalId, _reloadOnChange) {
       alert('Failed to restore defaults: DEFAULT_UI_VISIBILITY not found on window')
     }
   }
+  
   restoreLabel.appendChild(restoreCheckbox)
   restoreLabel.appendChild(document.createTextNode(' Restore Defaults'))
+  
   if (isDefault) {
     restoreLabel.title = 'Already at default settings'
     restoreLabel.style.opacity = '0.5'
   }
-  form.appendChild(restoreLabel)
-  keys.forEach((key, idx) => {
-    const label = document.createElement('label')
-    label.style.display = 'block'
-    const checkbox = document.createElement('input')
-    checkbox.type = 'checkbox'
-    checkbox.name = key
-    checkbox.checked = !!settings[key]
-    // Assign hotkey
-    const hotkey = TOGGLE_HOTKEYS[idx] || ''
-    if (hotkey) {
-      checkbox.setAttribute('data-hotkey', hotkey)
-      label.innerHTML = `<u>[${hotkey.toUpperCase()}]</u> `
-    }
-    label.appendChild(checkbox)
-    // Mark if different from default
-    if (defaults && settings[key] !== defaults[key]) {
-      label.appendChild(document.createTextNode(' ' + key + ' *'))
-      label.title = 'Modified from default'
-      label.style.fontWeight = 'bold'
-      label.style.color = '#b00'
-    } else {
-      label.appendChild(document.createTextNode(' ' + key))
-    }
-    form.appendChild(label)
-  })
-  // No restore button, handled by hotkey now
+  
+  return restoreLabel
+}
 
-  // Add 'Clear Cache' button next to Close button
-  const closeDiv = modal.querySelector('div[style*="text-align:right"]')
-  if (closeDiv) {
-    const clearCacheBtn = document.createElement('button')
-    clearCacheBtn.type = 'button'
-    clearCacheBtn.textContent = 'Clear Cache'
-    clearCacheBtn.style.marginLeft = '1em'
-    clearCacheBtn.onclick = async function() {
-      // Unregister all service workers
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations()
-        for (const reg of regs) await reg.unregister()
-      }
-      // Delete all caches
-      if ('caches' in window) {
-        const names = await caches.keys()
-        for (const name of names) await caches.delete(name)
-      }
-      alert('Cache cleared! The page will now reload.')
-      window.location.reload()
-    }
-    closeDiv.appendChild(clearCacheBtn)
+/**
+ * Creates setting checkbox for a specific key
+ * @param {string} key - Setting key
+ * @param {number} idx - Index for hotkey assignment
+ * @param {Object} settings - Current settings
+ * @param {Object} defaults - Default settings
+ * @returns {HTMLElement} The setting label element
+ */
+function createSettingCheckbox(key, idx, settings, defaults) {
+  const label = document.createElement('label')
+  label.style.display = 'block'
+  
+  const checkbox = document.createElement('input')
+  checkbox.type = 'checkbox'
+  checkbox.name = key
+  checkbox.checked = !!settings[key]
+  
+  // Assign hotkey
+  const hotkey = TOGGLE_HOTKEYS[idx] || ''
+  if (hotkey) {
+    checkbox.setAttribute('data-hotkey', hotkey)
+    label.innerHTML = `<u>[${hotkey.toUpperCase()}]</u> `
   }
+  
+  label.appendChild(checkbox)
+  
+  // Mark if different from default
+  if (defaults && settings[key] !== defaults[key]) {
+    label.appendChild(document.createTextNode(' ' + key + ' *'))
+    label.title = 'Modified from default'
+    label.style.fontWeight = 'bold'
+    label.style.color = '#b00'
+  } else {
+    label.appendChild(document.createTextNode(' ' + key))
+  }
+  
+  return label
+}
+
+/**
+ * Creates and configures the clear cache button
+ * @param {HTMLElement} modal - The modal element
+ * @returns {HTMLElement|null} The clear cache button or null if not added
+ */
+function createClearCacheButton(modal) {
+  const closeDiv = modal.querySelector('div[style*="text-align:right"]')
+  if (!closeDiv) return null
+  
+  const clearCacheBtn = document.createElement('button')
+  clearCacheBtn.type = 'button'
+  clearCacheBtn.textContent = 'Clear Cache'
+  clearCacheBtn.style.marginLeft = '1em'
+  
+  clearCacheBtn.onclick = async function() {
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      for (const reg of regs) await reg.unregister()
+    }
+    // Delete all caches
+    if ('caches' in window) {
+      const names = await caches.keys()
+      for (const name of names) await caches.delete(name)
+    }
+    alert('Cache cleared! The page will now reload.')
+    window.location.reload()
+  }
+  
+  closeDiv.insertBefore(clearCacheBtn, closeDiv.firstChild)
+  return clearCacheBtn
+}
+
+function openModal(modalId, _reloadOnChange) {
+  if (!modalId) throw new Error('openModal: modalId is required')
+  const modal = document.getElementById(modalId)
+  if (!modal) throw new Error(`openModal: No modal found with id '${modalId}'`)
+  
+  const form = document.getElementById(FORM_ID)
+  modal.style.display = 'flex'
+  form.innerHTML = ''
+  
+  const settings = getSettings()
+  const keys = Object.keys(settings)
+  const env = window.ENVIRONMENT || 'dev'
+  const defaults = window.DEFAULT_UI_VISIBILITY ? window.DEFAULT_UI_VISIBILITY[env] : undefined
+  
+  const isDefault = isDefaultSettings(settings, defaults)
+  
+  // Add restore defaults checkbox
+  const restoreLabel = createRestoreCheckbox(isDefault, defaults)
+  form.appendChild(restoreLabel)
+  
+  // Add setting checkboxes
+  keys.forEach((key, idx) => {
+    const settingLabel = createSettingCheckbox(key, idx, settings, defaults)
+    form.appendChild(settingLabel)
+  })
+  
+  // Add clear cache button
+  createClearCacheButton(modal)
 }
 
 function closeModal(modalId) {

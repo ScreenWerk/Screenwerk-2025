@@ -66,50 +66,44 @@ find .ai_workspace/ -name "*.sh" -type f | while read file; do
     fi
 done
 
-# 2. ESLint Check
+# 2. ESLint Check with Complexity Summary
 echo "Running ESLint..."
+ESLINT_OUTPUT=""
+COMPLEXITY_WARNINGS=0
+
 if [ -f "node_modules/.bin/eslint" ]; then
-    if ./node_modules/.bin/eslint . --ext .js; then
-        report_success "ESLint passed"
-    else
-        report_issue "ESLint found errors"
-    fi
+    ESLINT_OUTPUT=$(./node_modules/.bin/eslint . --ext .js 2>&1)
+    ESLINT_EXIT_CODE=$?
 elif command -v eslint &> /dev/null; then
-    if eslint . --ext .js; then
-        report_success "ESLint passed"
-    else
-        report_issue "ESLint found errors"
-    fi
+    ESLINT_OUTPUT=$(eslint . --ext .js 2>&1)
+    ESLINT_EXIT_CODE=$?
 else
     report_warning "ESLint not found - install with 'npm install eslint'"
+    ESLINT_EXIT_CODE=1
 fi
 
-# 3. Function Complexity Check (basic heuristic)
-echo "Checking function complexity..."
-complex_found=false
-find . -name "*.js" -not -path "./node_modules/*" | while read file; do
-    # Count functions with more than 20 lines (simple heuristic)
-    complex_functions=$(awk '
-        /function|=>/ { 
-            start=NR; depth=0; lines=0 
-        }
-        /\{/ { depth++ }
-        /\}/ { 
-            depth--; 
-            if (depth==0 && start>0) {
-                lines = NR - start;
-                if (lines > 20) print FILENAME":"start": function too complex ("lines" lines)"
-                start=0
-            }
-        }
-    ' "$file")
+# Display ESLint output
+if [ -n "$ESLINT_OUTPUT" ]; then
+    echo "$ESLINT_OUTPUT"
     
-    if [ -n "$complex_functions" ]; then
-        report_warning "Complex functions in $file"
-        echo "$complex_functions"
-        complex_found=true
+    # Count complexity warnings
+    COMPLEXITY_WARNINGS=$(echo "$ESLINT_OUTPUT" | grep -c "complexity" || true)
+fi
+
+if [ "$ESLINT_EXIT_CODE" -eq 0 ]; then
+    if [ "$COMPLEXITY_WARNINGS" -gt 0 ]; then
+        report_warning "ESLint passed with $COMPLEXITY_WARNINGS complexity warnings"
+    else
+        report_success "ESLint passed with no warnings"
     fi
-done
+else
+    report_issue "ESLint found errors"
+fi
+
+# 3. Function Complexity Check (via ESLint)
+echo "Checking function complexity..."
+# Complexity warnings are now handled by ESLint complexity rule
+# No separate complexity check needed - ESLint handles it in step 2
 
 # 4. Test Coverage Check
 echo "Checking test coverage..."
@@ -167,12 +161,36 @@ echo ""
 echo "Sanity Check Complete ($(get_timestamp))"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Display complexity summary if there are warnings
+if [ "$COMPLEXITY_WARNINGS" -gt 0 ]; then
+    echo ""
+    echo -e "${YELLOW}📊 COMPLEXITY SUMMARY${NC}"
+    echo "Total complexity warnings: $COMPLEXITY_WARNINGS"
+    echo ""
+    echo "High priority targets (complexity >15):"
+    echo "$ESLINT_OUTPUT" | grep "complexity" | grep -E "complexity of (1[6-9]|[2-9][0-9])\." | head -3 || echo "  None found"
+    echo ""
+    echo "Medium priority targets (complexity 9-15):"
+    echo "$ESLINT_OUTPUT" | grep "complexity" | grep -E "complexity of (9|1[0-5])\." | head -5 || echo "  None found"
+    echo ""
+    echo "Note: All functions should target complexity ≤8"
+    echo ""
+fi
+
 if [ "$ISSUES" -eq 0 ]; then
     echo -e "${GREEN}✅ SANITY CHECK PASSED${NC}"
-    echo "Ready to commit!"
+    if [ "$COMPLEXITY_WARNINGS" -gt 0 ]; then
+        echo "Ready to commit! ($COMPLEXITY_WARNINGS complexity warnings remaining)"
+    else
+        echo "Ready to commit! No complexity warnings!"
+    fi
     echo ""
     echo "Add to activity log:"
-    echo "### $(get_timestamp) - Sanity check passed, ready to commit"
+    if [ "$COMPLEXITY_WARNINGS" -gt 0 ]; then
+        echo "### $(get_timestamp) - Sanity check passed, $COMPLEXITY_WARNINGS complexity warnings remain"
+    else
+        echo "### $(get_timestamp) - Sanity check passed, all complexity issues resolved"
+    fi
     exit 0
 else
     echo -e "${RED}❌ SANITY CHECK FAILED${NC}"
