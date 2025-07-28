@@ -295,6 +295,132 @@ export class EntuScreenWerkPlayer {
         }
     }
     
+    /**
+     * Load a simplified layout object (from LayoutScheduler)
+     * This is the new API for scheduler-driven layout changes
+     * 
+     * @param {Object} simpleLayout - Simplified layout object from LayoutScheduler
+     * @param {string} simpleLayout.id - Layout ID
+     * @param {string} simpleLayout.name - Layout name
+     * @param {number} simpleLayout.width - Layout width
+     * @param {number} simpleLayout.height - Layout height
+     * @param {Array} simpleLayout.regions - Array of region objects with playlist data
+     */
+    loadLayout(simpleLayout) {
+        try {
+            debugLog(`[Player] Loading layout: ${simpleLayout.name} (${simpleLayout.id})`)
+            
+            // Pause current playback
+            const wasPlaying = this.isPlaying
+            if (this.isPlaying) {
+                this.pause()
+            }
+            
+            // Clean up current layout
+            this.cleanup()
+            
+            // Convert simple layout to player-compatible configuration
+            const playerConfiguration = this.transformSimpleLayoutToConfiguration(simpleLayout)
+            
+            // Update configuration
+            this.configuration = playerConfiguration
+            this.currentScheduleIndex = 0
+            
+            // Reinitialize with new layout
+            this.initialize()
+            
+            // Resume playback if it was playing before
+            if (wasPlaying) {
+                this.resume()
+            }
+            
+            debugLog(`[Player] Layout loaded successfully: ${simpleLayout.name}`)
+            return true
+            
+        } catch (error) {
+            console.error('[Player] Failed to load layout:', error)
+            this.showError(`Failed to load layout: ${error.message}`)
+            return false
+        }
+    }
+    
+    /**
+     * Transform simplified layout to player-compatible configuration
+     * @param {Object} simpleLayout - Simplified layout from scheduler
+     * @returns {Object} Player-compatible configuration object
+     */
+    transformSimpleLayoutToConfiguration(simpleLayout) {
+        // Debug: Log what we're receiving from scheduler
+        console.log('[Player] Transform input - simpleLayout:', simpleLayout)
+        console.log('[Player] Transform input - regions:', simpleLayout.regions?.length || 0)
+        
+        if (simpleLayout.regions && simpleLayout.regions.length > 0) {
+            simpleLayout.regions.forEach((region, regionIndex) => {
+                console.log(`[Player] Region ${regionIndex}: id=${region.id}, playlist=${region.playlist?.name}, mediaCount=${region.playlist?.media?.length || 0}`)
+                
+                if (region.playlist?.media) {
+                    region.playlist.media.forEach((media, mediaIndex) => {
+                        console.log(`[Player] Input Media ${mediaIndex}: id=${media.id}, name=${media.name}, type=${media.type}, url=${media.url}, filename=${media.filename}`)
+                    })
+                }
+            })
+        }
+        
+        // Create a schedule object that wraps the simple layout
+        const schedule = {
+            _id: `schedule_${simpleLayout.id}`,
+            name: `Schedule for ${simpleLayout.name}`,
+            layoutPlaylists: simpleLayout.regions.map((region, index) => ({
+                _id: `layout_playlist_${simpleLayout.id}_${index}`,
+                name: `Layout Playlist ${index + 1}`,
+                left: region.left,
+                top: region.top,
+                width: region.width,
+                height: region.height,
+                playlistMedias: region.playlist.media.map((media, mediaIndex) => {
+                    const playlistMedia = {
+                        _id: `media_${simpleLayout.id}_${index}_${mediaIndex}`,
+                        playlistMediaEid: `media_${simpleLayout.id}_${index}_${mediaIndex}`,
+                        mediaEid: media.id,
+                        name: media.name,
+                        duration: media.duration,
+                        type: media.type,
+                        fileDO: media.url, // SwMedia expects 'fileDO' for the file URL
+                        validFrom: media.validFrom,
+                        validTo: media.validTo,
+                        ordinal: mediaIndex + 1,
+                        mute: media.mute || false,
+                        stretch: media.stretch || false,
+                        media: {
+                            _id: media.id,
+                            name: media.name,
+                            filename: media.filename,
+                            path: media.path,
+                            type: media.type,
+                            url: media.url,
+                            width: media.width,
+                            height: media.height
+                        }
+                    }
+                    
+                    // Debug: Log the transformed playlistMedia
+                    console.log(`[Player] Transformed Media ${mediaIndex}: name=${playlistMedia.name}, type=${playlistMedia.type}, fileDO=${playlistMedia.fileDO}, duration=${playlistMedia.duration}`)
+                    
+                    return playlistMedia
+                })
+            }))
+        }
+        
+        // Return complete configuration object
+        return {
+            _id: `config_${simpleLayout.id}`,
+            name: `Configuration for ${simpleLayout.name}`,
+            width: simpleLayout.width,
+            height: simpleLayout.height,
+            schedules: [schedule]
+        }
+    }
+
     resume() {
         if (this.isPlaying) {
             debugLog('Player already playing')
