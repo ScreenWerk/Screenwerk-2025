@@ -10,7 +10,7 @@ get_timestamp() {
     date '+%H:%M'
 }
 
-echo "🔍 SW25 Sanity Check Starting... ($(get_timestamp))"
+echo "SW25 Sanity Check Starting... ($(get_timestamp))"
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,10 +43,10 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-echo "📁 Checking project structure..."
+echo "Checking project structure..."
 
 # 1. File Length Check (max 300 lines for scripts)
-echo "📏 Checking file lengths..."
+echo "Checking file lengths..."
 find scripts/ -name "*.js" -type f | while read file; do
     lines=$(wc -l < "$file")
     if [ "$lines" -gt 300 ]; then
@@ -67,7 +67,7 @@ find .ai_workspace/ -name "*.sh" -type f | while read file; do
 done
 
 # 2. ESLint Check
-echo "🔧 Running ESLint..."
+echo "Running ESLint..."
 if [ -f "node_modules/.bin/eslint" ]; then
     if ./node_modules/.bin/eslint . --ext .js; then
         report_success "ESLint passed"
@@ -85,7 +85,7 @@ else
 fi
 
 # 3. Function Complexity Check (basic heuristic)
-echo "🧮 Checking function complexity..."
+echo "Checking function complexity..."
 complex_found=false
 find . -name "*.js" -not -path "./node_modules/*" | while read file; do
     # Count functions with more than 20 lines (simple heuristic)
@@ -112,7 +112,7 @@ find . -name "*.js" -not -path "./node_modules/*" | while read file; do
 done
 
 # 4. Test Coverage Check
-echo "🧪 Checking test coverage..."
+echo "Checking test coverage..."
 if [ -d "tests" ] || [ -d "test" ]; then
     # Count test files
     test_files=$(find tests/ test/ -name "*.test.js" -o -name "*.spec.js" 2>/dev/null | wc -l)
@@ -131,7 +131,7 @@ else
 fi
 
 # 5. Run existing tests
-echo "🏃 Running tests..."
+echo "Running tests..."
 if [ -f "package.json" ] && grep -q '"test"' package.json; then
     if npm test; then
         report_success "All tests passed"
@@ -143,7 +143,7 @@ else
 fi
 
 # 6. Documentation checks
-echo "📚 Checking documentation..."
+echo "Checking documentation..."
 required_docs=("README.md" "docs/data-model.md")
 for doc in "${required_docs[@]}"; do
     if [ -f "$doc" ]; then
@@ -154,7 +154,7 @@ for doc in "${required_docs[@]}"; do
 done
 
 # 7. Git status check
-echo "📝 Checking git status..."
+echo "Checking git status..."
 if git status --porcelain | grep -q .; then
     report_warning "Uncommitted changes detected"
     git status --short
@@ -164,14 +164,14 @@ fi
 
 # Summary
 echo ""
-echo "🏁 Sanity Check Complete ($(get_timestamp))"
+echo "Sanity Check Complete ($(get_timestamp))"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if [ "$ISSUES" -eq 0 ]; then
     echo -e "${GREEN}✅ SANITY CHECK PASSED${NC}"
-    echo "🚀 Ready to commit!"
+    echo "Ready to commit!"
     echo ""
-    echo "📝 Add to activity log:"
+    echo "Add to activity log:"
     echo "### $(get_timestamp) - Sanity check passed, ready to commit"
     exit 0
 else
@@ -179,12 +179,12 @@ else
     echo "Issues found: $ISSUES"
     echo "Warnings: $WARNINGS"
     echo ""
-    echo "🔧 Fix issues before committing:"
+    echo "Fix issues before committing:"
     echo "   1. Address all reported issues"
     echo "   2. Run sanity check again"
     echo "   3. Commit when clean"
     echo ""
-    echo "📝 Add to activity log:"
+    echo "Add to activity log:"
     echo "### $(get_timestamp) - Sanity check failed, $ISSUES issues found"
     exit 1
 fi
