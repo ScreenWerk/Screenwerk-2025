@@ -72,8 +72,8 @@ export async function fetchEntuConfigurations() {
         
         return fullConfigurations
     } catch (error) {
-        console.error("Failed to fetch configurations from Entu:", error)
-        displayErrorMessage("Failed to load configurations. Please try again later.")
+        console.error('Failed to fetch configurations from Entu:', error)
+        displayErrorMessage('Failed to load configurations. Please try again later.')
         return []
     }
 }
@@ -95,7 +95,7 @@ export async function groupEntities() {
     const grouped_customers = {}
     
     for (const config of configurations) {
-        if (!config || !config.configuration) continue;
+        if (!config || !config.configuration) continue
         
         // Extract customer information
         const configuration = config.configuration

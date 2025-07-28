@@ -112,7 +112,7 @@ export class EntuScreenWerkPlayer {
         
         // Check if current_schedule has layout playlists
         if (!current_schedule.layoutPlaylists || current_schedule.layoutPlaylists.length === 0) {
-            this.showError(`Schedule found but it has no layout playlists`)
+            this.showError('Schedule found but it has no layout playlists')
             return
         }
         

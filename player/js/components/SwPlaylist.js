@@ -136,7 +136,7 @@ export class SwPlaylist extends LinkedList {
             return true
         } else {
             // Loop back to beginning
-            console.log(`Reached end of LinkedList, looping back to beginning`)
+            console.log('Reached end of LinkedList, looping back to beginning')
             this.current = this.head
             console.log(`After looping: Current media is now ${this.current.value.name}`)
             return true
@@ -151,7 +151,7 @@ export class SwPlaylist extends LinkedList {
         } else {
             // If there's no current media but we have items in the list,
             // try to move to the beginning and start playing
-            console.log(`No current media found, trying to start from beginning`)
+            console.log('No current media found, trying to start from beginning')
             this.moveToBeginning()
             const firstMedia = this.getCurrent()
             if (firstMedia) {
@@ -184,24 +184,24 @@ export class SwPlaylist extends LinkedList {
     
     // Debug method to help with diagnostics
     debugPrintList() {
-        console.log('--- Playlist Debug Info ---');
-        console.log(`Playlist: ${this.dom_element.getAttribute('name')}`);
+        console.log('--- Playlist Debug Info ---')
+        console.log(`Playlist: ${this.dom_element.getAttribute('name')}`)
         
         if (!this.head) {
-            console.log('List is empty');
-            return;
+            console.log('List is empty')
+            return
         }
         
-        let node = this.head;
-        let count = 0;
-        let currentMarker = '';
+        let node = this.head
+        let count = 0
+        let currentMarker = ''
         
         while (node) {
-            currentMarker = (node === this.current) ? ' (CURRENT)' : '';
-            console.log(`Media ${count++}: ${node.value.name}${currentMarker}`);
-            node = node.next;
+            currentMarker = (node === this.current) ? ' (CURRENT)' : ''
+            console.log(`Media ${count++}: ${node.value.name}${currentMarker}`)
+            node = node.next
         }
         
-        console.log('------------------------');
+        console.log('------------------------')
     }
 }

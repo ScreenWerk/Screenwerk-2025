@@ -262,27 +262,27 @@ export class SwMedia {
                     
                     // Log the current state of the playlist before advancing
                     if (this.parent && typeof this.parent.debugPrintList === 'function') {
-                        console.log('Playlist state before advancing:');
-                        this.parent.debugPrintList();
+                        console.log('Playlist state before advancing:')
+                        this.parent.debugPrintList()
                     }
                     
                     // Call next() and get the next media
-                    const success = this.parent.next();
-                    const nextMedia = this.parent.getCurrent();
+                    const success = this.parent.next()
+                    const nextMedia = this.parent.getCurrent()
                     
                     if (success && nextMedia && typeof nextMedia.play === 'function') {
-                        console.log(`Playing next media: ${nextMedia.name}`);
-                        nextMedia.play();
+                        console.log(`Playing next media: ${nextMedia.name}`)
+                        nextMedia.play()
                     } else {
-                        debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia);
-                        console.error('Failed to get next media. Trying to restart playlist.');
+                        debugLog('[SwMedia] No next media to play or play() is not a function', nextMedia)
+                        console.error('Failed to get next media. Trying to restart playlist.')
                         
                         // Try to restart playlist from beginning
                         if (this.parent.moveToBeginning()) {
-                            const firstMedia = this.parent.getCurrent();
+                            const firstMedia = this.parent.getCurrent()
                             if (firstMedia) {
-                                console.log('Restarting playlist from first item');
-                                firstMedia.play();
+                                console.log('Restarting playlist from first item')
+                                firstMedia.play()
                             }
                         }
                     }
@@ -323,29 +323,29 @@ export class SwMedia {
                                 console.error(`Play failed after button click: ${e}`)
                                 
                                 // Show more diagnostic information for the video error
-                                const errorType = e.name || 'Unknown error';
+                                const errorType = e.name || 'Unknown error'
                                 const videoDetails = {
                                     error: video_div.error ? `code: ${video_div.error.code}, message: ${video_div.error.message}` : 'No error details',
                                     networkState: video_div.networkState,
                                     readyState: video_div.readyState,
                                     src: video_div.src,
                                     type: this.type
-                                };
-                                console.log(`Video error details: ${errorType}`, videoDetails);
+                                }
+                                console.log(`Video error details: ${errorType}`, videoDetails)
                                 
                                 // Add visual error message to the player
-                                const errorMsg = document.createElement('div');
-                                errorMsg.className = 'media-error';
-                                errorMsg.style.position = 'absolute';
-                                errorMsg.style.top = '60%';
-                                errorMsg.style.left = '50%';
-                                errorMsg.style.transform = 'translateX(-50%)';
-                                errorMsg.style.backgroundColor = 'rgba(0,0,0,0.7)';
-                                errorMsg.style.color = 'red';
-                                errorMsg.style.padding = '10px';
-                                errorMsg.style.borderRadius = '5px';
-                                errorMsg.textContent = `Video cannot be played (${errorType})`;
-                                this.dom_element.appendChild(errorMsg);
+                                const errorMsg = document.createElement('div')
+                                errorMsg.className = 'media-error'
+                                errorMsg.style.position = 'absolute'
+                                errorMsg.style.top = '60%'
+                                errorMsg.style.left = '50%'
+                                errorMsg.style.transform = 'translateX(-50%)'
+                                errorMsg.style.backgroundColor = 'rgba(0,0,0,0.7)'
+                                errorMsg.style.color = 'red'
+                                errorMsg.style.padding = '10px'
+                                errorMsg.style.borderRadius = '5px'
+                                errorMsg.textContent = `Video cannot be played (${errorType})`
+                                this.dom_element.appendChild(errorMsg)
                             })
                     }
                     
@@ -380,8 +380,8 @@ export class SwMedia {
                 
                 // Log the current state of the playlist before advancing
                 if (this.parent && typeof this.parent.debugPrintList === 'function') {
-                    console.log('Playlist state before advancing from image:');
-                    this.parent.debugPrintList();
+                    console.log('Playlist state before advancing from image:')
+                    this.parent.debugPrintList()
                 }
                 
                 // Call .next() on the parent LinkedList

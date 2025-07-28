@@ -20,7 +20,7 @@ export async function displayConfigurations() {
     showProgressBar()
     const grouped_customers = await groupEntities()
 
-    const accordion = document.getElementById("accordion")
+    const accordion = document.getElementById('accordion')
     let totalScreens = 0
     for (const customer_id in grouped_customers) {
         for (const config_id in grouped_customers[customer_id].configurations) {
@@ -32,25 +32,25 @@ export async function displayConfigurations() {
 
     let loadedScreens = 0
     for (const customer_id in grouped_customers) {
-        const customerSectionE = document.createElement("section")
-        customerSectionE.className = "customer-section"
+        const customerSectionE = document.createElement('section')
+        customerSectionE.className = 'customer-section'
 
-        const customerTitleE = document.createElement("button")
-        customerTitleE.className = "accordion"
+        const customerTitleE = document.createElement('button')
+        customerTitleE.className = 'accordion'
         customerTitleE.textContent = `${grouped_customers[customer_id].customerName} (${Object.keys(grouped_customers[customer_id].configurations).length})`
         customerSectionE.appendChild(customerTitleE)
 
-        const configListE = document.createElement("div")
-        configListE.className = "panel"
+        const configListE = document.createElement('div')
+        configListE.className = 'panel'
 
         for (const config_id in grouped_customers[customer_id].configurations) {
             const configuration = grouped_customers[customer_id].configurations[config_id]
-            const configSectionE = document.createElement("section")
+            const configSectionE = document.createElement('section')
             // configSectionE.dataset.config = JSON.stringify(configuration)
-            configSectionE.className = "config-section"
+            configSectionE.className = 'config-section'
 
-            const configTitleE = document.createElement("button")
-            configTitleE.className = "accordion"
+            const configTitleE = document.createElement('button')
+            configTitleE.className = 'accordion'
             const config = grouped_customers[customer_id].configurations[config_id]
             configTitleE.innerHTML = `
                 ${config.configName} 
@@ -59,15 +59,15 @@ export async function displayConfigurations() {
             `
             configSectionE.appendChild(configTitleE)
 
-            const screenGroupListE = document.createElement("div")
-            screenGroupListE.className = "panel"
+            const screenGroupListE = document.createElement('div')
+            screenGroupListE.className = 'panel'
 
             for (const screen_group_id in config.screenGroups) {
-                const screenGroupSectionE = document.createElement("section")
-                screenGroupSectionE.className = "screen-group-section"
+                const screenGroupSectionE = document.createElement('section')
+                screenGroupSectionE.className = 'screen-group-section'
 
-                const screenGroupTitleE = document.createElement("button")
-                screenGroupTitleE.className = "accordion"
+                const screenGroupTitleE = document.createElement('button')
+                screenGroupTitleE.className = 'accordion'
                 const screen_group = config.screenGroups[screen_group_id]
                 screenGroupTitleE.innerHTML = `
                     ${screen_group.screen_group_name} 
@@ -76,10 +76,10 @@ export async function displayConfigurations() {
                 `
                 screenGroupSectionE.appendChild(screenGroupTitleE)
 
-                const playerElementE = document.createElement("div")
-                playerElementE.className = "mini-player"
-                const playerPanelE = document.createElement("div")
-                playerPanelE.className = "panel"
+                const playerElementE = document.createElement('div')
+                playerElementE.className = 'mini-player'
+                const playerPanelE = document.createElement('div')
+                playerPanelE.className = 'panel'
                 playerPanelE.appendChild(playerElementE)
                 screenGroupSectionE.appendChild(playerPanelE)
                 const screen_group_config = configuration
@@ -116,7 +116,7 @@ export async function displayConfigurations() {
         progressBarContainer.remove()
     }
 
-    const accordions = document.getElementsByClassName("accordion")
+    const accordions = document.getElementsByClassName('accordion')
     for (let i = 0; i < accordions.length; i++) {
         const accordion = accordions[i]
         const panel = accordion.nextElementSibling
@@ -127,14 +127,14 @@ export async function displayConfigurations() {
         panel.id = `panel-${i}`
         panel.setAttribute('aria-hidden', 'true')
         
-        accordion.addEventListener("click", function() {
+        accordion.addEventListener('click', function() {
             const parent_class = this.parentElement.classList[0]
             debugLog(`Accordion clicked: ${parent_class}`)
-            const expanded = this.classList.toggle("active")
+            const expanded = this.classList.toggle('active')
             this.setAttribute('aria-expanded', expanded)
             
             let panel = this.nextElementSibling
-            while (panel && panel.classList.contains("panel")) {
+            while (panel && panel.classList.contains('panel')) {
                 togglePanelVisibility(panel)
                 handlePlayerState(panel, parent_class)
                 panel = panel.nextElementSibling
@@ -144,13 +144,13 @@ export async function displayConfigurations() {
 }
 
 function togglePanelVisibility(panel) {
-    const isVisible = panel.style.display === "block"
-    panel.style.display = isVisible ? "none" : "block"
+    const isVisible = panel.style.display === 'block'
+    panel.style.display = isVisible ? 'none' : 'block'
     panel.setAttribute('aria-hidden', isVisible)
 }
 
 function handlePlayerState(panel, section_name) {
-    const playerElement = panel.querySelector(".mini-player")
+    const playerElement = panel.querySelector('.mini-player')
     if (!playerElement) {
         debugLog(`No player element found for ${section_name}`)
         debugLog(panel)
@@ -161,9 +161,9 @@ function handlePlayerState(panel, section_name) {
         debugLog(`No SwPlayer instance found for ${section_name}`)
         return
     }
-    const subPanels = panel.querySelectorAll(".panel")
-    const allPanelsExpanded = panel.style.display === "block"
-        && Array.from(subPanels).every(subPanel => subPanel.style.display === "block")
+    const subPanels = panel.querySelectorAll('.panel')
+    const allPanelsExpanded = panel.style.display === 'block'
+        && Array.from(subPanels).every(subPanel => subPanel.style.display === 'block')
     if (allPanelsExpanded) {
         console.log(`All sub-panels are expanded for ${section_name}`)
         swPlayer.resume()

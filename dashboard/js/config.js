@@ -17,7 +17,7 @@ export const DEBUG = {
     
     // Configure polling interval (in milliseconds) if needed
     POLLING_INTERVAL: 60000
-};
+}
 
 /**
  * Export configuration methods
@@ -27,13 +27,13 @@ export const CONFIG = {
      * Get configuration setting with optional default
      */
     get: function(key, defaultValue = null) {
-        return DEBUG[key] !== undefined ? DEBUG[key] : defaultValue;
+        return DEBUG[key] !== undefined ? DEBUG[key] : defaultValue
     },
     
     /**
      * Check if we're in development mode
      */
     isDevelopment: function() {
-        return this.get('ENABLE_LOGGING', false);
+        return this.get('ENABLE_LOGGING', false)
     }
-};
+}

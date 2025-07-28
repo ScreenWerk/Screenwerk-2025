@@ -87,7 +87,7 @@ function openModal(modalId, reloadOnChange) {
   }
   const restoreLabel = document.createElement('label')
   restoreLabel.style.display = 'block'
-  restoreLabel.innerHTML = `<u>[0]</u> `
+  restoreLabel.innerHTML = '<u>[0]</u> '
   const restoreCheckbox = document.createElement('input')
   restoreCheckbox.type = 'checkbox'
   // Do NOT set restoreCheckbox.name = '__restore_defaults__'

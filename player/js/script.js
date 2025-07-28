@@ -382,7 +382,7 @@ const startConfigPolling = (screenId, interval = CONFIG_POLLING_INTERVAL) => { /
             const newPublishedAt = new Date(configData.configuration.publishedAt).getTime()
             
             if (newPublishedAt > currentPublishedAt) {
-                console.log(`Configuration update detected!`)
+                console.log('Configuration update detected!')
                 console.log(`Current: ${new Date(currentPublishedAt).toISOString()}`)
                 console.log(`New: ${new Date(newPublishedAt).toISOString()}`)
                 

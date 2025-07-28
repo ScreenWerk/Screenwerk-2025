@@ -21,7 +21,7 @@ export class ProgressBar {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
-        `;
+        `
         
         const bar = document.createElement('div')
         bar.className = 'media-progress-bar'
@@ -33,7 +33,7 @@ export class ProgressBar {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
-        `;
+        `
         
         container.appendChild(bar)
         this.parent.appendChild(container)

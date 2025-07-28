@@ -23,7 +23,7 @@ export class ImageMediaHandler {
         // Add error handler
         img.onerror = (e) => {
             console.error(`Failed to load image: ${mediaItem.source}`, e)
-            container.innerHTML += `<div class="media-error">Failed to load image</div>`
+            container.innerHTML += '<div class="media-error">Failed to load image</div>'
         }
         
         // Set src after handlers to catch errors

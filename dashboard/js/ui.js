@@ -81,7 +81,7 @@ export const toolbarSnippet = (id, publishedAt = '', screenId = '', validation_e
  */
 function showPopup(id, configurations, type = 'errors') {
     if (!configurations) {
-        console.error("Configurations parameter is undefined")
+        console.error('Configurations parameter is undefined')
         return
     }
     
@@ -90,7 +90,7 @@ function showPopup(id, configurations, type = 'errors') {
         try {
             configurations = JSON.parse(configurations)
         } catch (e) {
-            console.error("Failed to parse configurations JSON:", e)
+            console.error('Failed to parse configurations JSON:', e)
             return
         }
     }

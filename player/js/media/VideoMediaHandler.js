@@ -27,7 +27,7 @@ export class VideoMediaHandler {
         // Add error handler
         video.onerror = (e) => {
             console.error(`Failed to load video: ${mediaItem.source}`, e)
-            container.innerHTML += `<div class="media-error">Failed to load video</div>`
+            container.innerHTML += '<div class="media-error">Failed to load video</div>'
         }
         
         return video
@@ -50,7 +50,7 @@ export class VideoMediaHandler {
                 
                 // Check if the error is format-related
                 if (error.name === 'NotSupportedError') {
-                    console.log('Video format may not be supported - adding debug info');
+                    console.log('Video format may not be supported - adding debug info')
                     
                     // Show more detailed info about video element
                     console.log('Video element details:', {
@@ -58,7 +58,7 @@ export class VideoMediaHandler {
                         networkState: videoElement.networkState,
                         readyState: videoElement.readyState,
                         error: videoElement.error ? videoElement.error.code : 'none'
-                    });
+                    })
                 }
                 
                 // Re-throw the error for the caller to handle

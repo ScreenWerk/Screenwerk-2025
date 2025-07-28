@@ -175,10 +175,10 @@ export function checkVideoSupport(url) {
  */
 function getMediaErrorName(code) {
     switch(code) {
-        case 1: return 'MEDIA_ERR_ABORTED - Fetching process aborted by user';
-        case 2: return 'MEDIA_ERR_NETWORK - Network error';
-        case 3: return 'MEDIA_ERR_DECODE - Media decoding error';
-        case 4: return 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported';
-        default: return `Unknown error code: ${code}`;
+        case 1: return 'MEDIA_ERR_ABORTED - Fetching process aborted by user'
+        case 2: return 'MEDIA_ERR_NETWORK - Network error'
+        case 3: return 'MEDIA_ERR_DECODE - Media decoding error'
+        case 4: return 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported'
+        default: return `Unknown error code: ${code}`
     }
 }

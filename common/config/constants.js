@@ -20,8 +20,8 @@ function detectEnvironment() {
 
 export const ENVIRONMENT = detectEnvironment()
 
-export const HOSTNAME = "entu.app"
-export const ACCOUNT = "piletilevi"
+export const HOSTNAME = 'entu.app'
+export const ACCOUNT = 'piletilevi'
 export const ENTU_ENTITY_URL = `https://${HOSTNAME}/api/${ACCOUNT}/entity`
 export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 
