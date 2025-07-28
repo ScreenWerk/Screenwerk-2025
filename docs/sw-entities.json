@@ -1,0 +1,407 @@
+{
+  "sw_configuration": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa29",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa2a",
+        "name": "update_interval",
+        "type": "number",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_layout": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa2c",
+        "name": "height",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa2d",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa38",
+        "name": "width",
+        "type": "number",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_layout_playlist": {
+    "add_from": "sw_layout",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa2f",
+        "name": "height",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa30",
+        "name": "in_pixels",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa31",
+        "name": "left",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa32",
+        "name": "loop",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa33",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa34",
+        "name": "playlist",
+        "type": "reference",
+        "reference_query": "_type.string=sw_playlist&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa35",
+        "name": "top",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa36",
+        "name": "width",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa37",
+        "name": "zindex",
+        "type": "number",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_media": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa3a",
+        "name": "file",
+        "type": "file",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa3b",
+        "name": "height",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa3c",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa41",
+        "name": "type",
+        "type": "reference",
+        "reference_query": "_type.string=sw_media_select_type&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa42",
+        "name": "url",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa43",
+        "name": "valid_from",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa44",
+        "name": "valid_to",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa45",
+        "name": "width",
+        "type": "number",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_playlist": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa47",
+        "name": "animate",
+        "type": "reference",
+        "reference_query": "_type.string=animation&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa48",
+        "name": "delay",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa54",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa55",
+        "name": "valid_from",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa56",
+        "name": "valid_to",
+        "type": "datetime",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_playlist_media": {
+    "add_from": "sw_playlist",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa4a",
+        "name": "animate",
+        "type": "reference",
+        "reference_query": "_type.string=animation&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa4b",
+        "name": "delay",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa4c",
+        "name": "duration",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa4d",
+        "name": "media",
+        "type": "reference",
+        "reference_query": "_type.string=sw_media&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa4e",
+        "name": "mute",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa4f",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa50",
+        "name": "ordinal",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa51",
+        "name": "stretch",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa52",
+        "name": "valid_from",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa53",
+        "name": "valid_to",
+        "type": "datetime",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_schedule": {
+    "add_from": "sw_configuration",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa58",
+        "name": "action",
+        "type": "string",
+        "reference_query": "_type.string=sw_schedule_select_action&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa59",
+        "name": "cleanup",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa5a",
+        "name": "crontab",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa5b",
+        "name": "duration",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa5c",
+        "name": "layout",
+        "type": "reference",
+        "reference_query": "_type.string=sw_layout&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa5d",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa5e",
+        "name": "ordinal",
+        "type": "number",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa61",
+        "name": "valid_from",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa62",
+        "name": "valid_to",
+        "type": "datetime",
+        "reference_query": ""
+      }
+    ]
+  },
+  "sw_screen": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa64",
+        "name": "customer",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa65",
+        "name": "entu_api_key",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6d",
+        "name": "log",
+        "type": "file",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6e",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6f",
+        "name": "notes",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa70",
+        "name": "photo",
+        "type": "file",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa71",
+        "name": "published",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa72",
+        "name": "screen_group",
+        "type": "reference",
+        "reference_query": "_type.string=sw_screen_group&sort=name.string"
+      }
+    ]
+  },
+  "sw_screen_group": {
+    "add_from": "customer",
+    "fields": [
+      {
+        "id": "665606334ecca5c17a59aa67",
+        "name": "configuration",
+        "type": "reference",
+        "reference_query": "_type.string=sw_configuration&sort=name.string"
+      },
+      {
+        "id": "665606334ecca5c17a59aa68",
+        "name": "feedback",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa69",
+        "name": "ispublished",
+        "type": "boolean",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6a",
+        "name": "name",
+        "type": "string",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6b",
+        "name": "published",
+        "type": "datetime",
+        "reference_query": ""
+      },
+      {
+        "id": "665606334ecca5c17a59aa6c",
+        "name": "responsible",
+        "type": "reference",
+        "reference_query": "_type.string=person&sort=name.string"
+      }
+    ]
+  }
+}

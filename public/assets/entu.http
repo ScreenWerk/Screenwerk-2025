@@ -67,3 +67,19 @@ Accept-Encoding: deflate
 ###
 # GET test
 GET {{hostname}}/{{account}}/entity/549173934ecca5c17a598f20
+
+###
+# GET entity definitions (models)
+GET {{hostname}}/{{account}}/entity?_type.string=entity&limit=100 HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{pl_token}}
+
+###
+@definitionId=5425570e4ecca5c17a598bbe  # replace with actual definition ID
+
+###
+# GET field definitions for a specific entityDefinition
+# replace {{definitionId}} with an ID from the previous response
+GET {{hostname}}/{{account}}/entity?_type.string=property&_parent.reference={{definitionId}} HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{pl_token}}
