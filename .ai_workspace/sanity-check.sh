@@ -86,6 +86,7 @@ fi
 
 # 3. Function Complexity Check (basic heuristic)
 echo "🧮 Checking function complexity..."
+complex_found=false
 find . -name "*.js" -not -path "./node_modules/*" | while read file; do
     # Count functions with more than 20 lines (simple heuristic)
     complex_functions=$(awk '
@@ -106,6 +107,7 @@ find . -name "*.js" -not -path "./node_modules/*" | while read file; do
     if [ -n "$complex_functions" ]; then
         report_warning "Complex functions in $file"
         echo "$complex_functions"
+        complex_found=true
     fi
 done
 
