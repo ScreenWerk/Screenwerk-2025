@@ -95,7 +95,7 @@ Our preferred development style emphasizes:
 9. **Before each commit**: `git status` → `git diff` → `git add` → `git commit`
 10. **Squash merge to main** - `git checkout main && git merge --squash [branch-name] && git commit`
 11. **Log merge immediately** with `./log-activity.sh "merged [feature-name] - brief description"`
-12. Delete feature branch
+12. Delete feature branch after successful merge (for squash merges, we need git branch -D [branch-name] to remove it from local history)
 
 ## Code Style Agreements
 
