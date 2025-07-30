@@ -224,9 +224,9 @@ export class LayoutScheduler {
     }
 
     /**
-     * Find active schedule for current time using cron evaluation
+     * Find the most recent schedule that should be active using cron evaluation
      * @param {Date} currentTime - Current time
-     * @returns {Object|null} Active schedule or null
+     * @returns {Object|null} Most recent schedule or null
      * @private
      */
     findActiveSchedule(currentTime) {
@@ -234,49 +234,139 @@ export class LayoutScheduler {
             return null
         }
 
-        // Sort schedules by ordinal (priority)
-        const sortedSchedules = [...this.configuration.schedules].sort((a, b) => 
-            (a.ordinal || 999) - (b.ordinal || 999)
-        )
+        debugLog(`[Scheduler] Evaluating schedules at ${currentTime.toISOString()}`)
 
-        // Use Later.js to evaluate cron expressions
-        for (const schedule of sortedSchedules) {
-            if (this.isScheduleActive(schedule, currentTime)) {
-                debugLog(`[Scheduler] Active schedule found: ${schedule.name} (${schedule.eid})`)
-                return schedule
+        const validSchedules = this.getValidSchedules()
+        if (!validSchedules.length) {
+            debugLog('[Scheduler] No valid schedules with crontabs found')
+            return null
+        }
+
+        return this.findMostRecentSchedule(validSchedules, currentTime)
+    }
+
+    /**
+     * Get schedules with valid crontabs
+     * @returns {Array} Valid schedules
+     * @private
+     */
+    getValidSchedules() {
+        return this.configuration.schedules.filter(schedule => {
+            if (!schedule.crontab) {
+                debugLog(`[Scheduler] Schedule ${schedule.eid} has no crontab, skipping`)
+                return false
+            }
+            return true
+        })
+    }
+
+    /**
+     * Find the schedule with the most recent occurrence
+     * @param {Array} validSchedules - Schedules to evaluate
+     * @param {Date} currentTime - Current time
+     * @returns {Object|null} Most recent schedule or null
+     * @private
+     */
+    findMostRecentSchedule(validSchedules, currentTime) {
+        let mostRecentSchedule = null
+        let mostRecentTime = null
+
+        for (const schedule of validSchedules) {
+            const recentOccurrence = this.getMostRecentOccurrence(schedule, currentTime)
+            
+            if (recentOccurrence) {
+                debugLog(`[Scheduler] Schedule "${schedule.name}": most recent occurrence at ${recentOccurrence.toISOString()}`)
+                
+                if (!mostRecentTime || recentOccurrence > mostRecentTime) {
+                    mostRecentTime = recentOccurrence
+                    mostRecentSchedule = schedule
+                }
+            } else {
+                debugLog(`[Scheduler] Schedule "${schedule.name}": no recent occurrence found`)
             }
         }
 
-        // No active schedule found
-        debugLog('[Scheduler] No schedule matches current time')
+        if (mostRecentSchedule) {
+            debugLog(`[Scheduler] Most recent schedule: "${mostRecentSchedule.name}" at ${mostRecentTime.toISOString()}`)
+            return mostRecentSchedule
+        } else {
+            debugLog('[Scheduler] No recent schedule occurrences found')
+            return null
+        }
+    }
+
+    /**
+     * Get the most recent occurrence of a schedule before current time
+     * @param {Object} schedule - Schedule to evaluate
+     * @param {Date} currentTime - Current time
+     * @returns {Date|null} Most recent occurrence or null
+     * @private
+     */
+    getMostRecentOccurrence(schedule, currentTime) {
+        if (!schedule.crontab) {
+            return null
+        }
+
+        try {
+            if (this.hasLaterJs()) {
+                return this.getRecentOccurrenceWithLaterJs(schedule, currentTime)
+            } else {
+                return this.getRecentOccurrenceSimple(schedule, currentTime)
+            }
+        } catch (error) {
+            console.error(`[Scheduler] Failed to get recent occurrence for schedule ${schedule.eid}:`, error)
+            return null
+        }
+    }
+
+    /**
+     * Get recent occurrence using Later.js
+     * @param {Object} schedule - Schedule to evaluate
+     * @param {Date} currentTime - Current time
+     * @returns {Date|null} Most recent occurrence or null
+     * @private
+     */
+    getRecentOccurrenceWithLaterJs(schedule, currentTime) {
+        const cronSchedule = window.later.parse.cron(schedule.crontab)
+        
+        // Get previous occurrences (Later.js returns most recent first)
+        const previousOccurrences = window.later.schedule(cronSchedule).prev(10, currentTime)
+        
+        if (previousOccurrences && previousOccurrences.length > 0) {
+            // Return the most recent occurrence (first in the array)
+            return new Date(previousOccurrences[0])
+        }
+        
         return null
     }
 
     /**
-     * Check if a schedule is active at the given time
-     * @param {Object} schedule - Schedule to check
-     * @param {Date} currentTime - Time to check against
-     * @returns {boolean} True if schedule is active
+     * Get recent occurrence using simple logic
+     * @param {Object} schedule - Schedule to evaluate  
+     * @param {Date} currentTime - Current time
+     * @returns {Date|null} Most recent occurrence or null
      * @private
      */
-    isScheduleActive(schedule, currentTime) {
-        if (!schedule.crontab) {
-            debugLog(`[Scheduler] Schedule ${schedule.eid} has no crontab, considering inactive`)
-            return false
+    getRecentOccurrenceSimple(schedule, currentTime) {
+        // Simple implementation for common patterns
+        if (schedule.crontab === '* * * * *') {
+            // Every minute - previous minute
+            return new Date(currentTime.getTime() - 60000)
         }
-
-        try {
-            // Use Later.js if available
-            if (this.hasLaterJs()) {
-                return this.evaluateWithLaterJs(schedule, currentTime)
-            } else {
-                // Fallback to simple cron matching
-                return this.simpleCronMatch(schedule.crontab)
+        
+        if (schedule.crontab === '0 * * * *') {
+            // Every hour - previous hour
+            const prevHour = new Date(currentTime)
+            prevHour.setMinutes(0, 0, 0)
+            if (prevHour >= currentTime) {
+                prevHour.setHours(prevHour.getHours() - 1)
             }
-        } catch (error) {
-            console.error(`[Scheduler] Cron evaluation failed for schedule ${schedule.eid}:`, error)
-            return false
+            return prevHour
         }
+        
+        // For unknown patterns, return a reasonable fallback
+        debugLog(`[Scheduler] Simple cron evaluation: unknown pattern "${schedule.crontab}", using 1 hour ago`)
+        return new Date(currentTime.getTime() - (60 * 60 * 1000))
     }
 
     /**
@@ -286,46 +376,6 @@ export class LayoutScheduler {
      */
     hasLaterJs() {
         return typeof window !== 'undefined' && window.later
-    }
-
-    /**
-     * Evaluate schedule using Later.js
-     * @param {Object} schedule - Schedule to evaluate
-     * @param {Date} currentTime - Current time
-     * @returns {boolean} True if schedule is active
-     * @private
-     */
-    evaluateWithLaterJs(schedule, currentTime) {
-        const cronSchedule = window.later.parse.cron(schedule.crontab)
-        const nextOccurrence = window.later.schedule(cronSchedule).next(2, currentTime)
-        
-        if (nextOccurrence && nextOccurrence.length > 0) {
-            const scheduleStart = new Date(nextOccurrence[0])
-            const scheduleEnd = nextOccurrence[1] ? new Date(nextOccurrence[1]) : new Date(scheduleStart.getTime() + 60000)
-            
-            const isActive = currentTime >= scheduleStart && currentTime < scheduleEnd
-            debugLog(`[Scheduler] Cron evaluation for ${schedule.name}: ${isActive ? 'ACTIVE' : 'inactive'}`)
-            return isActive
-        }
-        
-        return false
-    }
-
-    /**
-     * Simple cron matching fallback (basic implementation)
-     * @param {string} crontab - Cron expression
-     * @returns {boolean} True if matches
-     * @private
-     */
-    simpleCronMatch(crontab) {
-        // Very basic implementation for common patterns
-        if (crontab === '* * * * *') {
-            return true // Every minute - always active
-        }
-        
-        // For unknown patterns, fail rather than assume active
-        debugLog(`[Scheduler] Unknown cron pattern "${crontab}" - cannot evaluate without Later.js`)
-        return false
     }
 
     /**
