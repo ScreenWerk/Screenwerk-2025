@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Player Architecture Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #2196F3;
+            color: white;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .player-container {
+            width: 800px;
+            height: 450px;
+            background: #000;
+            border: 2px solid #333;
+            margin: 20px 0;
+            position: relative;
+        }
+        .log {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .info-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Clean Player Architecture Demo</h1>
+            <p>Testing modern ScreenWerk Player + Scheduler separation</p>
+        </div>
+
+        <div class="controls">
+            <button id="initBtn">Initialize Player + Scheduler</button>
+            <button id="loadLayoutBtn" disabled>Load Test Layout</button>
+            <button id="playBtn" disabled>▶️ Play</button>
+            <button id="pauseBtn" disabled>⏸️ Pause</button>
+            <button id="destroyBtn" disabled>💥 Destroy</button>
+            <button id="clearLogBtn">Clear Log</button>
+        </div>
+
+        <div class="status" id="status">
+            Ready to initialize...
+        </div>
+
+        <!-- Player Container -->
+        <div class="player-container" id="playerContainer">
+            <div style="color: white; text-align: center; padding: 50px;">
+                Player will render here
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-section">
+                <h3>Player State:</h3>
+                <div id="playerState" class="status">Not initialized</div>
+            </div>
+            
+            <div class="info-section">
+                <h3>Scheduler State:</h3>
+                <div id="schedulerState" class="status">Not initialized</div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Debug Log:</h3>
+            <div id="debugLog" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Enable debug mode for testing
+        window.debugMode = true
+        
+        // Import our clean classes
+        import { ScreenWerkPlayer } from './js/core/Player.js'
+        import { LayoutScheduler } from './js/core/Scheduler.js'
+        
+        let player = null
+        let scheduler = null
+        
+        // DOM elements
+        const initBtn = document.getElementById('initBtn')
+        const loadLayoutBtn = document.getElementById('loadLayoutBtn')
+        const playBtn = document.getElementById('playBtn')
+        const pauseBtn = document.getElementById('pauseBtn')
+        const destroyBtn = document.getElementById('destroyBtn')
+        const clearLogBtn = document.getElementById('clearLogBtn')
+        const statusDiv = document.getElementById('status')
+        const playerContainer = document.getElementById('playerContainer')
+        const playerStateDiv = document.getElementById('playerState')
+        const schedulerStateDiv = document.getElementById('schedulerState')
+        const debugLogDiv = document.getElementById('debugLog')
+        
+        // Capture console output for display
+        const originalLog = console.log
+        const originalError = console.error
+        
+        function addToLog(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString()
+            const prefix = isError ? 'ERROR: ' : ''
+            debugLogDiv.textContent += `[${timestamp}] ${prefix}${message}\n`
+            debugLogDiv.scrollTop = debugLogDiv.scrollHeight
+        }
+        
+        // Route console output to log
+        console.log = function(...args) {
+            originalLog.apply(console, args)
+            addToLog(args.join(' '))
+        }
+        
+        console.error = function(...args) {
+            originalError.apply(console, args)
+            addToLog(args.join(' '), true)
+        }
+        
+        // Test layout data
+        const testLayout = {
+            id: 'test_layout_001',
+            name: 'Test Layout',
+            width: 800,
+            height: 450,
+            regions: [
+                {
+                    id: 'region_1',
+                    left: 10,
+                    top: 10,
+                    width: 380,
+                    height: 200,
+                    zindex: 1,
+                    playlist: {
+                        id: 'playlist_1',
+                        name: 'Top Left Playlist',
+                        media: [
+                            { id: 'media_1', name: 'Image 1', type: 'Image', duration: 5 },
+                            { id: 'media_2', name: 'Image 2', type: 'Image', duration: 7 }
+                        ]
+                    }
+                },
+                {
+                    id: 'region_2',
+                    left: 410,
+                    top: 10,
+                    width: 380,
+                    height: 200,
+                    zindex: 1,
+                    playlist: {
+                        id: 'playlist_2',
+                        name: 'Top Right Playlist',
+                        media: [
+                            { id: 'media_3', name: 'Video 1', type: 'Video', duration: 10 }
+                        ]
+                    }
+                },
+                {
+                    id: 'region_3',
+                    left: 10,
+                    top: 230,
+                    width: 780,
+                    height: 200,
+                    zindex: 2,
+                    playlist: {
+                        id: 'playlist_3',
+                        name: 'Bottom Full Width',
+                        media: [
+                            { id: 'media_4', name: 'Banner Image', type: 'Image', duration: 8 }
+                        ]
+                    }
+                }
+            ]
+        }
+        
+        function updatePlayerState() {
+            if (player) {
+                const state = player.getState()
+                playerStateDiv.textContent = JSON.stringify(state, null, 2)
+            } else {
+                playerStateDiv.textContent = 'Not initialized'
+            }
+        }
+        
+        function updateSchedulerState() {
+            if (scheduler) {
+                const state = scheduler.getState()
+                schedulerStateDiv.textContent = JSON.stringify(state, null, 2)
+            } else {
+                schedulerStateDiv.textContent = 'Not initialized'
+            }
+        }
+        
+        function updateUI() {
+            updatePlayerState()
+            updateSchedulerState()
+            
+            const playerExists = !!player && !player.destroyed
+            const schedulerExists = !!scheduler && !scheduler.destroyed
+            
+            initBtn.disabled = playerExists && schedulerExists
+            loadLayoutBtn.disabled = !playerExists
+            playBtn.disabled = !playerExists || (player && player.isPlaying)
+            pauseBtn.disabled = !playerExists || (player && !player.isPlaying)
+            destroyBtn.disabled = !playerExists && !schedulerExists
+        }
+        
+        // Event handlers
+        initBtn.addEventListener('click', () => {
+            try {
+                console.log('🔧 Initializing Player + Scheduler...')
+                
+                // Create player
+                player = new ScreenWerkPlayer(playerContainer)
+                console.log('✅ Player created')
+                
+                // Create scheduler (mock configuration)
+                scheduler = new LayoutScheduler({
+                    configurationId: 'test_config_001',
+                    onLayoutChange: (layout) => {
+                        console.log('📱 Scheduler sending layout to player:', layout.name)
+                        if (player && !player.destroyed) {
+                            const success = player.loadLayout(layout)
+                            if (success) {
+                                console.log('✅ Player loaded layout successfully')
+                            } else {
+                                console.error('❌ Player failed to load layout')
+                            }
+                        }
+                    }
+                })
+                console.log('✅ Scheduler created')
+                
+                statusDiv.textContent = 'Player + Scheduler initialized successfully!'
+                updateUI()
+                
+            } catch (error) {
+                console.error('Failed to initialize:', error)
+                statusDiv.textContent = `Initialization failed: ${error.message}`
+            }
+        })
+        
+        loadLayoutBtn.addEventListener('click', () => {
+            if (player) {
+                console.log('📄 Loading test layout...')
+                const success = player.loadLayout(testLayout)
+                statusDiv.textContent = success ? 'Test layout loaded!' : 'Failed to load layout'
+                updateUI()
+            }
+        })
+        
+        playBtn.addEventListener('click', () => {
+            if (player) {
+                const success = player.play()
+                statusDiv.textContent = success ? 'Playback started!' : 'Failed to start playback'
+                updateUI()
+            }
+        })
+        
+        pauseBtn.addEventListener('click', () => {
+            if (player) {
+                const success = player.pause()
+                statusDiv.textContent = success ? 'Playback paused!' : 'Failed to pause playback'
+                updateUI()
+            }
+        })
+        
+        destroyBtn.addEventListener('click', () => {
+            if (scheduler) {
+                scheduler.destroy()
+                scheduler = null
+                console.log('🗑️ Scheduler destroyed')
+            }
+            
+            if (player) {
+                player.destroy()
+                player = null
+                console.log('🗑️ Player destroyed')
+            }
+            
+            statusDiv.textContent = 'Player + Scheduler destroyed'
+            updateUI()
+        })
+        
+        clearLogBtn.addEventListener('click', () => {
+            debugLogDiv.textContent = ''
+        })
+        
+        // Initialize UI state
+        updateUI()
+        
+        // Welcome message
+        console.log('🎉 Clean Player Architecture Demo Loaded')
+        console.log('🏗️ Modern ES6+ two-service architecture')
+        console.log('📱 Player: Pure content rendering')
+        console.log('📅 Scheduler: Configuration and timing')
+        console.log('✨ Ready for testing!')
+    </script>
+</body>
+</html>
