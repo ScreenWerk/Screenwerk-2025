@@ -88,15 +88,18 @@ Current player expects full configuration with schedules:
 ### Core Player Functions (from data model)
 
 1. **Layout Rendering**
+
    - Set canvas dimensions
    - Position regions (layout_playlist entities)
    - Handle z-index layering
 
 2. **Region Management**
+
    - Create playlist containers at specified positions
    - Handle region-specific properties (left, top, width, height)
 
 3. **Playlist Playback**
+
    - Sequence through playlist media items
    - Handle media duration and ordinal
    - Loop playlist when configured
@@ -109,10 +112,12 @@ Current player expects full configuration with schedules:
 ### External Systems Should Handle
 
 1. **Configuration Management**
+
    - Update intervals, screen assignments
    - Should be handled by separate configuration service
 
 2. **Schedule Resolution**
+
    - Crontab evaluation, layout switching
    - Should be handled by separate scheduling service
 
@@ -124,18 +129,20 @@ Current player expects full configuration with schedules:
 
 ### Two-Service Approach
 
-**1. Scheduler Service (handles administrative logic)**
-- Evaluates crontab schedules
-- Determines which layout should be active at any time
-- Manages configuration updates (update_interval)
-- Handles screen/screen_group assignments
-- Triggers player reloads when layout changes
+1. **Scheduler Service (handles administrative logic)**
 
-**2. Player Service (pure content renderer)**
-- Receives simple layout objects
-- Renders regions, playlists, and media
-- No knowledge of schedules or configurations
-- Can be reloaded/updated by scheduler
+   - Evaluates crontab schedules
+   - Determines which layout should be active at any time
+   - Manages configuration updates (update_interval)
+   - Handles screen/screen_group assignments
+   - Triggers player reloads when layout changes
+
+2. **Player Service (pure content renderer)**
+
+   - Receives simple layout objects
+   - Renders regions, playlists, and media
+   - No knowledge of schedules or configurations
+   - Can be reloaded/updated by scheduler
 
 ### Data Flow
 
@@ -145,7 +152,7 @@ Configuration → Scheduler → Current Layout → Player → Rendered Content
 Schedule mgmt   Layout selection
 Screen mgmt     Reload triggers
 Update timing
-````
+```
 
 ### Implementation Pattern
 
@@ -196,47 +203,47 @@ player.loadLayout(currentLayout); // Simple layout object
 // Vanilla JS class, browser-compatible
 class LayoutScheduler {
   constructor(options) {
-    this.configurationId = options.configurationId
-    this.onLayoutChange = options.onLayoutChange
-    this.updateInterval = options.updateInterval || 60000
-    this.currentLayout = null
-    this.evaluationTimer = null
+    this.configurationId = options.configurationId;
+    this.onLayoutChange = options.onLayoutChange;
+    this.updateInterval = options.updateInterval || 60000;
+    this.currentLayout = null;
+    this.evaluationTimer = null;
   }
 
   async start() {
-    await this.loadConfiguration()
-    this.scheduleEvaluation()
-    this.startUpdateTimer()
+    await this.loadConfiguration();
+    this.scheduleEvaluation();
+    this.startUpdateTimer();
   }
 
   async loadConfiguration() {
     // Use fetch API (vanilla JS)
-    const response = await fetch(`/api/configuration/${this.configurationId}`)
-    this.configuration = await response.json()
+    const response = await fetch(`/api/configuration/${this.configurationId}`);
+    this.configuration = await response.json();
   }
 
   evaluateSchedules() {
     // Use @breejs/later for cron evaluation
-    const now = new Date()
-    const activeSchedule = this.findActiveSchedule(now)
-    
+    const now = new Date();
+    const activeSchedule = this.findActiveSchedule(now);
+
     if (activeSchedule && activeSchedule.layoutEid !== this.currentLayoutId) {
-      this.loadLayoutAndNotify(activeSchedule.layoutEid)
+      this.loadLayoutAndNotify(activeSchedule.layoutEid);
     }
   }
 
   scheduleEvaluation() {
     // Simple setInterval (vanilla JS)
     this.evaluationTimer = setInterval(() => {
-      this.evaluateSchedules()
-    }, 60000) // Check every minute
+      this.evaluateSchedules();
+    }, 60000); // Check every minute
   }
 
   async loadLayoutAndNotify(layoutEid) {
-    const layout = await this.fetchLayout(layoutEid)
-    const simplifiedLayout = this.transformToSimpleLayout(layout)
-    this.onLayoutChange(simplifiedLayout)
-    this.currentLayoutId = layoutEid
+    const layout = await this.fetchLayout(layoutEid);
+    const simplifiedLayout = this.transformToSimpleLayout(layout);
+    this.onLayoutChange(simplifiedLayout);
+    this.currentLayoutId = layoutEid;
   }
 }
 ```
@@ -244,6 +251,7 @@ class LayoutScheduler {
 ## Browser Environment Considerations
 
 ### Vanilla JS Constraints
+
 - **No Node.js modules** in player code
 - **Fetch API** for HTTP requests
 - **ES6 modules** with import/export
@@ -251,12 +259,14 @@ class LayoutScheduler {
 - **Minimal dependencies** - use what's already included
 
 ### Current Dependencies Analysis
+
 - ✅ **@breejs/later** - Already available, browser-compatible
 - ✅ **ES6 modules** - Already in use (import/export)
 - ✅ **Fetch API** - Modern browser standard
 - ❌ **No additional npm packages** for player
 
 ### File Structure (Browser-Compatible)
+
 ```text
 player/js/
   services/
@@ -280,12 +290,14 @@ player/js/
 ### Phase 1: Create Scheduler Service
 
 1. **Build LayoutScheduler class (vanilla JS)**
+
    - Use existing `@breejs/later` for crontab evaluation
    - Pure browser-compatible JavaScript
    - No additional dependencies needed
    - Simple setTimeout/setInterval for timing
 
 2. **Leverage existing cron library**
+
    - `@breejs/later` already in package.json
    - Browser-compatible cron parsing
    - Handles complex crontab expressions
@@ -341,11 +353,11 @@ This approach gives us clean separation: **Scheduler handles time-based logic, P
 **Modified Files:**
 
 - `player/js/sw-player.js` - Add loadLayout() method, simplify constructor
-- `player/js/script.js` - Use scheduler + player pattern  
+- `player/js/script.js` - Use scheduler + player pattern
 - `player/index.html` - Include scheduler service
 - **NO package.json changes** - Use existing dependencies
 
-**Key Constraint: Pure vanilla JS in browser, minimal dependencies**
+**Key Constraint:** **Pure vanilla JS in browser, minimal dependencies**
 
 ## Data Model Mapping Analysis
 
@@ -450,7 +462,7 @@ This approach gives us clean separation: **Scheduler handles time-based logic, P
 
 ## ✅ FEATURE COMPLETED - Major Accomplishments
 
-### Live Publisher API Integration Success!
+### Live Publisher API Integration Success
 
 **Working end-to-end integration** from ScreenWerk Publisher API to player content display:
 
@@ -476,22 +488,26 @@ This approach gives us clean separation: **Scheduler handles time-based logic, P
 ### Files Created/Modified
 
 **New Files:**
+
 - `/player/js/services/LayoutScheduler.js` - Main scheduler service with live API integration
 - `/player/live-publisher-test.html` - Working live API test demonstrating complete integration
 - `/test-media-urls.http` - API testing queries for media validation
 
 **Modified Files:**
+
 - `/player/js/sw-player.js` - Enhanced with `loadLayout()` method for scheduler integration
 
 **Cleaned Up (Obsolete Files Removed):**
+
 - ❌ Multiple test files replaced by live API integration
 - ❌ Placeholder and local image test data no longer needed
 
 ### Production-Ready Core
 
 The **Scheduler + Player integration** is now production-ready with:
+
 - ✅ Live data connectivity
-- ✅ Proper media URL handling  
+- ✅ Proper media URL handling
 - ✅ Real-time layout switching
 - ✅ Clean architectural separation
 - ✅ Comprehensive error handling and logging
@@ -499,6 +515,7 @@ The **Scheduler + Player integration** is now production-ready with:
 ### Next Development Phase
 
 Future enhancements (beyond this feature scope):
+
 1. **Real cron scheduling implementation** (currently using interval polling)
 2. **Schedule time-based evaluation logic** using `@breejs/later`
 3. **Enhanced error handling** for specific media loading scenarios

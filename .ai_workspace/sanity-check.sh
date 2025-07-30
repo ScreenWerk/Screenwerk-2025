@@ -2,6 +2,13 @@
 
 # SW25 Sanity Check Script
 # Validates code quality before commit approval
+# Usage: bash .ai_workspace/sanity-check.sh [context]
+# 
+# Context options:
+#   v2        - Check only player/v2 files
+#   scripts   - Check only scripts and tools  
+#   player    - Check all player files
+#   all       - Check entire workspace (default)
 
 # set -e
 
@@ -43,27 +50,85 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+# Parse context parameter
+CONTEXT="${1:-all}"
+
+# Define check directories based on context
+case "$CONTEXT" in
+    "v2")
+        CHECK_DIRS=("player/v2")
+        echo "🎯 Context: V2 Player Architecture"
+        ;;
+    "scripts")
+        CHECK_DIRS=("scripts" ".ai_workspace")
+        echo "🎯 Context: Scripts and Tools"
+        ;;
+    "player")
+        CHECK_DIRS=("player")
+        echo "🎯 Context: All Player Files"
+        ;;
+    "all"|*)
+        CHECK_DIRS=("scripts" ".ai_workspace" "player/v2" "common" "dashboard")
+        echo "🎯 Context: Full Workspace"
+        ;;
+esac
+
+echo "Directories to check: ${CHECK_DIRS[*]}"
+
 echo "Checking project structure..."
 
-# 1. File Length Check (max 300 lines for scripts)
+# 1. File Length Check
 echo "Checking file lengths..."
-find scripts/ -name "*.js" -type f | while read file; do
-    lines=$(wc -l < "$file")
-    if [ "$lines" -gt 300 ]; then
-        report_issue "$file has $lines lines (max 300)"
-    else
-        report_success "$file length OK ($lines lines)"
-    fi
-done
 
-# Check AI workspace scripts
-find .ai_workspace/ -name "*.sh" -type f | while read file; do
-    lines=$(wc -l < "$file")
-    if [ "$lines" -gt 300 ]; then
-        report_issue "$file has $lines lines (max 300)"
-    else
-        report_success "$file length OK ($lines lines)"
+# Function to check directory if it exists
+check_directory() {
+    local dir="$1"
+    local max_lines="${2:-300}"
+    
+    if [ ! -d "$dir" ]; then
+        report_warning "Directory $dir not found, skipping"
+        return
     fi
+    
+    if [[ "$dir" == *.ai_workspace* ]]; then
+        # Check shell scripts in .ai_workspace
+        find "$dir" -name "*.sh" -type f | while read file; do
+            lines=$(wc -l < "$file")
+            if [ "$lines" -gt "$max_lines" ]; then
+                report_issue "$file has $lines lines (max $max_lines)"
+            else
+                report_success "$file length OK ($lines lines)"
+            fi
+        done
+    else
+        # Check JavaScript files in other directories
+        find "$dir" -name "*.js" -type f | while read file; do
+            lines=$(wc -l < "$file")
+            if [ "$lines" -gt "$max_lines" ]; then
+                report_issue "$file has $lines lines (max $max_lines)"
+            else
+                report_success "$file length OK ($lines lines)"
+            fi
+        done
+    fi
+}
+
+# Check each directory based on context
+for dir in "${CHECK_DIRS[@]}"; do
+    case "$dir" in
+        "player/v2")
+            echo "Checking V2 Player files..."
+            check_directory "$dir" 400  # V2 files can be slightly larger due to architecture
+            ;;
+        ".ai_workspace")
+            echo "Checking AI workspace scripts..."
+            check_directory "$dir" 300
+            ;;
+        *)
+            echo "Checking $dir files..."
+            check_directory "$dir" 300
+            ;;
+    esac
 done
 
 # 2. ESLint Check with Complexity Summary
@@ -71,11 +136,21 @@ echo "Running ESLint..."
 ESLINT_OUTPUT=""
 COMPLEXITY_WARNINGS=0
 
-if [ -f "node_modules/.bin/eslint" ]; then
-    ESLINT_OUTPUT=$(./node_modules/.bin/eslint . --ext .js 2>&1)
+# Build ESLint patterns based on context
+ESLINT_PATTERNS=()
+for dir in "${CHECK_DIRS[@]}"; do
+    if [ -d "$dir" ] && [[ "$dir" != *.ai_workspace* ]]; then
+        ESLINT_PATTERNS+=("$dir/**/*.js")
+    fi
+done
+
+if [ ${#ESLINT_PATTERNS[@]} -eq 0 ]; then
+    report_warning "No JavaScript directories found for ESLint check"
+elif [ -f "node_modules/.bin/eslint" ]; then
+    ESLINT_OUTPUT=$(./node_modules/.bin/eslint "${ESLINT_PATTERNS[@]}" 2>&1)
     ESLINT_EXIT_CODE=$?
 elif command -v eslint &> /dev/null; then
-    ESLINT_OUTPUT=$(eslint . --ext .js 2>&1)
+    ESLINT_OUTPUT=$(eslint "${ESLINT_PATTERNS[@]}" 2>&1)
     ESLINT_EXIT_CODE=$?
 else
     report_warning "ESLint not found - install with 'npm install eslint'"

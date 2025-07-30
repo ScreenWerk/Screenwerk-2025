@@ -59,7 +59,7 @@ Examples:
 
 ### Pre-Commit Requirements
 
-1. **Sanity check must pass** - run `./ai_workspace/sanity-check.sh`
+1. **Sanity check must pass** - run `bash ./ai_workspace/sanity-check.sh`
 2. **ESLint must pass** - no errors allowed, warnings acceptable (as of yet)
 3. **File length limits** - max 300 lines for scripts
 4. **Documentation updated** - if feature affects user-facing functionality
