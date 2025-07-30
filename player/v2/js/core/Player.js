@@ -5,7 +5,7 @@
  * No administrative concerns, no configuration management
  */
 
-import { debugLog } from '../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../common/utils/debug-utils.js'
 
 export class ScreenWerkPlayer {
     /**

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clean Player Architecture Demo - Phase 1: Real API Integration</title>
+    
+    <!-- Include Later.js for cron schedule evaluation -->
+    <script src="../../common/later.min.js"></script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -185,7 +189,7 @@
         // Import our clean classes
         import { ScreenWerkPlayer } from './js/core/Player.js'
         import { LayoutScheduler } from './js/core/Scheduler.js'
-        import { SCREENWERK_PUBLISHER_API } from '../common/config/constants.js'
+        import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
         
         let player = null
         let scheduler = null

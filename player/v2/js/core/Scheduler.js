@@ -5,7 +5,7 @@
  * No rendering concerns, coordinates with Player through callbacks
  */
 
-import { debugLog } from '../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../common/utils/debug-utils.js'
 
 export class LayoutScheduler {
     /**
@@ -130,7 +130,7 @@ export class LayoutScheduler {
      */
     async fetchFromPublisherAPI() {
         // Import constants to get the API endpoint
-        const { SCREENWERK_PUBLISHER_API } = await import('../../../common/config/constants.js')
+        const { SCREENWERK_PUBLISHER_API } = await import('../../../../common/config/constants.js')
         
         const apiUrl = `${SCREENWERK_PUBLISHER_API}${this.configurationId}.json`
         debugLog(`[Scheduler] Fetching from Publisher API: ${apiUrl}`)
