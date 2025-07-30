@@ -321,9 +321,14 @@
                 // Create Scheduler with callback
                 scheduler = new LayoutScheduler({
                     configurationId: screenIdInput.value.trim(),
-                    onLayoutChange: (layout) => {
+                    onLayoutChange: async (layout) => {
                         console.log('🔄 Scheduler requesting layout change:', layout.name)
-                        player.loadLayout(layout)
+                        const loaded = await player.loadLayout(layout)
+                        if (loaded) {
+                            console.log('✅ Layout loaded successfully')
+                        } else {
+                            console.error('❌ Failed to load layout')
+                        }
                         updateStatus()
                     }
                 })

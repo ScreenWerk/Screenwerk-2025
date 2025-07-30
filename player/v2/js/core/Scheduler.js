@@ -503,14 +503,15 @@ export class LayoutScheduler {
      */
     createPlaylistObject(layoutPlaylist) {
         const playlistId = layoutPlaylist.playlistEid || layoutPlaylist.eid || 'unknown-playlist'
-        const media = this.transformMedia(layoutPlaylist.playlistMedias || [])
+        const mediaItems = this.transformMedia(layoutPlaylist.playlistMedias || [])
         
-        debugLog(`[Scheduler] Created playlist: ${playlistId} with ${media.length} media items`)
+        debugLog(`[Scheduler] Created playlist: ${playlistId} with ${mediaItems.length} media items`)
         
         return {
             id: playlistId,
             name: layoutPlaylist.playlistName || layoutPlaylist.name || 'Unnamed Playlist',
-            media
+            mediaItems,
+            loop: true // Default to looping
         }
     }
 
@@ -563,11 +564,14 @@ export class LayoutScheduler {
      * @private
      */
     getMediaBasicProps(media, index) {
+        const mediaUrl = this.getMediaProperty(media, ['fileDO', 'url', 'file'], '')
+        
         return {
             id: this.getMediaProperty(media, ['mediaEid', 'eid'], `media_${index}`),
             name: media.name || `Media ${index + 1}`,
             type: media.type || 'unknown',
-            url: this.getMediaProperty(media, ['fileDO', 'url', 'file'], '')
+            uri: mediaUrl, // BaseMedia expects 'uri' not 'url'
+            url: mediaUrl  // Keep both for compatibility
         }
     }
 

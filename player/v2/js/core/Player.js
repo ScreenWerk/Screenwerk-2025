@@ -6,6 +6,7 @@
  */
 
 import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { Playlist } from '../media/Playlist.js'
 
 export class ScreenWerkPlayer {
     /**
@@ -48,9 +49,9 @@ export class ScreenWerkPlayer {
      * @param {number} layout.width - Layout width in pixels
      * @param {number} layout.height - Layout height in pixels
      * @param {Array} layout.regions - Array of region objects
-     * @returns {boolean} Success status
+     * @returns {Promise<boolean>} Success status
      */
-    loadLayout(layout) {
+    async loadLayout(layout) {
         if (this.destroyed) {
             console.error('[Player] Cannot load layout - player is destroyed')
             return false
@@ -73,8 +74,8 @@ export class ScreenWerkPlayer {
             // Store current layout
             this.currentLayout = layout
 
-            // Create regions
-            this.createRegions(layout.regions)
+            // Create regions (now async)
+            await this.createRegions(layout.regions)
 
             debugLog(`[Player] Layout loaded successfully: ${layout.name}`)
             return true
@@ -130,20 +131,31 @@ export class ScreenWerkPlayer {
      * @param {Array} regionsData - Array of region objects
      * @private
      */
-    createRegions(regionsData) {
-        regionsData.forEach((regionData, index) => {
+    async createRegions(regionsData) {
+        const regionPromises = regionsData.map(async (regionData, index) => {
             try {
                 const regionElement = this.createRegionElement(regionData, index)
                 this.container.appendChild(regionElement)
-                this.regions.set(regionData.id || `region_${index}`, {
+                
+                const regionId = regionData.id || `region_${index}`
+                this.regions.set(regionId, {
                     element: regionElement,
-                    data: regionData
+                    data: regionData,
+                    playlist: null // Will be set by setRegionContent
                 })
-                debugLog(`[Player] Created region: ${regionData.id || `region_${index}`}`)
+                
+                // Set region content (async)
+                await this.setRegionContent(regionElement, regionData, index)
+                
+                debugLog(`[Player] Created region: ${regionId}`)
             } catch (error) {
                 console.error(`[Player] Failed to create region ${index}:`, error)
             }
         })
+
+        // Wait for all regions to be created
+        await Promise.all(regionPromises)
+        debugLog('[Player] All regions created')
     }
 
     /**
@@ -186,28 +198,96 @@ export class ScreenWerkPlayer {
     }
 
     /**
-     * Set region content
+     * Set region content with actual playlist rendering
      * @param {HTMLElement} element - Region element
      * @param {Object} regionData - Region configuration
      * @param {number} index - Region index
      * @private
      */
-    setRegionContent(element, regionData, index) {
+    async setRegionContent(element, regionData, index) {
         const regionId = regionData.id || `region_${index}`
-        const playlistName = regionData.playlist?.name || 'Unknown'
-        const mediaCount = regionData.playlist?.media?.length || 0
+        
+        try {
+            if (regionData.playlist && regionData.playlist.mediaItems && regionData.playlist.mediaItems.length > 0) {
+                // Create and load playlist with actual media
+                const playlist = new Playlist(regionData.playlist, element)
+                const loaded = await playlist.load()
+                
+                if (loaded) {
+                    // Store playlist reference for later control
+                    this.regions.get(regionId).playlist = playlist
+                    debugLog(`[Player] Loaded playlist for region ${regionId}: ${regionData.playlist.name}`)
+                } else {
+                    this.showRegionError(element, regionId, 'Failed to load playlist')
+                }
+            } else {
+                // No media - show empty state
+                this.showEmptyRegion(element, regionId)
+            }
+        } catch (error) {
+            console.error(`[Player] Error setting content for region ${regionId}:`, error)
+            this.showRegionError(element, regionId, error.message)
+        }
+    }
 
+    /**
+     * Show empty region state
+     * @param {HTMLElement} element - Region element
+     * @param {string} regionId - Region identifier
+     * @private
+     */
+    showEmptyRegion(element, regionId) {
         element.innerHTML = `
-            <div class="region-info" style="color: white; background: rgba(0,0,0,0.7); padding: 5px; font-size: 12px;">
-                Region: ${regionId}<br>
-                Playlist: ${playlistName}<br>
-                Media: ${mediaCount} items
+            <div class="region-empty" style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: #666;
+                background: rgba(0,0,0,0.1);
+                font-family: Arial, sans-serif;
+                text-align: center;
+            ">
+                <div>
+                    <div style="font-size: 24px; margin-bottom: 10px;">📋</div>
+                    <div style="font-weight: bold;">Empty Region</div>
+                    <div style="font-size: 12px; margin-top: 5px;">${regionId}</div>
+                </div>
             </div>
         `
     }
 
     /**
-     * Start playback
+     * Show region error state
+     * @param {HTMLElement} element - Region element
+     * @param {string} regionId - Region identifier
+     * @param {string} error - Error message
+     * @private
+     */
+    showRegionError(element, regionId, error) {
+        element.innerHTML = `
+            <div class="region-error" style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: #ff6b6b;
+                background: rgba(255,0,0,0.1);
+                font-family: Arial, sans-serif;
+                text-align: center;
+            ">
+                <div>
+                    <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+                    <div style="font-weight: bold;">Region Error</div>
+                    <div style="font-size: 12px; margin-top: 5px;">${regionId}</div>
+                    <div style="font-size: 10px; margin-top: 5px; opacity: 0.8;">${error}</div>
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Start playback of all playlists
      * @returns {boolean} Success status
      */
     play() {
@@ -222,16 +302,25 @@ export class ScreenWerkPlayer {
         }
 
         this.isPlaying = true
-        debugLog('[Player] Playback started')
+        let playlistsStarted = 0
         
-        // TODO: Implement actual media playback logic
-        // For now, just mark as playing
+        // Start all playlists in regions
+        this.regions.forEach((regionInfo, regionId) => {
+            if (regionInfo.playlist) {
+                const started = regionInfo.playlist.play()
+                if (started) {
+                    playlistsStarted++
+                    debugLog(`[Player] Started playlist in region: ${regionId}`)
+                }
+            }
+        })
         
-        return true
+        debugLog(`[Player] Playback started - ${playlistsStarted} playlists playing`)
+        return playlistsStarted > 0
     }
 
     /**
-     * Pause playback
+     * Pause playback of all playlists
      * @returns {boolean} Success status
      */
     pause() {
@@ -241,10 +330,16 @@ export class ScreenWerkPlayer {
         }
 
         this.isPlaying = false
+        
+        // Pause all playlists in regions
+        this.regions.forEach((regionInfo, regionId) => {
+            if (regionInfo.playlist) {
+                regionInfo.playlist.pause()
+                debugLog(`[Player] Paused playlist in region: ${regionId}`)
+            }
+        })
+        
         debugLog('[Player] Playback paused')
-        
-        // TODO: Implement actual media pause logic
-        
         return true
     }
 
@@ -257,10 +352,18 @@ export class ScreenWerkPlayer {
     }
 
     /**
-     * Clean up current layout
+     * Clean up current layout and destroy playlists
      * @private
      */
     cleanup() {
+        // Destroy all playlists first
+        this.regions.forEach((regionInfo, regionId) => {
+            if (regionInfo.playlist) {
+                regionInfo.playlist.destroy()
+                debugLog(`[Player] Destroyed playlist in region: ${regionId}`)
+            }
+        })
+        
         // Clear regions
         this.regions.clear()
         
