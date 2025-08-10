@@ -187,4 +187,13 @@ export class BaseMedia {
         const elapsed = (Date.now() - this.startTime) / 1000
         return Math.max(0, this.duration - elapsed)
     }
+
+    /**
+     * Fast restart for single-item playlist loops (override in subclasses)
+     * @returns {boolean} Success status
+     */
+    fastLoopRestart() {
+        // Default: fallback to standard destroy/recreate cycle
+        return false
+    }
 }
