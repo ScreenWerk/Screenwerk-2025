@@ -1,7 +1,7 @@
 // LayoutDom.js - Extracted DOM creation helpers from Player
 // Responsibility: region element creation & styling, empty/error states
 
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../common/utils/debug-utils.js'
 import { Playlist } from '../../media/Playlist.js'
 
 export function createRegionElement(regionData, index) {

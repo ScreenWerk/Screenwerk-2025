@@ -1,6 +1,6 @@
 // LayoutTransformer.js - Extracted layout/region transformation helpers
 
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../common/utils/debug-utils.js'
 import { createPlaylistObject } from './MediaTransformer.js'
 
 export function transformScheduleToLayout(schedule) {

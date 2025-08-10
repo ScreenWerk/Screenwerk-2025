@@ -1,7 +1,7 @@
 // EvaluationEngine.js - Schedule evaluation and active schedule selection
 // Responsibility: Determine active schedule and trigger processing via scheduler instance
 
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../common/utils/debug-utils.js'
 import { getMostRecentOccurrence } from './CronUtils.js'
 
 export async function evaluateSchedules(scheduler) {

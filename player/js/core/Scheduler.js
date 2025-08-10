@@ -10,13 +10,13 @@
  * Orchestrator only: heavy logic lives in extracted helper modules under core/scheduler.
  */
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../common/utils/debug-utils.js'
 import { MediaService } from '../services/MediaService.js'
 // Extracted helper modules (Phase A)
-import { transformScheduleToLayout } from '../core/scheduler/LayoutTransformer.js'
-import { fetchConfiguration } from '../core/scheduler/ConfigurationLoader.js'
-import { preloadLayoutMedia } from '../core/scheduler/Preloader.js'
-import { evaluateSchedules } from '../core/scheduler/EvaluationEngine.js'
+import { transformScheduleToLayout } from './scheduler/LayoutTransformer.js'
+import { fetchConfiguration } from './scheduler/ConfigurationLoader.js'
+import { preloadLayoutMedia } from './scheduler/Preloader.js'
+import { evaluateSchedules } from './scheduler/EvaluationEngine.js'
 
 export class LayoutScheduler {
     /**
