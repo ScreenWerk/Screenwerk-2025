@@ -25,6 +25,7 @@ export class BaseMedia {
         this.duration = mediaData.duration || 10 // Default 10 seconds
         this.startTime = null
         this.timeoutId = null
+    this.completed = false
 
         debugLog(`[BaseMedia] Created ${this.getType()} media: ${this.mediaData.name}`)
     }
@@ -35,6 +36,14 @@ export class BaseMedia {
      */
     getType() {
         return 'base'
+    }
+
+    /**
+     * Instance debug logger for subclasses
+     * @param {string} message - Debug message
+     */
+    debug(message) {
+        debugLog(`[BaseMedia] ${message}`)
     }
 
     /**
@@ -114,6 +123,7 @@ export class BaseMedia {
 
         this.isPlaying = true
         this.startTime = Date.now()
+    this.completed = false
 
         // Set up duration timeout
         this.timeoutId = setTimeout(() => {
@@ -141,8 +151,10 @@ export class BaseMedia {
      * @private
      */
     onComplete() {
-        this.stop()
-        debugLog(`[BaseMedia] Completed ${this.getType()}: ${this.mediaData.name}`)
+    if (this.completed) return
+    this.completed = true
+    this.stop()
+    debugLog(`[BaseMedia] Completed ${this.getType()}: ${this.mediaData.name}`)
         
         // Emit completion event for playlist management
         this.container.dispatchEvent(new CustomEvent('mediaComplete', {

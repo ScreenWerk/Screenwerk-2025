@@ -24,13 +24,15 @@ export class Playlist {
         this.currentIndex = 0
         this.currentMedia = null
         this.isPlaying = false
-        this.loop = playlistData.loop !== false // Default to loop
+    this.loop = playlistData.loop !== false // Default to loop (only false if explicitly false)
+    debugLog(`[Playlist] Loop flag: ${this.loop}`)
         this.progressionTimer = null
 
         debugLog(`[Playlist] Created playlist: ${this.playlistData.name} with ${this.mediaItems.length} items`)
         
-        // Listen for media completion events
-        this.container.addEventListener('mediaComplete', this.handleMediaComplete.bind(this))
+    // Listen for media completion events (store bound ref for proper removal)
+    this._boundHandleMediaComplete = this.handleMediaComplete.bind(this)
+    this.container.addEventListener('mediaComplete', this._boundHandleMediaComplete)
     }
 
     /**
@@ -89,25 +91,36 @@ export class Playlist {
             return false
         }
 
-        // Clean up current media
-        if (this.currentMedia) {
-            this.currentMedia.destroy()
-            this.currentMedia = null
+        // Prevent race: if already loading same index, skip
+        if (this._loadingIndex === index) {
+            return false
         }
+        this._loadingIndex = index
 
-        // Clear container and wait a moment for cleanup
-        this.container.innerHTML = ''
-        
-        // Small delay to ensure DOM cleanup is complete
-        await new Promise(resolve => setTimeout(resolve, 50))
+    await this.prepareContainerForIndexChange(index)
 
         const mediaData = this.mediaItems[index]
         
+        const result = await this.instantiateAndLoadMedia(mediaData, index)
+        this._loadingIndex = null
+        return result
+    }
+
+    async prepareContainerForIndexChange(index) {
+        // Clean up current media (only if changing index)
+        if (this.currentMedia && this.currentIndex !== index) {
+            this.currentMedia.destroy()
+            this.currentMedia = null
+            this.container.innerHTML = ''
+            await new Promise(resolve => setTimeout(resolve, 20))
+        } else if (!this.currentMedia) {
+            this.container.innerHTML = ''
+        }
+    }
+
+    async instantiateAndLoadMedia(mediaData, index) {
         try {
-            // Create new media
             this.currentMedia = MediaFactory.createMedia(mediaData, this.container)
-            
-            // Load the media
             const loaded = await this.currentMedia.load()
             if (loaded) {
                 this.currentIndex = index
@@ -132,12 +145,14 @@ export class Playlist {
             debugLog('[Playlist] Cannot play empty playlist')
             return false
         }
-
         if (!this.currentMedia) {
             console.error('[Playlist] No current media to play')
             return false
         }
-
+        if (this.isPlaying) {
+            // Idempotent: already playing
+            return true
+        }
         this.isPlaying = true
         const success = this.currentMedia.play()
         
@@ -263,7 +278,10 @@ export class Playlist {
             this.currentMedia = null
         }
         
-        this.container.removeEventListener('mediaComplete', this.handleMediaComplete.bind(this))
+        if (this._boundHandleMediaComplete) {
+            this.container.removeEventListener('mediaComplete', this._boundHandleMediaComplete)
+            this._boundHandleMediaComplete = null
+        }
         this.container.innerHTML = ''
         
         debugLog(`[Playlist] Destroyed playlist: ${this.playlistData.name}`)
