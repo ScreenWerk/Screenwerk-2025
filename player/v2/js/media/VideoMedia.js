@@ -326,4 +326,81 @@ export class VideoMedia extends BaseMedia {
     debug(message) {
         super.debug(`[VideoMedia] ${message}`)
     }
+
+    /**
+     * Fast restart for single-item playlist loops
+     * Reuses existing video element instead of destroy/recreate
+     * @returns {boolean} Success status
+     */
+    fastLoopRestart() {
+        if (!this.canFastRestart()) {
+            return false
+        }
+
+        try {
+            this.resetForRestart()
+            this.restartPlayback()
+            this.debug('Fast loop restart (single-item playlist)')
+            return true
+        } catch (error) {
+            this.debug(`Fast restart error: ${error.message}`)
+            return false
+        }
+    }
+
+    /**
+     * Check if fast restart is possible
+     * @returns {boolean} Can restart
+     * @private
+     */
+    canFastRestart() {
+        if (!this.videoElement || !this.isLoaded) {
+            this.debug('Fast restart failed: video not ready')
+            return false
+        }
+
+        if (this.videoElement.error) {
+            this.debug('Fast restart failed: video error present')
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Reset state for restart
+     * @private
+     */
+    resetForRestart() {
+        this.completed = false
+        this.endedHandled = false
+        this.videoElement.currentTime = 0
+
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId)
+            this.timeoutId = null
+        }
+    }
+
+    /**
+     * Restart playback with optional forced duration
+     * @private
+     */
+    restartPlayback() {
+        this.isPlaying = true
+        this.startTime = Date.now()
+
+        // Restart BaseMedia timer if forceDuration is active
+        if (this.mediaData.forceDuration === true && this.mediaData.duration && this.mediaData.duration > 0) {
+            this.timeoutId = setTimeout(() => {
+                this.debug('Forced completion due to configured duration')
+                this.onComplete()
+            }, this.mediaData.duration * 1000)
+        }
+
+        // Start video playback
+        this.videoElement.play().catch(err => {
+            this.debug(`Fast restart play failed: ${err.message}`)
+        })
+    }
 }
