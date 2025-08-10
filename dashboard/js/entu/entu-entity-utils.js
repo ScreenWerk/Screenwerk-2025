@@ -2,16 +2,24 @@
 import { fetchJSON } from './fetch-utils.js'
 import { ENTU_ENTITY_URL } from '../../../shared/config/constants.js'
 
+function buildEntitiesUrl(type, { filterProperty, filterValue, props = [], limit } = {}) {
+  const uniqueProps = ['_id', ...props].filter((p, i, arr) => arr.indexOf(p) === i)
+  const queryParts = [`_type.string=${type}`, `props=${uniqueProps.join(',')}`]
+  if (filterProperty && filterValue) queryParts.push(`${filterProperty}=${encodeURIComponent(filterValue)}`)
+  if (Number.isInteger(limit) && limit > 0) queryParts.push(`limit=${limit}`)
+  return `${ENTU_ENTITY_URL}?${queryParts.join('&')}`
+}
+
+function extractEntities(response) {
+  const entities = response?.entities
+  return Array.isArray(entities) ? entities : []
+}
+
 export async function fetchEntitiesByType(type, options = {}) {
   try {
-    const { filterProperty, filterValue, props = [], limit } = options
-    let url = `${ENTU_ENTITY_URL}?_type.string=${type}`
-    const allProps = ['_id', ...props].filter((p, i, arr) => arr.indexOf(p) === i)
-    url += `&props=${allProps.join(',')}`
-    if (filterProperty && filterValue) url += `&${filterProperty}=${encodeURIComponent(filterValue)}`
-    if (limit && Number.isInteger(limit) && limit > 0) url += `&limit=${limit}`
+    const url = buildEntitiesUrl(type, options)
     const response = await fetchJSON(url)
-    return response?.entities && Array.isArray(response.entities) ? response.entities : []
+    return extractEntities(response)
   } catch (e) {
     console.error(`Error fetching ${type} entities:`, e)
     return []

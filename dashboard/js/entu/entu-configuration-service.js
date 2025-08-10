@@ -83,15 +83,27 @@ async function fetchReferringScreenGroups(configurationId) {
   return dict
 }
 
+function toScreenDict(screens) {
+  const dict = {}
+  for (const s of screens) {
+    dict[s._id] = { _id: s._id, name: s.name?.[0]?.string || 'Unnamed Screen' }
+  }
+  return dict
+}
+
 async function buildScreenGroupWithScreens(screenGroup) {
   const screens = await fetchEntitiesByType('sw_screen', {
     props: ['name.string', '_parent.reference'],
     filterProperty: 'screen_group.reference',
     filterValue: screenGroup._id
   })
-  const screenDict = {}
-  for (const s of screens) screenDict[s._id] = { _id: s._id, name: s.name?.[0]?.string || 'Unnamed Screen' }
-  return { _id: screenGroup._id, name: screenGroup.name?.[0]?.string || 'Unnamed Screen Group', published: screenGroup.published?.[0]?.datetime, screens: screenDict }
+  const screenDict = toScreenDict(screens)
+  return {
+    _id: screenGroup._id,
+    name: screenGroup.name?.[0]?.string || 'Unnamed Screen Group',
+    published: screenGroup.published?.[0]?.datetime,
+    screens: screenDict
+  }
 }
 
 async function processConfiguration(rawConfiguration, result) {

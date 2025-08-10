@@ -68,3 +68,5 @@ Each entry: timestamp, max 10 words describing action
 - 20:16 - v2 player migration committed - legacy removed, modular v2 promoted
 - 20:16 - merged feature-007 v2 player migration - legacy removed
 - 22:55 - common directory completely removed - migrated to shared
+- 22:57 - merged refactor-common-split to main - retired legacy directory
+- 23:06 - reduced entu complexity to <=8
