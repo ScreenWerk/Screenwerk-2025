@@ -1,14 +1,7 @@
 #!/bin/bash
 
-# SW25 Sanity Check Script
-# Validates code quality before commit approval
-# Usage: bash .ai_workspace/sanity-check.sh [context]
-# 
-# Context options:
-#   v2        - Check only player/v2 files
-#   scripts   - Check only scripts and tools  
-#   player    - Check all player files
-#   all       - Check entire workspace (default)
+## SW25 Sanity Check Script - usage: bash .ai_workspace/sanity-check.sh [context]
+# Contexts: v2|scripts|player|dashboard|shared|all (default)
 
 # set -e
 
@@ -19,15 +12,9 @@ get_timestamp() {
 
 echo "SW25 Sanity Check Starting... ($(get_timestamp))"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
-# Counters
-ISSUES=0
-WARNINGS=0
+ISSUES=0; WARNINGS=0
 
 # Function to report issues
 report_issue() {
@@ -40,9 +27,7 @@ report_warning() {
     ((WARNINGS++))
 }
 
-report_success() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
+report_success() { echo -e "${GREEN}✅ $1${NC}"; }
 
 # Check if we're in project root
 if [ ! -f "package.json" ]; then
@@ -50,14 +35,15 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# Parse context parameter
 CONTEXT="${1:-all}"
 
 # Define check directories based on context
 case "$CONTEXT" in
     "v2")
-        CHECK_DIRS=("player/v2")
-        echo "🎯 Context: V2 Player Architecture"
+        # Backward compatibility: v2 folder deprecated
+        echo "⚠️  WARNING: 'player/v2' deprecated – using full player directory"
+        CHECK_DIRS=("player")
+        echo "🎯 Context: Player (legacy 'v2' alias)"
         ;;
     "scripts")
         CHECK_DIRS=("scripts" ".ai_workspace")
@@ -67,18 +53,24 @@ case "$CONTEXT" in
         CHECK_DIRS=("player")
         echo "🎯 Context: All Player Files"
         ;;
+    "dashboard")
+        CHECK_DIRS=("dashboard")
+        echo "🎯 Context: Dashboard"
+        ;;
+    "shared")
+        CHECK_DIRS=("shared")
+        echo "🎯 Context: Shared Modules"
+        ;;
     "all"|*)
-        CHECK_DIRS=("scripts" ".ai_workspace" "player/v2" "common" "dashboard")
+        # Updated default: removed deprecated common/ and player/v2
+        CHECK_DIRS=("scripts" ".ai_workspace" "player" "dashboard" "shared")
         echo "🎯 Context: Full Workspace"
         ;;
 esac
 
 echo "Directories to check: ${CHECK_DIRS[*]}"
 
-echo "Checking project structure..."
-
-# 1. File Length Check
-echo "Checking file lengths..."
+echo "Checking project structure..."; echo "Checking file lengths..."
 
 # Function to check directory if it exists
 check_directory() {
@@ -91,7 +83,6 @@ check_directory() {
     fi
     
     if [[ "$dir" == *.ai_workspace* ]]; then
-        # Check shell scripts in .ai_workspace
         find "$dir" -name "*.sh" -type f | while read file; do
             lines=$(wc -l < "$file")
             if [ "$lines" -gt "$max_lines" ]; then
@@ -113,12 +104,11 @@ check_directory() {
     fi
 }
 
-# Check each directory based on context
 for dir in "${CHECK_DIRS[@]}"; do
     case "$dir" in
-        "player/v2")
-            echo "Checking V2 Player files..."
-            check_directory "$dir" 400  # V2 files can be slightly larger due to architecture
+        "player")
+            echo "Checking Player files..."
+            check_directory "$dir" 400  # Allow a bit more for core player modules
             ;;
         ".ai_workspace")
             echo "Checking AI workspace scripts..."
@@ -131,16 +121,33 @@ for dir in "${CHECK_DIRS[@]}"; do
     esac
 done
 
-# 2. ESLint Check with Complexity Summary
+echo "Scanning for legacy directory references..."
+LEGACY_PATTERNS=("common/" "player/v2/")
+CODE_GREP_PATHS=("player" "dashboard" "shared" "scripts" "index.html")
+for legacy in "${LEGACY_PATTERNS[@]}"; do
+    FOUND=$(grep -R --exclude-dir=node_modules --exclude-dir=.ai_workspace -n "$legacy" ${CODE_GREP_PATHS[@]} 2>/dev/null || true)
+    if [ -n "$FOUND" ]; then
+        report_issue "Legacy reference '$legacy' found in active code:\n$FOUND"
+    else
+        report_success "No active references to '$legacy'"
+    fi
+done
+
 echo "Running ESLint..."
 ESLINT_OUTPUT=""
 COMPLEXITY_WARNINGS=0
 
-# Build ESLint patterns based on context
+# Build ESLint target list dynamically (excluding node_modules & vendor minified files)
 ESLINT_PATTERNS=()
 for dir in "${CHECK_DIRS[@]}"; do
     if [ -d "$dir" ] && [[ "$dir" != *.ai_workspace* ]]; then
-        ESLINT_PATTERNS+=("$dir/**/*.js")
+        while IFS= read -r f; do
+            # Skip minified vendor libs
+            if [[ "$f" == *"vendor/later.min.js" ]]; then
+                continue
+            fi
+            ESLINT_PATTERNS+=("$f")
+        done < <(find "$dir" -type f -name "*.js")
     fi
 done
 
@@ -157,7 +164,6 @@ else
     ESLINT_EXIT_CODE=1
 fi
 
-# Display ESLint output
 if [ -n "$ESLINT_OUTPUT" ]; then
     echo "$ESLINT_OUTPUT"
     
@@ -175,12 +181,8 @@ else
     report_issue "ESLint found errors"
 fi
 
-# 3. Function Complexity Check (via ESLint)
-echo "Checking function complexity..."
-# Complexity warnings are now handled by ESLint complexity rule
-# No separate complexity check needed - ESLint handles it in step 2
+echo "Checking function complexity..." # handled via ESLint rule
 
-# 4. Test Coverage Check
 echo "Checking test coverage..."
 if [ -d "tests" ] || [ -d "test" ]; then
     # Count test files
@@ -199,7 +201,6 @@ else
     report_warning "No test directory found"
 fi
 
-# 5. Run existing tests
 echo "Running tests..."
 if [ -f "package.json" ] && grep -q '"test"' package.json; then
     if npm test; then
@@ -211,7 +212,6 @@ else
     report_warning "No test script found in package.json"
 fi
 
-# 6. Documentation checks
 echo "Checking documentation..."
 required_docs=("README.md" "docs/data-model.md")
 for doc in "${required_docs[@]}"; do
@@ -222,7 +222,6 @@ for doc in "${required_docs[@]}"; do
     fi
 done
 
-# 7. Git status check
 echo "Checking git status..."
 if git status --porcelain | grep -q .; then
     report_warning "Uncommitted changes detected"
@@ -231,25 +230,15 @@ else
     report_success "Working directory clean"
 fi
 
-# Summary
-echo ""
-echo "Sanity Check Complete ($(get_timestamp))"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""; echo "Sanity Check Complete ($(get_timestamp))"; echo "━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Display complexity summary if there are warnings
 if [ "$COMPLEXITY_WARNINGS" -gt 0 ]; then
-    echo ""
-    echo -e "${YELLOW}📊 COMPLEXITY SUMMARY${NC}"
-    echo "Total complexity warnings: $COMPLEXITY_WARNINGS"
-    echo ""
-    echo "High priority targets (complexity >15):"
+    echo ""; echo -e "${YELLOW}📊 COMPLEXITY SUMMARY${NC}"; echo "Total complexity warnings: $COMPLEXITY_WARNINGS"; echo ""; echo "High priority targets (complexity >15):"
     echo "$ESLINT_OUTPUT" | grep "complexity" | grep -E "complexity of (1[6-9]|[2-9][0-9])\." | head -3 || echo "  None found"
-    echo ""
-    echo "Medium priority targets (complexity 9-15):"
+    echo ""; echo "Medium priority targets (complexity 9-15):"
     echo "$ESLINT_OUTPUT" | grep "complexity" | grep -E "complexity of (9|1[0-5])\." | head -5 || echo "  None found"
-    echo ""
-    echo "Note: All functions should target complexity ≤8"
-    echo ""
+    echo ""; echo "Note: All functions should target complexity ≤8"; echo ""
 fi
 
 if [ "$ISSUES" -eq 0 ]; then

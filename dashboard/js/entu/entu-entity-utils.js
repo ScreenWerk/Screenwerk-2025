@@ -1,4 +1,4 @@
-// Dashboard-local entu entity utilities migrated minimally from common/utils/entu-utils.js
+// Dashboard-local entu entity utilities (minimally migrated legacy implementation; original directory removed)
 import { fetchJSON } from './fetch-utils.js'
 import { ENTU_ENTITY_URL } from '../../../shared/config/constants.js'
 

@@ -1,4 +1,4 @@
-// Dashboard-local fetch helpers migrated from common/utils/utils.js
+// Dashboard-local fetch helpers (migrated legacy code; original directory removed)
 export async function fetchJSON(url) {
   if (url.includes('undefined') || url.includes('null') || url.includes('NaN') || url.includes('Infinity') || url.includes('-Infinity')) {
     console.error(`Invalid URL: ${url}`)

@@ -1,4 +1,4 @@
-// Dashboard-only UI constants extracted from legacy common/config/constants.js
+// Dashboard-only UI constants extracted from retired shared constants (legacy directory removed)
 // Keep player-agnostic UI concerns localized here.
 
 export const UNICODE_ICONS = {

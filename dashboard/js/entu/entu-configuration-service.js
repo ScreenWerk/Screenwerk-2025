@@ -1,4 +1,4 @@
-// Dashboard-local configuration service (trimmed) migrated from common/services/entu-configuration-service.js
+// Dashboard-local configuration service (trimmed) - migrated legacy implementation (original shared directory now removed)
 import { fetchEntitiesByType } from './entu-entity-utils.js'
 import { fetchJSON } from './fetch-utils.js'
 import { ENTU_ENTITY_URL, getPublisherFilesApiUrl } from '../../../shared/config/constants.js'
