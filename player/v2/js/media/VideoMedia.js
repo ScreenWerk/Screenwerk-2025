@@ -82,8 +82,10 @@ export class VideoMedia extends BaseMedia {
             this.debug('Video playback paused')
         })
 
-        // When video ends naturally, notify playlist for progression
-        // Store ended handler so we can remove it after first fire
+        // When video ends naturally, notify playlist for progression.
+        // We KEEP the listener attached permanently so fastLoopRestart() can reuse it.
+        // Duplicate handling is prevented via the endedHandled flag which is reset
+        // at each play()/fastLoopRestart() invocation.
         this._onEnded = () => {
             if (this.endedHandled) return
             this.endedHandled = true
@@ -91,10 +93,7 @@ export class VideoMedia extends BaseMedia {
                 this.debug('Video playback ended (natural)')
                 this.onComplete()
             }
-            // Remove listener to guarantee single log even if pause()/stop() invoked
-            if (this.videoElement) {
-                this.videoElement.removeEventListener('ended', this._onEnded)
-            }
+            // Listener intentionally retained; guard above prevents double firing across loops.
         }
         this.videoElement.addEventListener('ended', this._onEnded)
 
@@ -238,7 +237,8 @@ export class VideoMedia extends BaseMedia {
             this.debug('Video not loaded yet, cannot play')
             return false
         }
-    this.endedHandled = false
+        // Reset ended flag so the persistent 'ended' listener can fire again for this cycle
+        this.endedHandled = false
         // Cancel any existing timeout from BaseMedia (not used here)
         if (this.timeoutId) {
             clearTimeout(this.timeoutId)
@@ -258,7 +258,7 @@ export class VideoMedia extends BaseMedia {
                 this.handleMediaComplete()
             }, this.mediaData.duration * 1000)
         }
-        this.debug('Video play invoked')
+    this.debug('Video play invoked')
         return true
     }
 
@@ -333,74 +333,37 @@ export class VideoMedia extends BaseMedia {
      * @returns {boolean} Success status
      */
     fastLoopRestart() {
-        if (!this.canFastRestart()) {
-            return false
-        }
-
-        try {
-            this.resetForRestart()
-            this.restartPlayback()
-            this.debug('Fast loop restart (single-item playlist)')
-            return true
-        } catch (error) {
-            this.debug(`Fast restart error: ${error.message}`)
-            return false
-        }
-    }
-
-    /**
-     * Check if fast restart is possible
-     * @returns {boolean} Can restart
-     * @private
-     */
-    canFastRestart() {
         if (!this.videoElement || !this.isLoaded) {
-            this.debug('Fast restart failed: video not ready')
             return false
         }
 
-        if (this.videoElement.error) {
-            this.debug('Fast restart failed: video error present')
-            return false
-        }
+    // Reset completion flags and restart playback (allow 'ended' listener to trigger again)
+    this.completed = false
+    this.endedHandled = false
+        this.isPlaying = true
+        this.startTime = Date.now()
 
-        return true
-    }
-
-    /**
-     * Reset state for restart
-     * @private
-     */
-    resetForRestart() {
-        this.completed = false
-        this.endedHandled = false
-        this.videoElement.currentTime = 0
-
+        // Clear any existing timeout
         if (this.timeoutId) {
             clearTimeout(this.timeoutId)
             this.timeoutId = null
         }
-    }
 
-    /**
-     * Restart playback with optional forced duration
-     * @private
-     */
-    restartPlayback() {
-        this.isPlaying = true
-        this.startTime = Date.now()
+        // Reset video position to beginning (essential for ended videos)
+        this.videoElement.currentTime = 0
 
         // Restart BaseMedia timer if forceDuration is active
         if (this.mediaData.forceDuration === true && this.mediaData.duration && this.mediaData.duration > 0) {
             this.timeoutId = setTimeout(() => {
-                this.debug('Forced completion due to configured duration')
                 this.onComplete()
             }, this.mediaData.duration * 1000)
         }
 
-        // Start video playback
-        this.videoElement.play().catch(err => {
-            this.debug(`Fast restart play failed: ${err.message}`)
-        })
+        // Restart playback
+        this.videoElement.play()
+
+        this.debug('Fast loop restart (single-item playlist)')
+        return true
     }
+
 }

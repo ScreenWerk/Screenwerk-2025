@@ -25,6 +25,7 @@ export class Playlist {
         this.currentMedia = null
         this.isPlaying = false
     this.loop = playlistData.loop !== false // Default to loop (only false if explicitly false)
+    this.loopCounter = 0 // Track number of completed loops
     debugLog(`[Playlist] Loop flag: ${this.loop}`)
         this.progressionTimer = null
 
@@ -197,26 +198,59 @@ export class Playlist {
     async next() {
         if (this.mediaItems.length === 0) return false
 
+        const nextIndex = this.getNextIndex()
+        if (nextIndex === -1) {
+            return false // End reached, no loop
+        }
+
+        // Try fast restart for single-item loops
+        if (await this.tryFastRestart(nextIndex)) {
+            return true
+        }
+
+        // Standard load path
+        const loaded = await this.loadMediaAtIndex(nextIndex)
+        return loaded && this.isPlaying ? this.currentMedia.play() : loaded
+    }
+
+    /**
+     * Get next index, handling loop logic
+     * @returns {number} Next index or -1 if end reached
+     * @private
+     */
+    getNextIndex() {
         let nextIndex = this.currentIndex + 1
         
         if (nextIndex >= this.mediaItems.length) {
             if (this.loop) {
-                nextIndex = 0 // Loop back to start
-                debugLog('[Playlist] Looping back to first item')
+                this.loopCounter++
+                debugLog(`[Playlist] Looping back to first item (loop #${this.loopCounter})`)
+                return 0
             } else {
                 debugLog('[Playlist] Reached end, no loop')
                 this.isPlaying = false
-                return false
+                return -1
             }
         }
+        
+        return nextIndex
+    }
 
-        const loaded = await this.loadMediaAtIndex(nextIndex)
-        
-        if (loaded && this.isPlaying) {
-            return this.currentMedia.play()
+    /**
+     * Try fast restart for single-item playlists
+     * @param {number} nextIndex - Target index
+     * @returns {Promise<boolean>} True if fast restart succeeded
+     * @private
+     */
+    async tryFastRestart(nextIndex) {
+        if (nextIndex === 0 && this.mediaItems.length === 1 && this.currentMedia) {
+            const fastRestarted = this.currentMedia.fastLoopRestart()
+            if (fastRestarted) {
+                return true
+            }
+            debugLog('[Playlist] Fast restart failed, falling back to standard reload')
         }
-        
-        return loaded
+        return false
     }
 
     /**
@@ -263,6 +297,7 @@ export class Playlist {
             currentIndex: this.currentIndex,
             totalItems: this.mediaItems.length,
             loop: this.loop,
+            loopCounter: this.loopCounter,
             currentMedia: this.getCurrentMediaInfo()
         }
     }
