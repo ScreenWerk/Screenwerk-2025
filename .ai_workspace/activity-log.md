@@ -53,3 +53,13 @@ Each entry: timestamp, max 10 words describing action
 - 15:00 - started feature 005 seamless single loop
 - 15:03 - sanity check passed, ready for seamless loop implementation
 - 15:27 - fixed loop persistence - continuous multi-loop operation
+- 15:34 - merged feature/seamless-single-loop - seamless loop optimization
+- 15:37 - feature 006 spec added - core refactor plan
+- 15:38 - scheduler helpers extracted - cron layout media
+- 15:40 - scheduler phase b extract config+preloader
+- 15:41 - scheduler phase c extract evaluation engine
+- 15:44 - player phase a extract layout dom
+- 15:45 - player phase b extract playback lifecycle
+- 15:47 - player phase c extract region wiring
+- 16:01 - scheduler/player cleanup (removed noise comments)
+- 16:01 - sanity check before merge passed
