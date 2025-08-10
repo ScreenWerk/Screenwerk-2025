@@ -70,3 +70,4 @@ Each entry: timestamp, max 10 words describing action
 - 22:55 - common directory completely removed - migrated to shared
 - 22:57 - merged refactor-common-split to main - retired legacy directory
 - 23:06 - reduced entu complexity to <=8
+- 23:07 - merged reduce-entu-complexity - no complexity warnings
