@@ -63,3 +63,5 @@ Each entry: timestamp, max 10 words describing action
 - 15:47 - player phase c extract region wiring
 - 16:01 - scheduler/player cleanup (removed noise comments)
 - 16:01 - sanity check before merge passed
+- 16:02 - squash merged feature/refactor-core-split to main
+- 16:02 - deleted local feature/refactor-core-split branch
