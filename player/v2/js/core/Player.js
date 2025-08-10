@@ -23,11 +23,26 @@ export class ScreenWerkPlayer {
         this.isPlaying = false
         this.regions = new Map()
         this.destroyed = false
+    this.autoStart = true // Auto start playback after layout load by default
 
         // Initialize container
         this.initializeContainer()
 
         debugLog('[Player] Clean ScreenWerk Player initialized')
+    }
+
+    /**
+     * Emit a player lifecycle event on the container for external UI to react
+     * @param {string} name
+     * @param {Object} [detail]
+     * @private
+     */
+    emit(name, detail = {}) {
+        try {
+            this.container.dispatchEvent(new CustomEvent(name, { detail: { player: this, ...detail } }))
+        } catch {
+            // Fail silently – events are best-effort for demo tooling
+        }
     }
 
     /**
@@ -75,6 +90,10 @@ export class ScreenWerkPlayer {
             await this.createRegions(layout.regions)
 
             debugLog(`[Player] Layout loaded successfully: ${layout.name}`)
+            this.emit('player:layoutLoaded', { layout })
+            if (this.autoStart) {
+                this.play()
+            }
             return true
 
         } catch (error) {
@@ -127,7 +146,7 @@ export class ScreenWerkPlayer {
                     playlist: null // Will be set by setRegionContent
                 })
                 
-                // Set region content (async)
+                // Set region content (async) ONLY here (createRegionElement no longer calls it)
                 await this.setRegionContent(regionElement, regionData, index)
                 
                 debugLog(`[Player] Created region: ${regionId}`)
@@ -154,7 +173,6 @@ export class ScreenWerkPlayer {
         regionElement.id = `region_${regionData.id || index}`
         
         this.setRegionStyles(regionElement, regionData)
-        this.setRegionContent(regionElement, regionData, index)
 
         return regionElement
     }
@@ -293,6 +311,11 @@ export class ScreenWerkPlayer {
             console.error('[Player] Cannot play - no layout loaded')
             return false
         }
+            // Idempotent guard
+            if (this.isPlaying) {
+                // Already playing, skip restarting playlists
+                return true
+            }
 
         this.isPlaying = true
         let playlistsStarted = 0
@@ -309,6 +332,10 @@ export class ScreenWerkPlayer {
         })
         
         debugLog(`[Player] Playback started - ${playlistsStarted} playlists playing`)
+        if (playlistsStarted > 0) {
+            this.emit('player:play')
+            this.emit('player:stateChange')
+        }
         return playlistsStarted > 0
     }
 
@@ -333,6 +360,8 @@ export class ScreenWerkPlayer {
         })
         
         debugLog('[Player] Playback paused')
+    this.emit('player:pause')
+    this.emit('player:stateChange')
         return true
     }
 
@@ -408,6 +437,8 @@ export class ScreenWerkPlayer {
         this.destroyed = true
         
         debugLog('[Player] Player destroyed')
+    this.emit('player:destroyed')
+    this.emit('player:stateChange')
     }
 
     /**

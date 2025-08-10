@@ -252,4 +252,43 @@ export class ImageMedia extends BaseMedia {
         
         debugLog(`[ImageMedia] Image media destroyed: ${this.mediaData.name}`)
     }
+
+    /**
+     * Fast restart for single-item playlist loops
+     * Reuses existing image element instead of destroy/recreate
+     * @returns {boolean} Success status
+     */
+    fastLoopRestart() {
+        if (!this.element || !this.isLoaded) {
+            debugLog('[ImageMedia] Fast restart failed: image not ready')
+            return false
+        }
+
+        try {
+            // Reset completion flag
+            this.completed = false
+
+            // Clear any existing timeout
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId)
+                this.timeoutId = null
+            }
+
+            // Restart playback state
+            this.isPlaying = true
+            this.startTime = Date.now()
+
+            // Restart duration timer
+            this.timeoutId = setTimeout(() => {
+                this.onComplete()
+            }, this.duration * 1000)
+
+            debugLog(`[ImageMedia] Fast loop restart (single-item playlist): ${this.mediaData.name}`)
+            return true
+
+        } catch (error) {
+            debugLog(`[ImageMedia] Fast restart error: ${error.message}`)
+            return false
+        }
+    }
 }

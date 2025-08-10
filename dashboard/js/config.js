@@ -1,7 +1,7 @@
 /**
  * Dashboard configuration settings
  */
-export const ENVIRONMENT = 'test' // Set to 'production' for production environment
+export const ENVIRONMENT = 'production' // Set to 'production' for production environment
 
 export const DEBUG = {
     // In development, we can filter to a specific configuration for testing

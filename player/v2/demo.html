@@ -133,7 +133,7 @@
 
         <div class="input-group">
             <label for="screenIdInput"><strong>Screen ID:</strong></label>
-            <input type="text" id="screenIdInput" value="5799c2744ecca5c17a599ecd" placeholder="Enter 24-character screen ID">
+            <input type="text" id="screenIdInput" value="6898784a463d318c3f03d666" placeholder="Enter 24-character screen ID">
             <button id="fetchConfigBtn">📡 Fetch Live Config</button>
         </div>
 
@@ -253,6 +253,9 @@
                     Regions: ${playerState.regionCount}<br>
                     Status: ${playerState.destroyed ? 'Destroyed' : 'Active'}
                 `
+                // Button state sync
+                playBtn.disabled = playerState.isPlaying || !playerState.currentLayout || playerState.destroyed
+                pauseBtn.disabled = !playerState.isPlaying || playerState.destroyed
             }
             
             if (scheduler) {
@@ -393,7 +396,7 @@
             if (player) {
                 player.play()
                 console.log('▶️ Player play triggered')
-                updateStatus()
+                updateStatus() // immediate optimistic update
             }
         }
 
@@ -401,7 +404,7 @@
             if (player) {
                 player.pause()
                 console.log('⏸️ Player pause triggered')
-                updateStatus()
+                updateStatus() // immediate optimistic update
             }
         }
 
@@ -488,6 +491,11 @@
         clearLogBtn.addEventListener('click', clearLog)
         inspectCacheBtn.addEventListener('click', inspectCache)
         clearCacheBtn.addEventListener('click', clearCache)
+
+    // React to player lifecycle events for more precise UI updates
+    playerContainer.addEventListener('player:stateChange', updateStatus)
+    playerContainer.addEventListener('player:layoutLoaded', updateStatus)
+    playerContainer.addEventListener('player:destroyed', updateStatus)
 
         // Allow Enter key in screen ID input
         screenIdInput.addEventListener('keypress', (e) => {
