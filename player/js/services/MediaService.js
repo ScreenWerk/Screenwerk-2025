@@ -4,7 +4,7 @@
  * Manages media URL caching through service worker for better performance
  */
 
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../../shared/utils/debug-utils.js'
 
 export class MediaService {
     constructor() {

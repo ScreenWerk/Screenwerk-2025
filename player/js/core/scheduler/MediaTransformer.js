@@ -1,6 +1,6 @@
 // MediaTransformer.js - Extracted media transformation helpers
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../shared/utils/debug-utils.js'
 
 export function createPlaylistObject(layoutPlaylist) {
     const playlistId = layoutPlaylist.playlistEid || layoutPlaylist.eid || 'unknown-playlist'

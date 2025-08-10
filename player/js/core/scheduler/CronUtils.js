@@ -1,7 +1,7 @@
 // CronUtils.js - Pure cron evaluation helpers extracted from Scheduler
 // Responsibility: parse & evaluate schedule crontabs, independent & side-effect free
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../shared/utils/debug-utils.js'
 
 export function hasLaterJs() {
     return typeof window !== 'undefined' && window.later

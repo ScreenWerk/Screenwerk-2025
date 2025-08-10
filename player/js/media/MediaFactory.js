@@ -7,7 +7,7 @@
 import { ImageMedia } from './ImageMedia.js'
 import { VideoMedia } from './VideoMedia.js'
 import { BaseMedia } from './BaseMedia.js'
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../../shared/utils/debug-utils.js'
 
 export class MediaFactory {
     /**

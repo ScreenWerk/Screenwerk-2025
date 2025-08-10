@@ -5,7 +5,7 @@
  */
 
 import { BaseMedia } from './BaseMedia.js'
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../../shared/utils/debug-utils.js'
 
 export class ImageMedia extends BaseMedia {
     /**

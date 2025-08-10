@@ -5,7 +5,7 @@
  * Assumes all media is preloaded and cached by Scheduler
  */
 
-import { debugLog } from '../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../shared/utils/debug-utils.js'
 import { createRegions as wiringCreateRegions } from './player/RegionWiring.js'
 import { play as playbackPlay, pause as playbackPause, resume as playbackResume, cleanup as playbackCleanup, destroy as playbackDestroy, showError as playbackShowError } from './player/PlayerPlayback.js'
 

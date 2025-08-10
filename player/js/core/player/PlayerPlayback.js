@@ -1,7 +1,7 @@
 // PlayerPlayback.js - Extracted playback & lifecycle helpers for ScreenWerkPlayer
 // Functions operate on the player instance to keep Player.js slim.
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../shared/utils/debug-utils.js'
 
 export function play(player) {
     if (player.destroyed) {

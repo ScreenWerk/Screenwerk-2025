@@ -1,4 +1,5 @@
-import { UNICODE_ICONS, ENTU_FRONTEND_URL } from '../../common/config/constants.js'
+import { ENTU_FRONTEND_URL } from '../../shared/config/constants.js'
+import { UNICODE_ICONS } from '../config/ui-constants.js'
 
 /**
  * Creates toolbar UI snippet

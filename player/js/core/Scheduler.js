@@ -10,7 +10,7 @@
  * Orchestrator only: heavy logic lives in extracted helper modules under core/scheduler.
  */
 
-import { debugLog } from '../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../shared/utils/debug-utils.js'
 import { MediaService } from '../services/MediaService.js'
 // Extracted helper modules (Phase A)
 import { transformScheduleToLayout } from './scheduler/LayoutTransformer.js'

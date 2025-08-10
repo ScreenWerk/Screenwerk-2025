@@ -1,7 +1,7 @@
 // Preloader.js - Media preloading for layouts via MediaService
 // Responsibility: Given layout + mediaService, initiate caching of media URLs
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../shared/utils/debug-utils.js'
 
 export async function preloadLayoutMedia(layout, mediaService, mediaServiceReady) {
     if (!mediaServiceReady) {

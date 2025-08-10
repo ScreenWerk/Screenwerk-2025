@@ -45,6 +45,6 @@ Different environments (dev, live, local) have different default visibility sett
 ## Environment Configuration
 
 - The environment is auto-detected (dev, live, local) and controls UI visibility and API endpoints.
-- See `common/config/constants.js` for details.
+// Legacy note removed: UI constants relocated to dashboard/js/config/ui-constants.js
 
 ---

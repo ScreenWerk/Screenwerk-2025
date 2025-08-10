@@ -4,7 +4,7 @@
  * Provides common functionality for media rendering, validation, and lifecycle
  */
 
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../../shared/utils/debug-utils.js'
 
 export class BaseMedia {
     /**

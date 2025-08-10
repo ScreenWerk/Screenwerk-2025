@@ -1,7 +1,7 @@
 // RegionWiring.js - Region/media wiring helpers (Phase C)
 // Responsibility: orchestrate region creation & playlist loading abstraction from Player
 
-import { debugLog } from '../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../shared/utils/debug-utils.js'
 import { createRegionElement, setRegionContent as domSetRegionContent } from './LayoutDom.js'
 
 export async function createRegions(player, regionsData) {

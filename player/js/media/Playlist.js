@@ -5,7 +5,7 @@
  */
 
 import { MediaFactory } from './MediaFactory.js'
-import { debugLog } from '../../../../../common/utils/debug-utils.js'
+import { debugLog } from '../../../../../shared/utils/debug-utils.js'
 
 export class Playlist {
     /**

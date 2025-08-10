@@ -1,8 +1,8 @@
-import { fetchJSON } from '../../common/utils/utils.js'
-import { SCREENWERK_PUBLISHER_API } from '../../common/config/constants.js'
+import { fetchJSON } from './entu/fetch-utils.js'
+import { SCREENWERK_PUBLISHER_API } from '../../shared/config/constants.js'
 import { updateProgressBar } from './display.js'
-import { getConfigurationById } from '../../common/services/entu-configuration-service.js'
-import { fetchEntitiesByType } from '../../common/utils/entu-utils.js'
+import { getConfigurationById } from './entu/entu-configuration-service.js'
+import { fetchEntitiesByType } from './entu/entu-entity-utils.js'
 import { DEBUG } from './config.js'
 
 /**

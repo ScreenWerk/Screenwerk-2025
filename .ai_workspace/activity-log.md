@@ -65,3 +65,6 @@ Each entry: timestamp, max 10 words describing action
 - 16:01 - sanity check before merge passed
 - 16:02 - squash merged feature/refactor-core-split to main
 - 16:02 - deleted local feature/refactor-core-split branch
+- 20:16 - v2 player migration committed - legacy removed, modular v2 promoted
+- 20:16 - merged feature-007 v2 player migration - legacy removed
+- 22:55 - common directory completely removed - migrated to shared

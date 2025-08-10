@@ -1,7 +1,7 @@
 import { groupEntities } from './data.js'
 import { toolbarSnippet } from './ui.js'
 import { EntuScreenWerkPlayer } from '../../player/js/sw-player.js'
-import { debugLog } from '../../common/utils/debug-utils.js'
+import { debugLog } from '../../shared/utils/debug-utils.js'
 
 export function updateProgressBar(progress) {
     const progressBar = document.getElementById('progress-bar')

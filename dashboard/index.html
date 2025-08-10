@@ -6,12 +6,10 @@
     <title>Dashboard - Available Configurations</title>
     <link rel="stylesheet" href="./css/style.css">
     <link rel="icon" type="image/svg+xml" href="/public/images/entu-logo.svg">
-    <!-- Load non-module scripts first -->
-    <script src="/common/later.min.js"></script>
-    <script type="module" src="/common/cron.js"></script>
+    <!-- Load vendor scheduling library -->
+    <script src="/shared/vendor/later.min.js"></script>
     <script src="/build-info.js"></script>
-    <!-- Load module scripts after -->
-    <script src="/common/validators/validator.js" type="module"></script> <!-- Updated path -->
+    <!-- Load module scripts -->
     <script src="/player/js/sw-player.js" type="module"></script> <!-- Updated path -->
     <script defer src="/dashboard/js/script.js" type="module"></script> <!-- Updated path -->
     <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
@@ -83,6 +81,6 @@
         }
     }
     </script>
-    <!-- No need to import /common/ui-visibility-modal.js here; it is loaded as a module in script.js -->
+    <!-- UI visibility modal wired by dashboard/js/script.js -->
 </body>
 </html>
