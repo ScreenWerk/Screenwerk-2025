@@ -25,7 +25,18 @@ if [ "$WORD_COUNT" -gt 10 ]; then
     fi
 fi
 
-# Add entry to log
+# Ensure date heading exists for today (## YYYY-MM-DD)
+TODAY=$(date '+%Y-%m-%d')
+if ! grep -q "^## $TODAY" "$ACTIVITY_LOG" 2>/dev/null; then
+    # Add a separating blank line if file not empty
+    if [ -s "$ACTIVITY_LOG" ]; then
+        echo "" >> "$ACTIVITY_LOG"
+    fi
+    echo "## $TODAY" >> "$ACTIVITY_LOG"
+    echo "" >> "$ACTIVITY_LOG"
+fi
+
+# Add entry to log under today's heading
 echo "- $TIMESTAMP - $DESCRIPTION" >> "$ACTIVITY_LOG"
 
 echo "✅ Logged: [$TIMESTAMP] $DESCRIPTION"

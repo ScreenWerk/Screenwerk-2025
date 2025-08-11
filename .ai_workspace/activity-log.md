@@ -74,3 +74,8 @@ Each entry: timestamp, max 10 words describing action
 - 23:32 - init entu analytics events
 - 23:39 - demo analytics config inputs added
 - 23:45 - add hourly 42m heartbeat
+
+## 2025-08-11
+
+- 05:58 - merged player-entu-analytics - analytics integration complete
+- 06:02 - test automatic heading insertion
