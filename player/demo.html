@@ -137,6 +137,22 @@
             <button id="fetchConfigBtn">📡 Fetch Live Config</button>
         </div>
 
+        <div class="input-group" style="flex-wrap:wrap; align-items:flex-start;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label for="analyticsEndpointInput"><strong>Analytics Endpoint:</strong></label>
+                <input type="text" id="analyticsEndpointInput" placeholder="https://analytics.example.com" value="https://analytics.entu.dev/ea.min.js" style="width:340px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label for="analyticsSiteIdInput"><strong>Site ID:</strong></label>
+                <input type="text" id="analyticsSiteIdInput" placeholder="my-site" value="Screenwerk dev" style="width:160px;">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <label>&nbsp;</label>
+                <button id="applyAnalyticsBtn" title="Set window analytics globals for next init">Enable Analytics</button>
+            </div>
+            <small style="max-width:420px; line-height:1.2; color:#555; margin-left:10px;">Provide endpoint + site ID then click Enable Analytics before initializing. Events: api_call, layout_start, runtime_error. Uses sendBeacon when available.</small>
+        </div>
+
         <div class="controls">
             <button id="initBtn" disabled>Initialize Player + Scheduler</button>
             <button id="startSchedulerBtn" disabled>🔄 Start Scheduler</button>
@@ -203,6 +219,9 @@
         // DOM elements
         const screenIdInput = document.getElementById('screenIdInput')
         const fetchConfigBtn = document.getElementById('fetchConfigBtn')
+    const analyticsEndpointInput = document.getElementById('analyticsEndpointInput')
+    const analyticsSiteIdInput = document.getElementById('analyticsSiteIdInput')
+    const applyAnalyticsBtn = document.getElementById('applyAnalyticsBtn')
         const initBtn = document.getElementById('initBtn')
         const startSchedulerBtn = document.getElementById('startSchedulerBtn')
         const evaluateBtn = document.getElementById('evaluateBtn')
@@ -323,6 +342,13 @@
         function initializeComponents() {
             try {
                 statusDiv.textContent = '🔧 Initializing Player and Scheduler...'
+
+                // Apply analytics globals if provided (once per session)
+                if (analyticsEndpointInput.value.trim() && analyticsSiteIdInput.value.trim()) {
+                    window.ANALYTICS_ENDPOINT = analyticsEndpointInput.value.trim()
+                    window.ANALYTICS_SITE_ID = analyticsSiteIdInput.value.trim()
+                    console.log(`[Analytics] Config applied endpoint=${window.ANALYTICS_ENDPOINT} siteId=${window.ANALYTICS_SITE_ID}`)
+                }
                 
                 // Create Player
                 player = new ScreenWerkPlayer(playerContainer)
@@ -491,6 +517,15 @@
         clearLogBtn.addEventListener('click', clearLog)
         inspectCacheBtn.addEventListener('click', inspectCache)
         clearCacheBtn.addEventListener('click', clearCache)
+        applyAnalyticsBtn.addEventListener('click', () => {
+            if (!analyticsEndpointInput.value.trim() || !analyticsSiteIdInput.value.trim()) {
+                alert('Provide both endpoint and site ID')
+                return
+            }
+            window.ANALYTICS_ENDPOINT = analyticsEndpointInput.value.trim()
+            window.ANALYTICS_SITE_ID = analyticsSiteIdInput.value.trim()
+            console.log('[Analytics] Globals set. Initialize or restart components to activate.')
+        })
 
     // React to player lifecycle events for more precise UI updates
     playerContainer.addEventListener('player:stateChange', updateStatus)

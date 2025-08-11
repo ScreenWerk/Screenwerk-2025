@@ -17,6 +17,7 @@ import { transformScheduleToLayout } from './scheduler/LayoutTransformer.js'
 import { fetchConfiguration } from './scheduler/ConfigurationLoader.js'
 import { preloadLayoutMedia } from './scheduler/Preloader.js'
 import { evaluateSchedules } from './scheduler/EvaluationEngine.js'
+import { initAnalytics, track as trackAnalytics, startHourlyMinute42Heartbeat } from '../analytics/Analytics.js'
 
 export class LayoutScheduler {
     /**
@@ -48,6 +49,8 @@ export class LayoutScheduler {
         
         this.mediaService = new MediaService()
         this.mediaServiceReady = false
+    // Initialize analytics (graceful no-op if globals absent)
+    try { initAnalytics(this.configurationId) } catch (e) { debugLog('[Scheduler] Analytics init failed', e) }
 
         debugLog('[Scheduler] Clean Layout Scheduler initialized', {
             configurationId: this.configurationId,
@@ -116,6 +119,8 @@ export class LayoutScheduler {
             // Start evaluation and polling
             this.startEvaluation()
             this.startConfigurationPolling()
+            // Start heartbeat (42nd minute scheduling) passing provider for current layout
+            try { startHourlyMinute42Heartbeat(() => ({ layoutId: this.currentLayoutId })) } catch { /* ignore */ }
 
             this.isRunning = true
             debugLog('[Scheduler] Scheduler started successfully')
@@ -249,6 +254,8 @@ export class LayoutScheduler {
             
             this.currentLayoutId = layoutId
             this.onLayoutChange(layout)
+            // Emit layout_start analytics event
+            try { trackAnalytics('layout_start', { layoutId, scheduleId: schedule.eid || schedule._id }) } catch { /* swallow */ }
             
         } catch (error) {
             console.error('[Scheduler] Failed to process layout change:', error)

@@ -71,3 +71,6 @@ Each entry: timestamp, max 10 words describing action
 - 22:57 - merged refactor-common-split to main - retired legacy directory
 - 23:06 - reduced entu complexity to <=8
 - 23:07 - merged reduce-entu-complexity - no complexity warnings
+- 23:32 - init entu analytics events
+- 23:39 - demo analytics config inputs added
+- 23:45 - add hourly 42m heartbeat
