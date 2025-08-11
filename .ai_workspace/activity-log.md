@@ -79,3 +79,4 @@ Each entry: timestamp, max 10 words describing action
 
 - 05:58 - merged player-entu-analytics - analytics integration complete
 - 06:02 - test automatic heading insertion
+- 15:30 - merged feature/reopen-010-analytics - external entu script integration
