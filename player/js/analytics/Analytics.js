@@ -16,14 +16,21 @@ function haveExternalClient() {
 }
 
 export function track(eventType, details={}) {
-  if (!state.initialized) return
-  if (!haveExternalClient()) return
+  if (!state.initialized) {
+    debugLog('[Analytics] track skipped - not initialized', { eventType })
+    return
+  }
+  if (!haveExternalClient()) {
+    debugLog('[Analytics] track skipped - external client unavailable', { eventType })
+    return
+  }
   try {
     const enriched = { ...details, screenId: state.screenId }
+    debugLog('[Analytics] tracking event', { eventType, enriched })
     window.analytics.track(eventType, enriched)
-    if (window.ANALYTICS_DEBUG) debugLog('[Analytics] tracked', { eventType, enriched })
+    debugLog('[Analytics] event sent successfully', { eventType })
   } catch (e) {
-    debugLog('[Analytics] track failed', e)
+    debugLog('[Analytics] track failed', { eventType, error: e.message })
   }
 }
 

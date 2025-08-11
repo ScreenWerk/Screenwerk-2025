@@ -3,8 +3,8 @@
 export function debugLog(message, debugMode = true) {
     if (!debugMode) return
     if (typeof message === 'object') {
-        console.log('%c[DEBUG]', 'background:#333; color:#bada55', message)
+        console.log('%c[DEBUG]', '', message)
     } else {
-        console.log(`%c[DEBUG] ${message}`, 'background:#333; color:#bada55')
+        console.log(`%c[DEBUG] ${message}`, '')
     }
 }
