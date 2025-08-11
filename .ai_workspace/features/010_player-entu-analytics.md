@@ -40,34 +40,31 @@ Add lightweight analytics event emission from player to Entu Analytics service.
 - stack (truncated)
 - isUnhandledRejection (boolean)
 
-## Architecture
+## Architecture (Implemented)
 
-- New module: `player/js/analytics/Analytics.js` exporting singleton `analytics` and `initAnalytics(screenId, options)`
-- Uses in-memory queue; immediate send for runtime_error; batch for others (future optimization – phase 1: immediate send)
-- Transport: `navigator.sendBeacon` if available else `fetch` POST JSON to `${endpoint}/api/track`
-- Endpoint & site id configurable via global `window.ANALYTICS_ENDPOINT` & `window.ANALYTICS_SITE_ID`; fallback no-op if missing.
-- Scheduler integrates:
-  - Initialize analytics in constructor (after parsing args)
-  - Emit `layout_start` inside `processActiveSchedule` after successful preload
-- ConfigurationLoader integrates:
-  - Wrap fetch for configuration & emit `api_call`
-- Global error listeners registered on first init.
+- External script inclusion: `<script src="https://analytics.entu.dev/ea.min.js" data-site="screenwerk.entu.dev" defer></script>` in `player/demo.html`.
+- Thin wrapper module: `player/js/analytics/Analytics.js` exposes `initAnalytics(screenId)` and `track(eventType, details)`; it enriches events with `screenId` and delegates to `window.analytics.track` provided by external script.
+- No custom transport / endpoint management anymore (removed previous sendBeacon/fetch logic & globals `ANALYTICS_ENDPOINT` / `ANALYTICS_SITE_ID`).
+- Scheduler: calls `initAnalytics` early and emits `layout_start` when layout activates.
+- ConfigurationLoader: wraps configuration fetch to emit `api_call` with timing and status.
+- Global error listeners (`error`, `unhandledrejection`) emit `runtime_error` events.
+- Heartbeat mechanism (minute 42 each hour) retained in wrapper for future activation (currently optional—disabled unless explicitly started by Scheduler).
 
 ## Success Criteria
 
 - Sanity check passes (no new complexity warnings >8)
-- Player runs without analytics config (no errors, silent no-ops)
-- When globals provided, network requests to analytics endpoint show expected JSON payload
+- Player runs even if external script blocked (wrapper no-ops silently)
+- With script loaded, calling `track` produces events visible in Entu Analytics dashboard under configured site.
 
 ## Open Questions / Assumptions
 
-- Assumes analytics backend compatible with simple POST JSON at `/api/track`.
-- site identifier used only for backend indexing; included in payload.
-- No PII included; screenId considered acceptable.
+- External script guarantees batching / transport reliability; we treat it as a black box.
+- `data-site` value `screenwerk.entu.dev` acceptable for dev; production may use different site id.
+- No PII included; `screenId` acceptable.
 
 ## Future Enhancements
 
-- Debounced / batched sender
-- Heartbeat events (every N minutes with current layout)
-- Media-level events (start/end/error)
-- Layout restart detection (same layout triggered new cron occurrence)
+- Enable and document heartbeat event dispatch cadence.
+- Add media-level events (start/end/error).
+- Layout restart detection (same layout triggered new cron occurrence).
+- Fallback local caching if external script unreachable (defer events until available).
