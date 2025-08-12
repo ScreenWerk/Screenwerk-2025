@@ -24,7 +24,7 @@ export class ScreenWerkPlayer {
         this.isPlaying = false
         this.regions = new Map()
         this.destroyed = false
-    this.autoStart = true // Auto start playback after layout load by default
+        this.autoStart = true // Auto start playback after layout load by default
 
         // Initialize container
         this.initializeContainer()

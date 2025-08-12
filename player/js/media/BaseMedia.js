@@ -25,7 +25,7 @@ export class BaseMedia {
         this.duration = mediaData.duration || 10 // Default 10 seconds
         this.startTime = null
         this.timeoutId = null
-    this.completed = false
+        this.completed = false
 
         debugLog(`[BaseMedia] Created ${this.getType()} media: ${this.mediaData.name}`)
     }
@@ -123,7 +123,7 @@ export class BaseMedia {
 
         this.isPlaying = true
         this.startTime = Date.now()
-    this.completed = false
+        this.completed = false
 
         // Set up duration timeout
         this.timeoutId = setTimeout(() => {
@@ -151,11 +151,11 @@ export class BaseMedia {
      * @private
      */
     onComplete() {
-    if (this.completed) return
-    this.completed = true
-    this.stop()
-    debugLog(`[BaseMedia] Completed ${this.getType()}: ${this.mediaData.name}`)
-        
+        if (this.completed) return
+        this.completed = true
+        this.stop()
+        debugLog(`[BaseMedia] Completed ${this.getType()}: ${this.mediaData.name}`)
+
         // Emit completion event for playlist management
         this.container.dispatchEvent(new CustomEvent('mediaComplete', {
             detail: { media: this }
@@ -167,11 +167,11 @@ export class BaseMedia {
      */
     destroy() {
         this.stop()
-        
+
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element)
         }
-        
+
         this.element = null
         this.isLoaded = false
         debugLog(`[BaseMedia] Destroyed ${this.getType()}: ${this.mediaData.name}`)
@@ -183,7 +183,7 @@ export class BaseMedia {
      */
     getRemainingTime() {
         if (!this.isPlaying || !this.startTime) return 0
-        
+
         const elapsed = (Date.now() - this.startTime) / 1000
         return Math.max(0, this.duration - elapsed)
     }

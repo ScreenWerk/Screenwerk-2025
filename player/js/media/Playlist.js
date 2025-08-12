@@ -24,16 +24,16 @@ export class Playlist {
         this.currentIndex = 0
         this.currentMedia = null
         this.isPlaying = false
-    this.loop = playlistData.loop !== false // Default to loop (only false if explicitly false)
-    this.loopCounter = 0 // Track number of completed loops
-    debugLog(`[Playlist] Loop flag: ${this.loop}`)
+        this.loop = playlistData.loop !== false // Default to loop (only false if explicitly false)
+        this.loopCounter = 0 // Track number of completed loops
+        debugLog(`[Playlist] Loop flag: ${this.loop}`)
         this.progressionTimer = null
 
         debugLog(`[Playlist] Created playlist: ${this.playlistData.name} with ${this.mediaItems.length} items`)
-        
-    // Listen for media completion events (store bound ref for proper removal)
-    this._boundHandleMediaComplete = this.handleMediaComplete.bind(this)
-    this.container.addEventListener('mediaComplete', this._boundHandleMediaComplete)
+
+        // Listen for media completion events (store bound ref for proper removal)
+        this._boundHandleMediaComplete = this.handleMediaComplete.bind(this)
+        this.container.addEventListener('mediaComplete', this._boundHandleMediaComplete)
     }
 
     /**
@@ -71,7 +71,7 @@ export class Playlist {
 
             // Load first media item
             await this.loadMediaAtIndex(0)
-            
+
             debugLog(`[Playlist] Loaded playlist: ${this.playlistData.name}`)
             return true
         } catch (error) {
@@ -98,10 +98,10 @@ export class Playlist {
         }
         this._loadingIndex = index
 
-    await this.prepareContainerForIndexChange(index)
+        await this.prepareContainerForIndexChange(index)
 
         const mediaData = this.mediaItems[index]
-        
+
         const result = await this.instantiateAndLoadMedia(mediaData, index)
         this._loadingIndex = null
         return result
@@ -156,11 +156,11 @@ export class Playlist {
         }
         this.isPlaying = true
         const success = this.currentMedia.play()
-        
+
         if (success) {
             debugLog(`[Playlist] Started playing media ${this.currentIndex}: ${this.mediaItems[this.currentIndex].name}`)
         }
-        
+
         return success
     }
 
@@ -169,16 +169,16 @@ export class Playlist {
      */
     pause() {
         this.isPlaying = false
-        
+
         if (this.currentMedia) {
             this.currentMedia.stop()
         }
-        
+
         if (this.progressionTimer) {
             clearTimeout(this.progressionTimer)
             this.progressionTimer = null
         }
-        
+
         debugLog('[Playlist] Paused')
     }
 
@@ -220,7 +220,7 @@ export class Playlist {
      */
     getNextIndex() {
         let nextIndex = this.currentIndex + 1
-        
+
         if (nextIndex >= this.mediaItems.length) {
             if (this.loop) {
                 this.loopCounter++
@@ -232,7 +232,7 @@ export class Playlist {
                 return -1
             }
         }
-        
+
         return nextIndex
     }
 
@@ -260,9 +260,9 @@ export class Playlist {
      */
     async handleMediaComplete(_event) {
         if (!this.isPlaying) return
-        
+
         debugLog('[Playlist] Media completed, advancing to next')
-        
+
         // Small delay before advancing to next
         this.progressionTimer = setTimeout(async () => {
             await this.next()
@@ -307,18 +307,18 @@ export class Playlist {
      */
     destroy() {
         this.stop()
-        
+
         if (this.currentMedia) {
             this.currentMedia.destroy()
             this.currentMedia = null
         }
-        
+
         if (this._boundHandleMediaComplete) {
             this.container.removeEventListener('mediaComplete', this._boundHandleMediaComplete)
             this._boundHandleMediaComplete = null
         }
         this.container.innerHTML = ''
-        
+
         debugLog(`[Playlist] Destroyed playlist: ${this.playlistData.name}`)
     }
 }

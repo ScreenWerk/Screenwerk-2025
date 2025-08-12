@@ -11,7 +11,7 @@ export class VideoMedia extends BaseMedia {
         this.isVideoReady = false
         this.loadStartTime = null
         this.autoplayAttempted = false
-    this.endedHandled = false
+        this.endedHandled = false
     }
 
     /**
@@ -26,14 +26,14 @@ export class VideoMedia extends BaseMedia {
      */
     createElement() {
         this.videoElement = document.createElement('video')
-        
+
         // Apply video-specific properties
         this.videoElement.muted = this.mediaData.mute !== false // Default to muted for autoplay
         this.videoElement.loop = this.mediaData.loop === true
         this.videoElement.controls = false // Hide controls for digital signage
         this.videoElement.preload = 'auto'
         this.videoElement.playsInline = true // iOS compatibility
-        
+
         // Apply standard media styles
         this.videoElement.style.width = '100%'
         this.videoElement.style.height = '100%'
@@ -41,10 +41,10 @@ export class VideoMedia extends BaseMedia {
         this.videoElement.style.position = 'absolute'
         this.videoElement.style.top = '0'
         this.videoElement.style.left = '0'
-        
-    // Set video source (prefer uri, fall back to url)
-    this.videoElement.src = this.mediaData.uri || this.mediaData.url || ''
-        
+
+        // Set video source (prefer uri, fall back to url)
+        this.videoElement.src = this.mediaData.uri || this.mediaData.url || ''
+
         return this.videoElement
     }
 
@@ -198,9 +198,9 @@ export class VideoMedia extends BaseMedia {
                 this.videoElement.removeEventListener('ended', this._onEnded)
             }
         }
-        
+
         super.destroy()
-        
+
         this.videoElement = null
         this.isVideoReady = false
         this.autoplayAttempted = false
@@ -258,7 +258,7 @@ export class VideoMedia extends BaseMedia {
                 this.handleMediaComplete()
             }, this.mediaData.duration * 1000)
         }
-    this.debug('Video play invoked')
+        this.debug('Video play invoked')
         return true
     }
 
@@ -274,15 +274,15 @@ export class VideoMedia extends BaseMedia {
         if (!this.completed) {
             this.debug('Video stopped')
         }
-    this.endedHandled = true
+        this.endedHandled = true
     }
 
     /**
      * Map ended event to BaseMedia completion flow
      */
     handleMediaComplete() {
-    // Use BaseMedia pipeline
-    this.onComplete()
+        // Use BaseMedia pipeline
+        this.onComplete()
     }
 
     /**
@@ -299,7 +299,7 @@ export class VideoMedia extends BaseMedia {
      */
     getStatus() {
         const baseStatus = super.getStatus()
-        
+
         if (!this.videoElement) {
             return { ...baseStatus, videoStatus: 'not-created' }
         }
@@ -337,9 +337,9 @@ export class VideoMedia extends BaseMedia {
             return false
         }
 
-    // Reset completion flags and restart playback (allow 'ended' listener to trigger again)
-    this.completed = false
-    this.endedHandled = false
+        // Reset completion flags and restart playback (allow 'ended' listener to trigger again)
+        this.completed = false
+        this.endedHandled = false
         this.isPlaying = true
         this.startTime = Date.now()
 

@@ -22,21 +22,21 @@ export class MediaFactory {
         }
 
         const mediaType = MediaFactory.detectMediaType(mediaData)
-        
+
         switch (mediaType) {
             case 'image':
                 debugLog(`[MediaFactory] Creating ImageMedia: ${mediaData.name}`)
                 return new ImageMedia(mediaData, container)
-            
+
             case 'video':
                 debugLog(`[MediaFactory] Creating VideoMedia: ${mediaData.name}`)
                 return new VideoMedia(mediaData, container)
-            
+
             case 'text':
                 // TODO: Implement TextMedia in future
                 debugLog(`[MediaFactory] Text media not yet implemented: ${mediaData.name}`)
                 return new BaseMedia(mediaData, container)
-            
+
             default:
                 debugLog(`[MediaFactory] Unknown media type '${mediaType}', using BaseMedia: ${mediaData.name}`)
                 return new BaseMedia(mediaData, container)
@@ -57,7 +57,7 @@ export class MediaFactory {
 
         // Detect from URI extension
         const uri = mediaData.uri?.toLowerCase() || ''
-        
+
         // Image extensions
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp']
         if (imageExtensions.some(ext => uri.includes(ext))) {

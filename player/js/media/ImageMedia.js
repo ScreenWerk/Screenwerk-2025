@@ -15,7 +15,7 @@ export class ImageMedia extends BaseMedia {
      */
     constructor(mediaData, container) {
         super(mediaData, container)
-        
+
         this.image = null
         this.loadPromise = null
         // Always use fill (stretch) behavior - stretch property removed from pipeline
@@ -38,7 +38,7 @@ export class ImageMedia extends BaseMedia {
 
         // Check if URI looks like an image
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
-        const hasImageExtension = imageExtensions.some(ext => 
+        const hasImageExtension = imageExtensions.some(ext =>
             this.mediaData.uri.toLowerCase().includes(ext)
         )
 
@@ -72,10 +72,10 @@ export class ImageMedia extends BaseMedia {
         const img = document.createElement('img')
         img.style.cssText = this.getImageStyles()
         img.alt = this.mediaData.name || 'ScreenWerk Image'
-        
+
         // Try to handle CORS issues
         img.crossOrigin = 'anonymous'
-        
+
         // Error handling for display purposes
         img.addEventListener('error', (event) => {
             console.error(`[ImageMedia] Failed to load image: ${this.mediaData.uri}`)
@@ -85,7 +85,7 @@ export class ImageMedia extends BaseMedia {
             console.error('[ImageMedia] Image naturalHeight:', img.naturalHeight)
             this.showErrorState(container)
         })
-        
+
         // Success handling for display purposes
         img.addEventListener('load', () => {
             container.classList.add('loaded')
@@ -151,10 +151,10 @@ export class ImageMedia extends BaseMedia {
             }
 
             this.element = this.createElement()
-            
+
             // Start loading the image
             this.loadPromise = this.loadImage()
-            
+
             this.container.appendChild(this.element)
             this.isLoaded = true
 
@@ -198,9 +198,9 @@ export class ImageMedia extends BaseMedia {
             // Use original URL without cache-busting
             // ScreenWerk media server doesn't support query parameters
             const imageUrl = this.mediaData.uri
-            
+
             debugLog(`[ImageMedia] Setting image src: ${imageUrl}`)
-            
+
             // Start loading
             this.image.src = imageUrl
         })
@@ -240,16 +240,16 @@ export class ImageMedia extends BaseMedia {
         if (this.image) {
             // Clear src first to stop any loading
             this.image.src = ''
-            
+
             // Set a data URL to prevent fallback to current page
             this.image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-            
+
             this.image = null
         }
-        
+
         this.loadPromise = null
         super.destroy()
-        
+
         debugLog(`[ImageMedia] Image media destroyed: ${this.mediaData.name}`)
     }
 

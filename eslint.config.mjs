@@ -20,6 +20,7 @@ export default [
             'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
             'no-console': 'off',
             'semi': ['error', 'never'],
+            'indent': ['error', 4, { SwitchCase: 1 }],
             'quotes': ['error', 'single'],
             'complexity': ['warn', { max: 8 }]
         }

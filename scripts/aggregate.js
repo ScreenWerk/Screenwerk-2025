@@ -21,46 +21,46 @@ const low_trshold = 42
 var paused = false
 
 fetch(list_q, {
-  method: 'GET',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Accept-Encoding': 'deflate'
-  }
-})
-.then(response => response.json())
-.then(data => data.entities.map(entity => entity._id))
-.then(eid_a => {
-  const total_entities = eid_a.length
-  eid_a.forEach(eid => {
-    readable.push(eid)
-  })
-  readable.push(null)
-
-  readable.on('data', (eid) => {
-    queue_counter ++
-    processing_counter ++
-    if (queue_counter > full_trshold) {
-      console.log(`@${processing_counter} ${processed_counter}/${total_entities} Pressing breaks...`)
-      readable.pause()
-      paused = true
-    }
-
-    const url = `${aggregate_q}${eid}/aggregate`
-    fetch(url, {
-      method: 'GET',
-      headers: {
+    method: 'GET',
+    headers: {
         'Authorization': `Bearer ${token}`,
         'Accept-Encoding': 'deflate'
-      }
-    })
-    .then(_response => {
-      queue_counter--
-      processed_counter++
-      if (queue_counter < low_trshold && paused) {
-        console.log(`@${processing_counter} ${processed_counter}/${total_entities} Resuming...`)
-        readable.resume()
-        paused = false
-      }
-    })
-  })
+    }
 })
+    .then(response => response.json())
+    .then(data => data.entities.map(entity => entity._id))
+    .then(eid_a => {
+        const total_entities = eid_a.length
+        eid_a.forEach(eid => {
+            readable.push(eid)
+        })
+        readable.push(null)
+
+        readable.on('data', (eid) => {
+            queue_counter++
+            processing_counter++
+            if (queue_counter > full_trshold) {
+                console.log(`@${processing_counter} ${processed_counter}/${total_entities} Pressing breaks...`)
+                readable.pause()
+                paused = true
+            }
+
+            const url = `${aggregate_q}${eid}/aggregate`
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept-Encoding': 'deflate'
+                }
+            })
+                .then(_response => {
+                    queue_counter--
+                    processed_counter++
+                    if (queue_counter < low_trshold && paused) {
+                        console.log(`@${processing_counter} ${processed_counter}/${total_entities} Resuming...`)
+                        readable.resume()
+                        paused = false
+                    }
+                })
+        })
+    })

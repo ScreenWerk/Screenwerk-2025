@@ -30,27 +30,27 @@ export class LayoutScheduler {
     constructor(configurationId, onLayoutChange, evaluationInterval = 30000, pollingInterval = 300000) {
         // Parse constructor arguments
         const options = this.parseConstructorArgs(configurationId, onLayoutChange, evaluationInterval, pollingInterval)
-        
+
         this.configurationId = options.configurationId
         this.onLayoutChange = options.onLayoutChange
         this.evaluationInterval = options.evaluationInterval
         this.pollingInterval = options.pollingInterval
-        
-    this.configuration = null
-    this.currentLayoutId = null
-    this.isEvaluating = false // Prevent concurrent evaluations
-        
-    this.isLoadingConfiguration = false // Prevent concurrent configuration loading
-    this.isRunning = false
-    this.destroyed = false
-        
-    this.evaluationTimer = null
-    this.pollingTimer = null
-        
+
+        this.configuration = null
+        this.currentLayoutId = null
+        this.isEvaluating = false // Prevent concurrent evaluations
+
+        this.isLoadingConfiguration = false // Prevent concurrent configuration loading
+        this.isRunning = false
+        this.destroyed = false
+
+        this.evaluationTimer = null
+        this.pollingTimer = null
+
         this.mediaService = new MediaService()
         this.mediaServiceReady = false
-    // Initialize analytics (graceful no-op if globals absent)
-    try { initAnalytics(this.configurationId) } catch (e) { debugLog('[Scheduler] Analytics init failed', e) }
+        // Initialize analytics (graceful no-op if globals absent)
+        try { initAnalytics(this.configurationId) } catch (e) { debugLog('[Scheduler] Analytics init failed', e) }
 
         debugLog('[Scheduler] Clean Layout Scheduler initialized', {
             configurationId: this.configurationId,
@@ -74,7 +74,7 @@ export class LayoutScheduler {
             const options = configurationId
             return {
                 configurationId: options.configurationId,
-                onLayoutChange: options.onLayoutChange || (() => {}),
+                onLayoutChange: options.onLayoutChange || (() => { }),
                 evaluationInterval: options.evaluationInterval || 30000,
                 pollingInterval: options.pollingInterval || 300000
             }
@@ -82,7 +82,7 @@ export class LayoutScheduler {
             // Separate parameters style: new LayoutScheduler("id", callback, 30000, 300000)
             return {
                 configurationId: configurationId,
-                onLayoutChange: onLayoutChange || (() => {}),
+                onLayoutChange: onLayoutChange || (() => { }),
                 evaluationInterval: evaluationInterval,
                 pollingInterval: pollingInterval
             }
@@ -197,7 +197,7 @@ export class LayoutScheduler {
      * @private
      */
     startConfigurationPolling() {
-        debugLog(`[Scheduler] Starting configuration polling every ${this.pollingInterval}ms (${this.pollingInterval/1000}s)`)
+        debugLog(`[Scheduler] Starting configuration polling every ${this.pollingInterval}ms (${this.pollingInterval / 1000}s)`)
         this.pollingTimer = setInterval(async () => {
             debugLog('[Scheduler] Configuration polling triggered')
             try {
@@ -245,18 +245,18 @@ export class LayoutScheduler {
         }
 
         debugLog(`[Scheduler] Layout change: ${this.currentLayoutId} → ${layoutId}`)
-        
+
         try {
             const layout = transformScheduleToLayout(schedule)
-            
+
             // Preload all media before triggering layout change
             await this.preloadLayoutMedia(layout)
-            
+
             this.currentLayoutId = layoutId
             this.onLayoutChange(layout)
             // Emit layout_start analytics event
             try { trackAnalytics('layout_start', { layoutId, scheduleId: schedule.eid || schedule._id }) } catch { /* swallow */ }
-            
+
         } catch (error) {
             console.error('[Scheduler] Failed to process layout change:', error)
         }
