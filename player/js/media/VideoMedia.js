@@ -37,7 +37,7 @@ export class VideoMedia extends BaseMedia {
         // Apply standard media styles
         this.videoElement.style.width = '100%'
         this.videoElement.style.height = '100%'
-        this.videoElement.style.objectFit = 'cover' // Default to cover mode
+        this.videoElement.style.objectFit = 'fill' // Stretch to fill entire region
         this.videoElement.style.position = 'absolute'
         this.videoElement.style.top = '0'
         this.videoElement.style.left = '0'
