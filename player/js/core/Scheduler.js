@@ -27,10 +27,26 @@ try {
     LocalStore = null
 }
 
+// Helpers to keep constructor parsing simple and lint-friendly
+function isPreloadedConfiguration(value) {
+    return !!value && typeof value === 'object' && Array.isArray(value.schedules)
+}
+
+function normalizeCallback(cb) {
+    return typeof cb === 'function' ? cb : () => { }
+}
+
+function normalizeIntervals(evaluationInterval, pollingInterval) {
+    return {
+        evaluationInterval: evaluationInterval || 30000,
+        pollingInterval: pollingInterval || 300000
+    }
+}
+
 export class LayoutScheduler {
     /**
      * Create a clean layout scheduler
-     * @param {string|Object} configurationId - ScreenWerk configuration ID (24-char hex string) or options object
+     * @param {string|Object} configurationId - ScreenWerk configuration ID (24-char hex string) or options object or pre-loaded configuration
      * @param {Function} onLayoutChange - Callback when layout changes (if first param is string)
      * @param {number} evaluationInterval - Schedule evaluation interval in ms (default: 30s)
      * @param {number} pollingInterval - Configuration polling interval in ms (default: 5min)
@@ -41,7 +57,7 @@ export class LayoutScheduler {
         this.onLayoutChange = options.onLayoutChange
         this.evaluationInterval = options.evaluationInterval
         this.pollingInterval = options.pollingInterval
-        this.configuration = null
+        this.configuration = options.preloadedConfiguration || null // Support pre-loaded config
         this.currentLayoutId = null
         this.isEvaluating = false
         this.isLoadingConfiguration = false
@@ -57,7 +73,8 @@ export class LayoutScheduler {
             configurationId: this.configurationId,
             evaluationInterval: this.evaluationInterval,
             pollingInterval: this.pollingInterval,
-            warmLoaded: this.warmLoaded
+            warmLoaded: this.warmLoaded,
+            preloaded: !!this.configuration
         })
     }
 
@@ -89,23 +106,40 @@ export class LayoutScheduler {
      * @private
      */
     parseConstructorArgs(configurationId, onLayoutChange, evaluationInterval, pollingInterval) {
-        if (typeof configurationId === 'object' && configurationId !== null) {
-            // Object style: new LayoutScheduler({ configurationId: "...", onLayoutChange: ... })
+        const { evaluationInterval: evalMs, pollingInterval: pollMs } = normalizeIntervals(evaluationInterval, pollingInterval)
+
+        // Case 1: A full configuration object passed directly
+        if (isPreloadedConfiguration(configurationId)) {
+            debugLog('[Scheduler] Detected pre-loaded configuration object')
+            return {
+                configurationId: configurationId.configurationEid || configurationId.screenEid || 'unknown',
+                onLayoutChange: normalizeCallback(onLayoutChange),
+                evaluationInterval: evalMs,
+                pollingInterval: pollMs,
+                preloadedConfiguration: configurationId
+            }
+        }
+
+        // Case 2: Options object style
+        if (configurationId && typeof configurationId === 'object') {
             const options = configurationId
+            const { evaluationInterval: optEval, pollingInterval: optPoll } = normalizeIntervals(options.evaluationInterval, options.pollingInterval)
             return {
                 configurationId: options.configurationId,
-                onLayoutChange: options.onLayoutChange || (() => { }),
-                evaluationInterval: options.evaluationInterval || 30000,
-                pollingInterval: options.pollingInterval || 300000
+                onLayoutChange: normalizeCallback(options.onLayoutChange),
+                evaluationInterval: optEval,
+                pollingInterval: optPoll,
+                preloadedConfiguration: options.preloadedConfiguration || null
             }
-        } else {
-            // Separate parameters style: new LayoutScheduler("id", callback, 30000, 300000)
-            return {
-                configurationId: configurationId,
-                onLayoutChange: onLayoutChange || (() => { }),
-                evaluationInterval: evaluationInterval,
-                pollingInterval: pollingInterval
-            }
+        }
+
+        // Case 3: Separate parameters style
+        return {
+            configurationId: configurationId,
+            onLayoutChange: normalizeCallback(onLayoutChange),
+            evaluationInterval: evalMs,
+            pollingInterval: pollMs,
+            preloadedConfiguration: null
         }
     }
 
@@ -133,9 +167,9 @@ export class LayoutScheduler {
                 debugLog('[Scheduler] Media service initialized successfully')
             }
 
-            // Load initial configuration (allow immediate evaluation if warm-loaded)
-            if (this.warmLoaded && this.configuration) {
-                debugLog('[Scheduler] Using warm-loaded configuration; refreshing in background')
+            // Load initial configuration (allow immediate evaluation if warm-loaded or pre-loaded)
+            if (this.configuration) {
+                debugLog('[Scheduler] Using pre-loaded/warm-loaded configuration; refreshing in background')
                 // Fire off background refresh without blocking initial start/evaluation
                 this.loadConfiguration().catch(err => console.error('[Scheduler] Background config refresh failed', err))
             } else {

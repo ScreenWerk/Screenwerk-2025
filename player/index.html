@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenWerk Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .player-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #000;
+        }
+        
+        /* Emergency UI - only shown if screen ID cannot be determined */
+        .emergency-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .emergency-ui h1 {
+            color: #ff4444;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .emergency-ui input {
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            background: #222;
+            color: #fff;
+            width: 300px;
+            margin: 10px;
+            text-align: center;
+        }
+        
+        .emergency-ui button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .emergency-ui button:hover {
+            background: #1565c0;
+        }
+        
+        .emergency-ui .help-text {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 18px;
+            z-index: 999;
+        }
+        
+        /* Hide emergency UI when player is active */
+        .player-active .emergency-ui {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container" id="playerContainer">
+        <div class="loading" id="loadingIndicator">
+            ⏳ Initializing ScreenWerk Player...
+        </div>
+        
+        <!-- Emergency UI - only shown if no screen ID available -->
+        <div class="emergency-ui" id="emergencyUI">
+            <h1>⚠️ Screen ID Required</h1>
+            <p>Unable to determine screen ID from URL or cache.</p>
+            <input 
+                type="text" 
+                id="emergencyScreenInput" 
+                placeholder="Enter 24-character screen ID"
+                pattern="[0-9a-f]{24}"
+                maxlength="24"
+            >
+            <br>
+            <button id="emergencyStartBtn">Start Player</button>
+            <div class="help-text">
+                Production usage: <code>player/#your_screen_id</code><br>
+                Example: <code>player/#507f1f77bcf86cd799439011</code>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Production ScreenWerk Player
+        // Fail-fast design with console-only debugging
+        
+        console.log('📦 Loading ScreenWerk modules...');
+        
+        import { ScreenWerkPlayer } from "./js/core/Player.js";
+        import { LayoutScheduler } from "./js/core/Scheduler.js";
+        import { SCREENWERK_PUBLISHER_API } from "../shared/config/constants.js";
+        import * as LocalStore from './js/storage/LocalStore.js';
+        
+        console.log('✅ All modules loaded successfully');
+        
+        class ProductionPlayer {
+            constructor() {
+                console.log('🎮 ProductionPlayer constructor called');
+                this.player = null;
+                this.scheduler = null;
+                this.screenId = null;
+                this.config = null;
+                
+                // Console logging only
+                this.log = (level, message, data) => {
+                    const timestamp = new Date().toISOString();
+                    console[level](`[ScreenWerk ${timestamp}] ${message}`, data || '');
+                };
+                
+                console.log('🚀 About to call init()');
+                this.init();
+            }
+            
+            async init() {
+                try {
+                    this.log('info', '🚀 ScreenWerk Player starting...');
+                    
+                    // Step 1: Determine screen ID (URL → localStorage → emergency UI)
+                    this.screenId = this.getScreenId();
+                    
+                    if (!this.screenId) {
+                        this.log('warn', '⚠️ No screen ID found, showing emergency UI');
+                        this.showEmergencyUI();
+                        return;
+                    }
+                    
+                    this.log('info', `📱 Screen ID: ${this.screenId}`);
+                    
+                    // Step 2: Load configuration
+                    await this.loadConfiguration();
+                    
+                    // Step 3: Initialize player and scheduler
+                    await this.initializePlayer();
+                    
+                    // Step 4: Start playback
+                    await this.startPlayback();
+                    
+                    this.log('info', '✅ ScreenWerk Player ready and running');
+                    
+                } catch (error) {
+                    this.log('error', '💥 Init error details:', error);
+                    this.handleFatalError('Initialization failed', error);
+                }
+            }
+            
+            getScreenId() {
+                // Priority 1: URL hash (e.g., /player/#6898784a463d318c3f03d666)
+                const hash = window.location.hash.replace('#', '');
+                if (hash && /^[0-9a-f]{24}$/i.test(hash)) {
+                    this.log('info', '🔗 Screen ID from URL hash');
+                    return hash.toLowerCase();
+                }
+                
+                // Priority 2: localStorage cache
+                const cachedScreenId = LocalStore.loadScreenId();
+                if (cachedScreenId && /^[0-9a-f]{24}$/i.test(cachedScreenId)) {
+                    this.log('info', '💾 Screen ID from localStorage cache');
+                    return cachedScreenId;
+                }
+                
+                // Priority 3: Emergency UI (handled in init)
+                this.log('warn', '❌ No valid screen ID found in hash or cache');
+                return null;
+            }
+            
+            async loadConfiguration() {
+                this.log('info', '⬇️ Loading configuration...');
+                
+                // Try cache first for speed
+                const cachedConfig = LocalStore.loadConfiguration(this.screenId);
+                if (cachedConfig) {
+                    this.log('info', `🔍 Raw cached config:`, cachedConfig);
+                    this.config = cachedConfig.config; // Fixed: use .config not .configuration
+                    this.log('info', `💾 Loaded configuration from cache (${cachedConfig.fingerprint.schedules} schedules)`);
+                    this.log('info', `🔍 Config object:`, this.config);
+                    
+                    // Start with cached config, fetch fresh in background
+                    this.fetchFreshConfiguration();
+                    return;
+                }
+                
+                // No cache - must fetch fresh
+                await this.fetchFreshConfiguration();
+            }
+            
+            async fetchFreshConfiguration() {
+                try {
+                    const configUrl = `${SCREENWERK_PUBLISHER_API}${this.screenId}.json`;
+                    
+                    this.log('info', `🌐 Fetching fresh config from: ${configUrl}`);
+                    
+                    const configResponse = await fetch(configUrl);
+                    if (!configResponse.ok) {
+                        throw new Error(`Config fetch failed: HTTP ${configResponse.status}`);
+                    }
+                    
+                    const freshConfig = await configResponse.json();
+                    
+                    // Validate configuration
+                    if (!freshConfig || !freshConfig.schedules || !Array.isArray(freshConfig.schedules)) {
+                        throw new Error('Invalid configuration structure');
+                    }
+                    
+                    this.config = freshConfig;
+                    this.log('info', `✅ Fresh configuration loaded (${freshConfig.schedules.length} schedules)`);
+                    
+                    // Cache the fresh configuration
+                    LocalStore.saveConfiguration(this.screenId, freshConfig);
+                    LocalStore.saveScreenId(this.screenId);
+                    
+                } catch (error) {
+                    this.handleFatalError('Configuration fetch failed', error);
+                }
+            }
+            
+            async initializePlayer() {
+                this.log('info', '🎮 Initializing player components...');
+                this.log('info', `🔍 Config for scheduler:`, this.config);
+                
+                const container = document.getElementById('playerContainer');
+                
+                // Initialize player
+                this.player = new ScreenWerkPlayer(container);
+                
+                // Initialize scheduler with configuration and layout change callback
+                this.scheduler = new LayoutScheduler(this.config, async (layout) => {
+                    this.log('info', `🔄 Layout change requested: ${layout.name}`);
+                    try {
+                        const loaded = await this.player.loadLayout(layout);
+                        if (loaded) {
+                            this.log('info', '✅ Layout loaded successfully');
+                        } else {
+                            this.log('error', '❌ Failed to load layout');
+                        }
+                    } catch (error) {
+                        this.log('error', '💥 Layout loading error:', error);
+                    }
+                });
+                
+                this.log('info', '✅ Player components initialized');
+            }
+            
+            async startPlayback() {
+                this.log('info', '▶️ Starting playback...');
+                
+                // Hide loading indicator
+                const loading = document.getElementById('loadingIndicator');
+                if (loading) {
+                    loading.style.display = 'none';
+                    this.log('info', '🫥 Loading indicator hidden');
+                }
+                
+                // Mark player as active
+                document.body.classList.add('player-active');
+                
+                // Start scheduler
+                await this.scheduler.start();
+                
+                this.log('info', '🎵 Playback started');
+            }
+            
+            showEmergencyUI() {
+                this.log('warn', '🚨 Showing emergency UI for manual screen ID entry');
+                
+                const loading = document.getElementById('loadingIndicator');
+                const emergencyUI = document.getElementById('emergencyUI');
+                const input = document.getElementById('emergencyScreenInput');
+                const button = document.getElementById('emergencyStartBtn');
+                
+                if (loading) loading.style.display = 'none';
+                if (emergencyUI) emergencyUI.style.display = 'block';
+                
+                // Emergency UI event handlers
+                const handleStart = async () => {
+                    const inputScreenId = input.value.trim().toLowerCase();
+                    if (!/^[0-9a-f]{24}$/.test(inputScreenId)) {
+                        this.log('error', '❌ Invalid screen ID format in emergency input');
+                        input.style.borderColor = '#ff4444';
+                        return;
+                    }
+                    
+                    input.style.borderColor = '#333';
+                    this.screenId = inputScreenId;
+                    
+                    // Hide emergency UI and restart
+                    emergencyUI.style.display = 'none';
+                    loading.style.display = 'block';
+                    
+                    // Continue initialization
+                    try {
+                        await this.loadConfiguration();
+                        await this.initializePlayer();
+                        await this.startPlayback();
+                        this.log('info', '✅ ScreenWerk Player ready (emergency start)');
+                    } catch (error) {
+                        this.handleFatalError('Emergency start failed', error);
+                    }
+                };
+                
+                button.addEventListener('click', handleStart);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleStart();
+                });
+                
+                // Focus input for immediate typing
+                input.focus();
+            }
+            
+            handleFatalError(message, error) {
+                this.log('error', `💥 FATAL: ${message}`, error);
+                
+                // Show error in emergency UI if available
+                const emergencyUI = document.getElementById('emergencyUI');
+                const loading = document.getElementById('loadingIndicator');
+                
+                if (loading) loading.style.display = 'none';
+                if (emergencyUI) {
+                    emergencyUI.style.display = 'block';
+                    emergencyUI.innerHTML = `
+                        <h1>💥 Fatal Error</h1>
+                        <p><strong>${message}</strong></p>
+                        <p style="color: #ff6666; margin: 20px 0; font-family: monospace; font-size: 14px;">
+                            ${error.message || error}
+                        </p>
+                        <button onclick="location.reload()">🔄 Reload Player</button>
+                        <div class="help-text">
+                            Check browser console for detailed error information.
+                        </div>
+                    `;
+                }
+                
+                // Fail fast - stop execution
+                throw error;
+            }
+        }
+        
+        // Auto-start production player
+        console.log('🎯 Setting up player initialization');
+        
+        function startPlayer() {
+            console.log('🎬 Starting ScreenWerk Player...');
+            try {
+                console.log('🔧 Creating ProductionPlayer instance');
+                const playerInstance = new ProductionPlayer();
+                console.log('✅ ProductionPlayer created:', playerInstance);
+            } catch (error) {
+                console.error('💥 Failed to create ProductionPlayer:', error);
+            }
+        }
+        
+        // Check if DOM is already loaded
+        if (document.readyState === 'loading') {
+            console.log('📋 DOM still loading, waiting for DOMContentLoaded');
+            window.addEventListener('DOMContentLoaded', startPlayer);
+        } else {
+            console.log('📋 DOM already loaded, starting immediately');
+            startPlayer();
+        }
+        
+        // Expose minimal global interface for debugging
+        window.ScreenWerk = {
+            version: '2025.1',
+            player: null,
+            scheduler: null
+        };
+    </script>
+</body>
+</html>
