@@ -204,7 +204,18 @@
       </div>
 
       <div class="info-section">
-        <h3>📊 Configuration Data:</h3>
+        <h3>� Config Cache:</h3>
+        <div id="configCacheStatus" class="status">No screen selected</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;">
+          <button id="listConfigsBtn" disabled>📋 List Cached</button>
+          <button id="clearCurrentConfigBtn" disabled>🗑️ Clear Current</button>
+          <button id="clearAllConfigsBtn" disabled>🔥 Clear All</button>
+        </div>
+        <div id="cachedConfigsList" class="log" style="height:120px;">(empty)</div>
+      </div>
+
+      <div class="info-section">
+        <h3>�📊 Configuration Data:</h3>
         <div id="configData" class="status">No configuration loaded</div>
       </div>
 
@@ -222,6 +233,7 @@
       import { ScreenWerkPlayer } from "./js/core/Player.js";
       import { LayoutScheduler } from "./js/core/Scheduler.js";
       import { SCREENWERK_PUBLISHER_API } from "../../shared/config/constants.js";
+  import * as LocalStore from './js/storage/LocalStore.js'
 
       let player = null;
       let scheduler = null;
@@ -241,6 +253,11 @@
       const clearLogBtn = document.getElementById("clearLogBtn");
       const inspectCacheBtn = document.getElementById("inspectCacheBtn");
       const clearCacheBtn = document.getElementById("clearCacheBtn");
+  const configCacheStatusDiv = document.getElementById('configCacheStatus')
+  const listConfigsBtn = document.getElementById('listConfigsBtn')
+  const clearCurrentConfigBtn = document.getElementById('clearCurrentConfigBtn')
+  const clearAllConfigsBtn = document.getElementById('clearAllConfigsBtn')
+  const cachedConfigsListDiv = document.getElementById('cachedConfigsList')
       const statusDiv = document.getElementById("status");
       const apiStatusDiv = document.getElementById("apiStatus");
       const playerContainer = document.getElementById("playerContainer");
@@ -300,6 +317,29 @@
                     Status: ${schedulerState.destroyed ? "Destroyed" : "Active"}
                 `;
         }
+
+        updateConfigCacheStatus()
+      }
+
+      function updateConfigCacheStatus() {
+        const screenId = screenIdInput.value.trim()
+        if (!/^[0-9a-f]{24}$/.test(screenId)) {
+          configCacheStatusDiv.textContent = '❌ Invalid / no screen ID'
+          listConfigsBtn.disabled = false
+          clearCurrentConfigBtn.disabled = true
+          clearAllConfigsBtn.disabled = false
+          return
+        }
+        const wrapper = LocalStore.loadConfiguration(screenId)
+        if (wrapper) {
+          configCacheStatusDiv.innerHTML = `✅ Cached config • Schedules: ${wrapper.fingerprint.schedules} • Saved: ${wrapper.savedAt}`
+          clearCurrentConfigBtn.disabled = false
+        } else {
+          configCacheStatusDiv.textContent = '📭 No cached configuration for this screen'
+          clearCurrentConfigBtn.disabled = true
+        }
+        listConfigsBtn.disabled = false
+        clearAllConfigsBtn.disabled = false
       }
 
       // Fetch configuration from API
@@ -327,6 +367,11 @@
           }
 
           currentConfiguration = await response.json();
+
+          // Cache screenId + configuration
+          try { LocalStore.saveScreenId(screenId) } catch {}
+          try { LocalStore.saveConfiguration(screenId, currentConfiguration) } catch {}
+          updateConfigCacheStatus()
 
           // Display configuration info
           configDataDiv.innerHTML = `
@@ -359,7 +404,7 @@
           } schedules found`;
 
           // Enable initialization
-          initBtn.disabled = false;
+          if (!player && !scheduler) initBtn.disabled = false;
 
           console.log("✅ Configuration fetched successfully");
           console.log(
@@ -369,6 +414,7 @@
               currentConfiguration.updateInterval
             }min`
           );
+          console.log('💾 Cached configuration locally')
         } catch (error) {
           console.error("Failed to fetch configuration:", error);
           statusDiv.textContent = `❌ Failed to fetch configuration: ${error.message}`;
@@ -409,6 +455,8 @@
 
           statusDiv.textContent =
             "✅ Player and Scheduler initialized! Ready to start.";
+          // Disable init button now that components exist
+          initBtn.disabled = true;
 
           // Enable controls
           startSchedulerBtn.disabled = false;
@@ -417,6 +465,9 @@
           destroyBtn.disabled = false;
           inspectCacheBtn.disabled = false;
           clearCacheBtn.disabled = false;
+          listConfigsBtn.disabled = false;
+          clearAllConfigsBtn.disabled = false;
+          updateConfigCacheStatus()
 
           updateStatus();
         } catch (error) {
@@ -439,6 +490,7 @@
           stopSchedulerBtn.disabled = false;
 
           updateStatus();
+          updateConfigCacheStatus()
         } catch (error) {
           console.error("Failed to start scheduler:", error);
           statusDiv.textContent = `❌ Scheduler start failed: ${error.message}`;
@@ -449,7 +501,7 @@
       function evaluateSchedules() {
         if (scheduler) {
           console.log("⚡ Manual schedule evaluation triggered");
-          scheduler.evaluateSchedules();
+          scheduler.evaluateNow();
           updateStatus();
         }
       }
@@ -567,6 +619,58 @@
           fetchConfiguration();
         }
       });
+
+      screenIdInput.addEventListener('blur', () => {
+        const id = screenIdInput.value.trim()
+        if (/^[0-9a-f]{24}$/.test(id)) {
+          LocalStore.saveScreenId(id)
+          updateConfigCacheStatus()
+        }
+      })
+
+      listConfigsBtn.addEventListener('click', () => {
+        const list = LocalStore.listCachedScreens()
+        if (!list.length) {
+          cachedConfigsListDiv.textContent = '(no cached configurations)'
+          return
+        }
+        cachedConfigsListDiv.textContent = list.map(i => `${i.screenId} • schedules=${i.schedules} • savedAt=${i.savedAt}`).join('\n')
+      })
+
+      clearCurrentConfigBtn.addEventListener('click', () => {
+        const id = screenIdInput.value.trim()
+        if (!/^[0-9a-f]{24}$/.test(id)) return
+        if (!confirm('Clear cached configuration for this screen?')) return
+        LocalStore.clearConfiguration(id)
+        updateConfigCacheStatus()
+      })
+
+      clearAllConfigsBtn.addEventListener('click', () => {
+        if (!confirm('Clear ALL cached screen configurations (sw: keys)?')) return
+        LocalStore.clearAll()
+        cachedConfigsListDiv.textContent = '(empty)'
+        updateConfigCacheStatus()
+      })
+
+      // Bootstrap screen ID from cache if available and auto-start if config cached
+      const restoredScreen = LocalStore.loadScreenId()
+      if (restoredScreen && !screenIdInput.value) {
+        screenIdInput.value = restoredScreen
+        console.log('🔁 Restored last screen ID from cache')
+      }
+      updateConfigCacheStatus()
+      // If we have a cached configuration for this screen, auto-initialize
+      ;(function attemptAutoStart() {
+        const sid = screenIdInput.value.trim()
+        if (!/^[0-9a-f]{24}$/.test(sid)) return
+        const cached = LocalStore.loadConfiguration(sid)
+        if (!cached) return
+        console.log('⚡ Cached configuration found - auto initializing player & scheduler')
+        initializeComponents()
+        // Auto start scheduler to render immediately
+        startSchedulerBtn.click()
+  initBtn.disabled = true
+      })()
 
       // Initialize display
       updateStatus();

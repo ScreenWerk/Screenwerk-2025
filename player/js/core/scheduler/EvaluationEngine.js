@@ -31,8 +31,10 @@ export async function evaluateSchedules(scheduler) {
 }
 
 export function findActiveSchedule(configuration, currentTime) {
-    if (!configuration.schedules || configuration.schedules.length === 0) return null
-    debugLog(`[Evaluation] Evaluating schedules at ${currentTime.toISOString()}`)
+    if (!configuration.schedules || configuration.schedules.length === 0) {
+        debugLog('[Evaluation] Configuration has no schedules array or it is empty')
+        return null
+    }
     const validSchedules = getValidSchedules(configuration)
     if (!validSchedules.length) {
         debugLog('[Evaluation] No valid schedules with crontabs found')
@@ -44,7 +46,7 @@ export function findActiveSchedule(configuration, currentTime) {
 export function getValidSchedules(configuration) {
     return configuration.schedules.filter(schedule => {
         if (!schedule.crontab) {
-            debugLog(`[Evaluation] Schedule ${schedule.eid} has no crontab, skipping`)
+            debugLog(`[Evaluation] Skip: schedule ${schedule.eid || schedule.name} missing crontab`)
             return false
         }
         return true
@@ -52,24 +54,37 @@ export function getValidSchedules(configuration) {
 }
 
 export function findMostRecentSchedule(validSchedules, currentTime) {
-    let mostRecentSchedule = null
-    let mostRecentTime = null
-    for (const schedule of validSchedules) {
-        const recentOccurrence = getMostRecentOccurrence(schedule, currentTime)
-        if (recentOccurrence) {
-            debugLog(`[Evaluation] Schedule "${schedule.name}": most recent occurrence at ${recentOccurrence.toISOString()}`)
-            if (!mostRecentTime || recentOccurrence > mostRecentTime) {
-                mostRecentTime = recentOccurrence
-                mostRecentSchedule = schedule
-            }
-        } else {
-            debugLog(`[Evaluation] Schedule "${schedule.name}": no recent occurrence found`)
+    const state = { mostRecentSchedule: null, mostRecentTime: null }
+    validSchedules.forEach(schedule => updateMostRecent(state, schedule, currentTime))
+    const { mostRecentSchedule, mostRecentTime } = state
+    if (!mostRecentSchedule) {
+        debugLog('[Evaluation] No recent schedule occurrences found')
+        return null
+    }
+    debugLog(`[Evaluation] Selected schedule: "${mostRecentSchedule.name}" (last occurrence ${mostRecentTime.toISOString()})`)
+    logNextOccurrenceHint(mostRecentSchedule, currentTime)
+    return mostRecentSchedule
+}
+
+function updateMostRecent(state, schedule, currentTime) {
+    const recentOccurrence = getMostRecentOccurrence(schedule, currentTime)
+    if (recentOccurrence) {
+        debugLog(`[Evaluation] Schedule "${schedule.name}": last occurrence ${recentOccurrence.toISOString()}`)
+        if (!state.mostRecentTime || recentOccurrence > state.mostRecentTime) {
+            state.mostRecentTime = recentOccurrence
+            state.mostRecentSchedule = schedule
         }
+    } else {
+        debugLog(`[Evaluation] Schedule "${schedule.name}": no recent occurrence found (cron may not have fired yet)`)
     }
-    if (mostRecentSchedule) {
-        debugLog(`[Evaluation] Most recent schedule: "${mostRecentSchedule.name}" at ${mostRecentTime.toISOString()}`)
-        return mostRecentSchedule
-    }
-    debugLog('[Evaluation] No recent schedule occurrences found')
-    return null
+}
+
+function logNextOccurrenceHint(schedule, currentTime) {
+    try {
+        if (typeof window !== 'undefined' && window.later && schedule.crontab) {
+            const cronSchedule = window.later.parse.cron(schedule.crontab)
+            const nextOcc = window.later.schedule(cronSchedule).next(1, currentTime)
+            if (nextOcc) debugLog(`[Evaluation] Next occurrence for "${schedule.name}" at ${new Date(nextOcc).toISOString()}`)
+        }
+    } catch { /* ignore */ }
 }

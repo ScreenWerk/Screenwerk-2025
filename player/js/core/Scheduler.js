@@ -18,6 +18,14 @@ import { fetchConfiguration } from './scheduler/ConfigurationLoader.js'
 import { preloadLayoutMedia } from './scheduler/Preloader.js'
 import { evaluateSchedules } from './scheduler/EvaluationEngine.js'
 import { initAnalytics, track as trackAnalytics, startHourlyMinute42Heartbeat } from '../analytics/Analytics.js'
+// Optional local configuration cache (Feature 011)
+let LocalStore = null
+try {
+    // Dynamic import pattern kept minimal to avoid hard failure if file missing
+    LocalStore = await import('../storage/LocalStore.js')
+} catch {
+    LocalStore = null
+}
 
 export class LayoutScheduler {
     /**
@@ -28,35 +36,47 @@ export class LayoutScheduler {
      * @param {number} pollingInterval - Configuration polling interval in ms (default: 5min)
      */
     constructor(configurationId, onLayoutChange, evaluationInterval = 30000, pollingInterval = 300000) {
-        // Parse constructor arguments
         const options = this.parseConstructorArgs(configurationId, onLayoutChange, evaluationInterval, pollingInterval)
-
         this.configurationId = options.configurationId
         this.onLayoutChange = options.onLayoutChange
         this.evaluationInterval = options.evaluationInterval
         this.pollingInterval = options.pollingInterval
-
         this.configuration = null
         this.currentLayoutId = null
-        this.isEvaluating = false // Prevent concurrent evaluations
-
-        this.isLoadingConfiguration = false // Prevent concurrent configuration loading
+        this.isEvaluating = false
+        this.isLoadingConfiguration = false
         this.isRunning = false
         this.destroyed = false
-
         this.evaluationTimer = null
         this.pollingTimer = null
-
         this.mediaService = new MediaService()
         this.mediaServiceReady = false
-        // Initialize analytics (graceful no-op if globals absent)
         try { initAnalytics(this.configurationId) } catch (e) { debugLog('[Scheduler] Analytics init failed', e) }
-
+        this.warmLoaded = this.tryWarmLoad()
         debugLog('[Scheduler] Clean Layout Scheduler initialized', {
             configurationId: this.configurationId,
             evaluationInterval: this.evaluationInterval,
-            pollingInterval: this.pollingInterval
+            pollingInterval: this.pollingInterval,
+            warmLoaded: this.warmLoaded
         })
+    }
+
+    tryWarmLoad() {
+        if (!LocalStore || !/^[0-9a-f]{24}$/.test(this.configurationId)) return false
+        try {
+            const cached = LocalStore.loadConfiguration(this.configurationId)
+            if (cached && cached.config) {
+                this.configuration = cached.config
+                debugLog('[Scheduler] Warm-loaded cached configuration', {
+                    configurationId: this.configurationId,
+                    schedules: cached.fingerprint?.schedules
+                })
+                return true
+            }
+        } catch (e) {
+            debugLog('[Scheduler] Warm-load failed', e)
+        }
+        return false
     }
 
     /**
@@ -113,10 +133,16 @@ export class LayoutScheduler {
                 debugLog('[Scheduler] Media service initialized successfully')
             }
 
-            // Load initial configuration
-            await this.loadConfiguration()
+            // Load initial configuration (allow immediate evaluation if warm-loaded)
+            if (this.warmLoaded && this.configuration) {
+                debugLog('[Scheduler] Using warm-loaded configuration; refreshing in background')
+                // Fire off background refresh without blocking initial start/evaluation
+                this.loadConfiguration().catch(err => console.error('[Scheduler] Background config refresh failed', err))
+            } else {
+                await this.loadConfiguration()
+            }
 
-            // Start evaluation and polling
+            // Start evaluation and polling (evaluation may use warm-loaded config immediately)
             this.startEvaluation()
             this.startConfigurationPolling()
             // Start heartbeat (42nd minute scheduling) passing provider for current layout
@@ -193,6 +219,13 @@ export class LayoutScheduler {
     }
 
     /**
+     * Manually trigger a schedule evaluation (public API for demo/testing)
+     */
+    async evaluateNow() {
+        return evaluateSchedules(this)
+    }
+
+    /**
      * Start configuration polling timer
      * @private
      */
@@ -240,7 +273,8 @@ export class LayoutScheduler {
         }
 
         if (layoutId === this.currentLayoutId) {
-            // No change needed
+            // No change needed; explicit debug for visibility
+            debugLog('[Scheduler] Layout unchanged, skipping reload', { layoutId })
             return
         }
 
