@@ -12,14 +12,12 @@
     <!-- Load module scripts -->
     <script src="/player/js/sw-player.js" type="module"></script> <!-- Updated path -->
     <script defer src="/dashboard/js/script.js" type="module"></script> <!-- Updated path -->
-    <script defer data-domain="screenwerk.entu.ee" src="https://plausible.io/js/script.js"></script>
-    <script>
-    setTimeout(function() {
-      if (typeof window.plausible === "undefined") {
-        alert("Analytics is being blocked by your browser or an extension. Please consider disabling your ad blocker for full functionality.");
-      }
-    }, 2000);
-    </script>
+    <script
+      src="https://analytics.entu.dev/ea.min.js"
+      data-site="screenwerk.ee"
+      crossorigin="anonymous"
+      defer
+    ></script>
 </head>
 <body>
     <header class="build-info">

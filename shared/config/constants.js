@@ -5,7 +5,7 @@
 function detectEnvironment() {
     if (typeof window !== 'undefined' && window.location) {
         const host = window.location.hostname
-        if (host === 'screenwerk.entu.ee') return 'live'
+        if (host === 'screenwerk.ee') return 'live'
         if (host === 'localhost' || host === '127.0.0.1') return 'local'
     }
     return 'dev'
