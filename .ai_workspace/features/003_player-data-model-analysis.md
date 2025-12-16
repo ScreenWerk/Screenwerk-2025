@@ -466,7 +466,7 @@ This approach gives us clean separation: **Scheduler handles time-based logic, P
 
 **Working end-to-end integration** from ScreenWerk Publisher API to player content display:
 
-- ✅ **Real-time configuration fetching** from `https://swpublisher.entu.eu/screen/{screenId}.json`
+- ✅ **Real-time configuration fetching** from `https://files.screenwerk.ee/screen/{screenId}.json`
 - ✅ **Proper media URL construction** using `getPublisherFilesApiUrl(mediaEid, fileEid)`
 - ✅ **Complete scheduler + player architecture** functioning with live data
 

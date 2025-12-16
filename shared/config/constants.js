@@ -21,12 +21,12 @@ export const ENTU_FRONTEND_URL = `https://${HOSTNAME}/${ACCOUNT}`
 export const SCREENWERK_PUBLISHER_API =
     ENVIRONMENT === 'dev'
         ? '/api/swpublisher/screen/'
-        : 'https://swpublisher.entu.eu/screen/'
+        : 'https://files.screenwerk.ee/screen/'
 
 export const PUBLISHER_FILES_API_BASE =
     ENVIRONMENT === 'dev'
         ? '/api/swpublisher/media/'
-        : 'https://swpublisher.entu.eu/media/'
+        : 'https://files.screenwerk.ee/media/'
 
 export function getPublisherFilesApiUrl(media_eid, file_eid) {
     return `${PUBLISHER_FILES_API_BASE}${media_eid}/${file_eid}`
