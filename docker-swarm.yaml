@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/ScreenWerk/Screenwerk-2025:latest
+    image: ghcr.io/screenwerk/screenwerk-2025:latest
 
     ports:
       - target: 8080
