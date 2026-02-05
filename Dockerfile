@@ -27,13 +27,9 @@ COPY index.md /usr/share/nginx/html/index.md
 # Copy generated build info from builder
 COPY --from=builder /app/build-info.js /usr/share/nginx/html/build-info.js
 
-# Create cache directories and set permissions for non-root nginx user
-RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run \
-    && chmod -R 755 /usr/share/nginx/html \
-    && mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp \
-       /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp \
-       /var/cache/nginx/scgi_temp \
-    && chown -R nginx:nginx /var/cache/nginx
+# Configure for non-root nginx user
+RUN sed -i 's|/run/nginx.pid|/tmp/nginx.pid|' /etc/nginx/nginx.conf \
+    && chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx
 
 USER nginx
 
