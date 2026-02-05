@@ -1,5 +1,5 @@
 // Dashboard-local UI Visibility Modal (migrated legacy modal implementation; original directory removed)
-import { UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../../config/ui-constants.js'
+import { UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../config/ui-constants.js'
 
 const MODAL_ID = 'ui-visibility-modal'
 const FORM_ID = 'ui-visibility-form'
