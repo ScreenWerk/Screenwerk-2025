@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    container_name: web
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "${PORT:-8080}:8080"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /var/run:uid=101,gid=101
+      - /tmp:uid=101,gid=101
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M

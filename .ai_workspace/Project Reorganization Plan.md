@@ -52,7 +52,6 @@ The restructuring recognizes that the project contains two equal applications - 
 │   └── cron.test.js              # Tests for cron functionality
 ├── service-worker.js             # Service worker for offline support
 ├── git-info.js                   # Generated git info
-├── netlify.toml                  # Netlify configuration
 ├── package.json                  # Project dependencies
 ├── babel.config.js               # Babel configuration
 ├── README.md                     # Project documentation

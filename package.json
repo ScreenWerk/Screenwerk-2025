@@ -6,8 +6,6 @@
   },
   "scripts": {
     "test": "echo \"No tests specified\" && exit 0",
-    "generate-build-info-netlify": "node scripts/generate-build-info-netlify.js",
-    "generate-build-info-digitalocean": "node scripts/generate-build-info-digitalocean.js",
     "build": "echo \"No build step required - static site ready to deploy\"",
   "complexity": "npx eslint . | grep -E '(complexity|Parsing error)' || echo 'No complexity warnings found!'"
   },
