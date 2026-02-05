@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SW25 Project Index</title>
-  <link rel="stylesheet" href="./player/css/style.css">
   <style>
     body { max-width: 800px; margin: 2em auto; font-family: system-ui, Arial, sans-serif; background: #fafbfc; }
     #markdown-doc { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -31,7 +30,7 @@
   <div id="markdown-doc">Loading documentation...</div>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    fetch('./index.md')
+    fetch('/index.md')
       .then(resp => resp.text())
       .then(md => {
         document.getElementById('markdown-doc').innerHTML = marked.parse(md)

@@ -10,6 +10,8 @@ COPY dashboard/ /usr/share/nginx/html/dashboard/
 COPY shared/ /usr/share/nginx/html/shared/
 COPY public/images/ /usr/share/nginx/html/public/images/
 COPY build-info.js /usr/share/nginx/html/build-info.js
+COPY index.html /usr/share/nginx/html/index.html
+COPY index.md /usr/share/nginx/html/index.md
 
 # Create cache directories and set permissions for non-root nginx user
 RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run \

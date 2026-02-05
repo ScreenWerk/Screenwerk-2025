@@ -14,7 +14,7 @@
     ></script>
 
     <!-- Include Later.js for cron schedule evaluation -->
-    <script src="../../shared/vendor/later.min.js"></script>
+    <script src="/shared/vendor/later.min.js"></script>
 
     <style>
       body {
@@ -230,10 +230,10 @@
       window.debugMode = true;
 
       // Import our clean classes
-      import { ScreenWerkPlayer } from "./js/core/Player.js";
-      import { LayoutScheduler } from "./js/core/Scheduler.js";
-      import { SCREENWERK_PUBLISHER_API } from "../../shared/config/constants.js";
-  import * as LocalStore from './js/storage/LocalStore.js'
+      import { ScreenWerkPlayer } from "/player/js/core/Player.js";
+      import { LayoutScheduler } from "/player/js/core/Scheduler.js";
+      import { SCREENWERK_PUBLISHER_API } from "/shared/config/constants.js";
+      import * as LocalStore from '/player/js/storage/LocalStore.js'
 
       let player = null;
       let scheduler = null;
