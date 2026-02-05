@@ -1,6 +1,6 @@
 import { groupEntities } from './data.js'
 import { toolbarSnippet } from './ui.js'
-import { EntuScreenWerkPlayer } from '../../player/js/sw-player.js'
+import { ScreenWerkPlayer } from '../../player/js/core/Player.js'
 import { debugLog } from '../../shared/utils/debug-utils.js'
 
 export function updateProgressBar(progress) {
@@ -117,7 +117,7 @@ function createScreenGroupSection(screen_group_id, screen_group, configuration) 
 function initializePlayer(playerElementE, playerPanelE, screen_group_id, configuration) {
     if (configuration) {
         try {
-            playerElementE.SwPlayer = new EntuScreenWerkPlayer(playerElementE, configuration)
+            playerElementE.SwPlayer = new ScreenWerkPlayer(playerElementE, configuration)
             console.log(`Player initialized for screen group: ${screen_group_id}`)
         } catch (error) {
             console.error(`Error initializing player for screen group: ${screen_group_id}`, error)

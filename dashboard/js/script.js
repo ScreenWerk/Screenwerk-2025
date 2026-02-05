@@ -5,7 +5,7 @@
 import { displayConfigurations } from './display.js'
 import { setupUIVisibilityModal } from './ui/ui-visibility-modal.js'
 import { ENVIRONMENT } from '../../shared/config/constants.js'
-import { UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from '../config/ui-constants.js'
+import { UI_VISIBILITY, DEFAULT_UI_VISIBILITY } from './config/ui-constants.js'
 
 // Disclaimer: no semicolons, if unnecessary, are used in this project
 
