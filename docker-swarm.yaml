@@ -8,10 +8,10 @@ services:
         mode: host
 
     networks:
-      - webnet
+      - vpc-overlay
 
     deploy:
-      replicas: 1
+      replicas: 2
       update_config:
         parallelism: 1
         delay: 10s
@@ -48,5 +48,5 @@ services:
       retries: 3
 
 networks:
-  webnet:
-    driver: overlay
+  vpc-overlay:
+    external: true
